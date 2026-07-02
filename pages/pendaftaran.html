@@ -1,51 +1,1121 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
+
 <head>
-<title>Pendaftaran</title>
+    <meta charset="UTF-8">
+    <title>SIMRS Amino - Pendaftaran</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --navy: #1a2a6c;
+            --navy-dark: #0f1a4a;
+            --blue-accent: #2b3a8f;
+            --bg: #eef1fa;
+            --panel: #ffffff;
+            --border: #e1e5f2;
+            --text-dark: #1c2440;
+            --text-muted: #6b7280;
+            --green: #16a34a;
+            --green-bg: #e7f8ee;
+            --red: #dc2626;
+        }
 
-<style>
-body {font-family: Arial; margin:0; background:#f4f6fb;}
-.container {margin-left:240px; padding:20px;}
-.card {background:white; padding:20px; border-radius:10px;}
+        * {
+            box-sizing: border-box;
+        }
 
-input, select {
-    width:100%;
-    padding:10px;
-    margin:8px 0;
-}
-button {
-    padding:10px 15px;
-    background:#0f2d52;
-    color:white;
-    border:none;
-}
-</style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text-dark);
+            font-size: 14px;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* ===== Layout ===== */
+        .app {
+            display: grid;
+            grid-template-columns: 270px 1fr;
+            min-height: 100vh;
+        }
+
+        /* ===== Sidebar ===== */
+        .sidebar {
+            background: #f4f6fc;
+            border-right: 1px solid var(--border);
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand {
+            padding: 0 8px 20px 8px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .brand h1 {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--navy);
+            margin: 0;
+        }
+
+        .brand p {
+            margin: 2px 0 0 0;
+            font-size: 11px;
+            letter-spacing: .5px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .nav {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            font-weight: 500;
+            color: #3a3f55;
+            cursor: pointer;
+        }
+
+        .nav-item svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .nav-item:hover {
+            background: #e7ebfa;
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--blue-accent) 100%);
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(26, 42, 108, .25);
+        }
+
+        .sidebar-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn-help {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #0f6b4f;
+            color: #fff;
+            font-weight: 600;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .logout {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            color: var(--red);
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* ===== Topbar ===== */
+        .main {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 16px 32px;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hospital-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--navy-dark);
+            white-space: nowrap;
+        }
+
+        .search-box {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f3f5fb;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 16px;
+            max-width: 520px;
+            color: var(--text-muted);
+        }
+
+        .search-box svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .search-box input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            width: 100%;
+            color: var(--text-dark);
+        }
+
+        .topbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .doctor-info {
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        .doctor-info .name {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .doctor-info .role {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .icon-btn {
+            position: relative;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #f3f5fb;
+            cursor: pointer;
+            color: #4b5065;
+        }
+
+        .icon-btn svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .icon-btn .dot {
+            position: absolute;
+            top: 6px;
+            right: 7px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--red);
+            border: 1.5px solid #fff;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid var(--navy);
+        }
+
+        /* ===== Content Grid ===== */
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+            padding: 24px 32px;
+            align-items: start;
+        }
+
+        /* ===== Form Panel ===== */
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px 32px;
+            box-shadow: 0 1px 3px rgba(20, 25, 60, .04);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .panel-title svg {
+            width: 20px;
+            height: 20px;
+            color: var(--navy);
+        }
+
+        .status-pill {
+            background: var(--green-bg);
+            color: var(--green);
+            font-weight: 600;
+            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 999px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 24px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field.full {
+            grid-column: 1 / -1;
+        }
+
+        .field label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333850;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13.5px;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            background: #fbfcff;
+            outline: none;
+            color: var(--text-dark);
+            transition: border-color .15s;
+        }
+
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
+            border-color: var(--blue-accent);
+            background: #fff;
+        }
+
+        .field textarea {
+            resize: vertical;
+            min-height: 110px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .field select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.6' fill='none' fill-rule='evenodd'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+
+        .btn-inline {
+            position: absolute;
+            right: 6px;
+            top: 6px;
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 9px 14px;
+            border-radius: 7px;
+            cursor: pointer;
+        }
+
+        .field input.has-inline-btn {
+            padding-right: 112px;
+        }
+
+        .verified-note {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--green);
+        }
+
+        .verified-note svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .date-input-wrap {
+            position: relative;
+        }
+
+        .date-input-wrap svg {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: #9aa1b5;
+            pointer-events: none;
+        }
+
+        .payer-block {
+            grid-column: 1 / -1;
+            background: #f6f8fd;
+            border-radius: 14px;
+            padding: 22px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 4px;
+        }
+
+        .payer-label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+            color: #333850;
+        }
+
+        .payer-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .payer-card {
+            background: #fff;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4b5065;
+            cursor: pointer;
+        }
+
+        .payer-card svg {
+            width: 22px;
+            height: 22px;
+            color: #4b5065;
+        }
+
+        .payer-card.active {
+            border-color: var(--navy);
+            background: #f0f3ff;
+            color: var(--navy);
+            box-shadow: 0 0 0 1px var(--navy);
+        }
+
+        .payer-card.active svg {
+            color: var(--navy);
+        }
+
+        .submit-btn {
+            grid-column: 1 / -1;
+            margin-top: 8px;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--blue-accent) 100%);
+            color: #fff;
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(26, 42, 108, .28);
+        }
+
+        .submit-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* ===== Right Column ===== */
+        .side-col {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--blue-accent) 100%);
+            border-radius: 16px;
+            padding: 24px;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            right: -30px;
+            top: -30px;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .06);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            letter-spacing: .6px;
+            font-weight: 700;
+            opacity: .85;
+            margin-bottom: 6px;
+        }
+
+        .stat-number {
+            font-size: 44px;
+            font-weight: 800;
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .stat-number span {
+            font-size: 16px;
+            font-weight: 500;
+            opacity: .9;
+        }
+
+        .stat-breakdown {
+            display: flex;
+            gap: 16px;
+            margin-top: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            opacity: .85;
+        }
+
+        .activity-card,
+        .map-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .card-head-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .card-head-title svg {
+            width: 17px;
+            height: 17px;
+            color: var(--navy);
+        }
+
+        .card-head a {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--blue-accent);
+        }
+
+        .activity-item {
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+            padding-bottom: 6px;
+        }
+
+        .activity-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .rm-code {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--blue-accent);
+        }
+
+        .activity-time {
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+
+        .patient-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+
+        .activity-tags {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tag {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+
+        .tag.bpjs {
+            background: var(--green-bg);
+            color: var(--green);
+        }
+
+        .tag.tunai {
+            background: #fef3e0;
+            color: #b8790a;
+        }
+
+        .poli-tag {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .poli-tag svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        .map-thumb {
+            position: relative;
+            height: 150px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #3b1030, #150a1e 60%, #2a1520);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .map-btn {
+            background: #fff;
+            color: var(--navy-dark);
+            font-weight: 700;
+            font-size: 13px;
+            padding: 10px 18px;
+            border-radius: 9px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .map-caption {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-top: 12px;
+            line-height: 1.5;
+        }
+
+        /* ===== Footer ===== */
+        .footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 32px;
+            background: #fff;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: auto;
+        }
+
+        .footer-status {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-status span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="container">
+    <div class="app">
 
-<h2>Pendaftaran Pasien</h2>
+        <!-- ===== Sidebar ===== -->
+        <aside class="sidebar">
+            <div class="brand">
+                <h1>SIMRS Amino</h1>
+                <p>PROVINSI JAWA TENGAH</p>
+            </div>
 
-<div class="card">
-    <label>Nama Pasien</label>
-    <input type="text">
+            <nav class="nav">
+                <div class="nav-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M19 8v6M22 11h-6" />
+                    </svg>
+                    Pendaftaran
+                </div>
+                <div class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" />
+                        <path d="M16 2v4M8 2v4M3 10h18" />
+                    </svg>
+                    Antrean
+                </div>
+                <div class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 12h6M9 16h6M9 8h6M5 4h14a1 1 0 0 1 1 1v16l-4-3H6l-4 3V5a1 1 0 0 1 1-1z" />
+                    </svg>
+                    Pemeriksaan
+                </div>
+                <div class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 20h16M4 4h16M9 4v16M15 4v16" />
+                    </svg>
+                    Farmasi
+                </div>
+                <div class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="M21 21l-4.3-4.3" />
+                    </svg>
+                    Laboratorium
+                </div>
+                <div class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <circle cx="9" cy="9" r="2" />
+                        <path d="M21 15l-5-5L5 21" />
+                    </svg>
+                    Radiologi
+                </div>
+                <div class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12h4l3 9 4-18 3 9h4" />
+                    </svg>
+                    Rawat Inap
+                </div>
+                <div class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 8v4l3 3M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" />
+                    </svg>
+                    IGD
+                </div>
+                <div class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="12" rx="2" />
+                        <path d="M12 3v4M2 13h20" />
+                    </svg>
+                    Kasir
+                </div>
+                <div class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                        <path d="M3.3 7l8.7 5 8.7-5M12 22V12" />
+                    </svg>
+                    Logistik
+                </div>
+                <div class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 3v18h18M7 15l4-4 4 4 5-5" />
+                    </svg>
+                    Laporan
+                </div>
+                <div class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg>
+                    Pengaturan
+                </div>
+            </nav>
 
-    <label>Nomor BPJS / NIK</label>
-    <input type="text">
+            <div class="sidebar-footer">
+                <div class="btn-help">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M9.1 9a3 3 0 1 1 5.8 1c0 2-3 2-3 4M12 17h.01" />
+                    </svg>
+                    Bantuan Teknis
+                </div>
+                <div class="logout">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+                    </svg>
+                    Log Out
+                </div>
+            </div>
+        </aside>
 
-    <label>Poli Tujuan</label>
-    <select>
-        <option>Poli Jiwa</option>
-        <option>Poli Umum</option>
-        <option>Poli Bedah</option>
-    </select>
+        <!-- ===== Main ===== -->
+        <div class="main">
 
-    <button>Daftarkan</button>
-</div>
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="hospital-name">RSJD Dr. Amino Gondohutomo</div>
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="M21 21l-4.3-4.3" />
+                    </svg>
+                    <input type="text" placeholder="Cari Pasien Lama (Nama/No.RM/NIK)...">
+                </div>
+                <div class="topbar-right">
+                    <div class="doctor-info">
+                        <div class="name">Dokter Utama</div>
+                        <div class="role">ADMINISTRATOR</div>
+                    </div>
+                    <div class="icon-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+                        </svg>
+                        <span class="dot"></span>
+                    </div>
+                    <div class="icon-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M9.1 9a3 3 0 1 1 5.8 1c0 2-3 2-3 4M12 17h.01" />
+                        </svg>
+                    </div>
+                    <div class="icon-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3" />
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                        </svg>
+                    </div>
+                    <img class="avatar"
+                        src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=100&h=100&fit=crop&crop=faces"
+                        alt="avatar">
+                </div>
+            </header>
 
-</div>
+            <!-- Content -->
+            <div class="content">
+
+                <!-- Form Panel -->
+                <section class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="6" cy="6" r="1.5" />
+                                <circle cx="12" cy="6" r="1.5" />
+                                <circle cx="18" cy="6" r="1.5" />
+                                <circle cx="6" cy="12" r="1.5" />
+                                <circle cx="12" cy="12" r="1.5" />
+                                <circle cx="18" cy="12" r="1.5" />
+                                <circle cx="6" cy="18" r="1.5" />
+                                <circle cx="12" cy="18" r="1.5" />
+                                <circle cx="18" cy="18" r="1.5" />
+                            </svg>
+                            Form Pendaftaran Pasien Baru
+                        </div>
+                        <span class="status-pill">Status: Online</span>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="field">
+                            <label>Nomor Induk Kependudukan (NIK)</label>
+                            <div class="input-wrap">
+                                <input type="text" class="has-inline-btn" placeholder="16-digit nomor NIK"
+                                    value="3374xxxxxxxxxxxx">
+                                <button class="btn-inline">Cek Dukcapil</button>
+                            </div>
+                            <div class="verified-note">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M8 12l3 3 5-6" />
+                                </svg>
+                                NIK Terverifikasi Sistem Dukcapil
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label>Nama Lengkap Sesuai Identitas</label>
+                            <input type="text" placeholder="Masukkan nama lengkap">
+                        </div>
+
+                        <div class="field">
+                            <label>Tanggal Lahir</label>
+                            <div class="date-input-wrap">
+                                <input type="text" placeholder="mm/dd/yyyy">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                                    <path d="M16 2v4M8 2v4M3 10h18" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label>Nomor Telepon / WhatsApp</label>
+                            <input type="text" placeholder="08xx-xxxx-xxxx">
+                        </div>
+
+                        <div class="field full">
+                            <label>Alamat Lengkap</label>
+                            <textarea placeholder="Jl. Alamat Lengkap, RT/RW, Kelurahan, Kecamatan"></textarea>
+                        </div>
+
+                        <div class="payer-block">
+                            <div>
+                                <label class="payer-label">Pilih Poliklinik Tujuan</label>
+                                <select>
+                                    <option>-- Pilih Poliklinik --</option>
+                                    <option>Poli Jiwa Umum</option>
+                                    <option>Poli NAPZA</option>
+                                    <option>Psikiatri Anak</option>
+                                    <option>Layanan Psikologi</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="payer-label">Jenis Penjamin / Payer</label>
+                                <div class="payer-options">
+                                    <div class="payer-card active">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="2" y="7" width="20" height="12" rx="2" />
+                                            <path d="M2 11h20" />
+                                        </svg>
+                                        BPJS
+                                    </div>
+                                    <div class="payer-card">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 21h18M5 21V9l7-6 7 6v12M9 21v-6h6v6" />
+                                        </svg>
+                                        Askes
+                                    </div>
+                                    <div class="payer-card">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="9" />
+                                            <path d="M8 12h8M12 8v8" />
+                                        </svg>
+                                        Tunai
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="submit-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="16" rx="2" />
+                                <path d="M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01" />
+                            </svg>
+                            Generate & Cetak Nomor Antrian
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Right column -->
+                <aside class="side-col">
+                    <div class="stat-card">
+                        <div class="stat-label">TOTAL PENDAFTARAN HARI INI</div>
+                        <div class="stat-number">142 <span>Pasien</span></div>
+                        <div class="stat-breakdown">
+                            <span>BPJS</span>
+                            <span>UMUM/ASKES</span>
+                        </div>
+                    </div>
+
+                    <div class="activity-card">
+                        <div class="card-head">
+                            <div class="card-head-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M12 6v6l4 2" />
+                                </svg>
+                                Aktivitas Terbaru
+                            </div>
+                            <a href="#">Lihat Semua</a>
+                        </div>
+
+                        <div class="activity-item">
+                            <div class="activity-top">
+                                <span class="rm-code">RM-2023-9811</span>
+                                <span class="activity-time">09:45 WIB</span>
+                            </div>
+                            <div class="patient-name">Budi Setiawan, Tn.</div>
+                            <div class="activity-tags">
+                                <span class="tag bpjs">BPJS</span>
+                                <span class="poli-tag">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 21h18M5 21V9l7-6 7 6v12M9 21v-6h6v6" />
+                                    </svg>
+                                    Poli Jiwa Umum
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="activity-item">
+                            <div class="activity-top">
+                                <span class="rm-code">RM-2023-9810</span>
+                                <span class="activity-time">09:32 WIB</span>
+                            </div>
+                            <div class="patient-name">Siti Aminah, Ny.</div>
+                            <div class="activity-tags">
+                                <span class="tag tunai">Tunai</span>
+                                <span class="poli-tag">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 21h18M5 21V9l7-6 7 6v12M9 21v-6h6v6" />
+                                    </svg>
+                                    Layanan Psikologi
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="activity-item">
+                            <div class="activity-top">
+                                <span class="rm-code">RM-2023-9809</span>
+                                <span class="activity-time">09:15 WIB</span>
+                            </div>
+                            <div class="patient-name">Rangga Pratama, An.</div>
+                            <div class="activity-tags">
+                                <span class="tag bpjs">BPJS</span>
+                                <span class="poli-tag">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 21h18M5 21V9l7-6 7 6v12M9 21v-6h6v6" />
+                                    </svg>
+                                    Psikiatri Anak
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="activity-item">
+                            <div class="activity-top">
+                                <span class="rm-code">RM-2023-9808</span>
+                                <span class="activity-time">08:55 WIB</span>
+                            </div>
+                            <div class="patient-name">Agus Mulyanto, Bp.</div>
+                            <div class="activity-tags">
+                                <span class="tag bpjs">BPJS</span>
+                                <span class="poli-tag">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 21h18M5 21V9l7-6 7 6v12M9 21v-6h6v6" />
+                                    </svg>
+                                    Poli NAPZA
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="map-card">
+                        <div class="card-head">
+                            <div class="card-head-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z" />
+                                </svg>
+                                Lokasi Poliklinik
+                            </div>
+                        </div>
+                        <div class="map-thumb">
+                            <button class="map-btn">Buka Denah Gedung</button>
+                        </div>
+                        <div class="map-caption">*Gunakan denah ini untuk memandu pasien baru menuju lokasi poliklinik
+                            tujuan.</div>
+                    </div>
+                </aside>
+
+            </div>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <span>© 2024 RSJD Dr. Amino Gondohutomo | SIMRS V.3.2.1</span>
+                <div class="footer-status">
+                    <span><span class="status-dot"></span> Sistem Dukcapil Terkoneksi</span>
+                    <span><span class="status-dot"></span> VClaim BPJS Aktif</span>
+                </div>
+            </footer>
+
+        </div>
+    </div>
 
 </body>
+
 </html>
