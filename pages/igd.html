@@ -1,8 +1,1132 @@
-<div class="container">
-<h2>IGD</h2>
+<!DOCTYPE html>
+<html lang="id">
 
-<div class="card">
-<p>Pasien Critical</p>
-<button>Masukkan ke TPPRI</button>
-</div>
-</div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IGD Triage - SIMRS Amino</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --navy: #1b2a9c;
+            --navy-dark: #08184f;
+            --blue: #263aaf;
+            --bg: #eef1fa;
+            --panel: #ffffff;
+            --border: #e1e5f2;
+            --text: #101936;
+            --muted: #8a92aa;
+            --red: #dc2626;
+            --red-bg: #fff1f1;
+            --yellow: #d97706;
+            --yellow-bg: #fff7df;
+            --green: #16a34a;
+            --green-bg: #eaf8f0;
+            --shadow: 0 4px 14px rgba(18, 32, 90, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        #navbar-container {
+            flex-shrink: 0;
+        }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            height: 64px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 0 26px;
+        }
+
+        .module-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--navy-dark);
+            white-space: nowrap;
+        }
+
+        .module-title span {
+            color: var(--navy);
+        }
+
+        .search-box {
+            width: 360px;
+            max-width: 42vw;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            background: #f6f7fc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 12px;
+        }
+
+        .search-box svg {
+            width: 15px;
+            height: 15px;
+            color: var(--muted);
+        }
+
+        .search-box input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12.5px;
+            color: var(--text);
+        }
+
+        .topbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .top-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: #f6f7fc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4d5674;
+        }
+
+        .top-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .system-status {
+            border-left: 1px solid var(--border);
+            padding-left: 14px;
+            line-height: 1.2;
+        }
+
+        .system-status small {
+            display: block;
+            font-size: 9px;
+            letter-spacing: .7px;
+            font-weight: 800;
+            color: var(--muted);
+        }
+
+        .system-status span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+
+        .content {
+            padding: 22px 26px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .page-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .page-title h1 {
+            margin: 0;
+            font-size: 21px;
+            font-weight: 800;
+            color: var(--navy-dark);
+        }
+
+        .page-title p {
+            margin: 4px 0 0;
+            font-size: 12.5px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .head-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 11px 16px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .btn-primary {
+            background: var(--navy);
+            color: #fff;
+            box-shadow: 0 5px 14px rgba(27, 42, 156, .22);
+        }
+
+        .btn-danger {
+            background: #fff;
+            color: var(--red);
+            border: 1px solid #ffb3b3;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .triage-col {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .triage-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 17px 18px;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+
+        .triage-card.red {
+            border-color: #ff9b9b;
+            background: var(--red-bg);
+        }
+
+        .triage-card.yellow {
+            border-color: #f7c96d;
+            background: var(--yellow-bg);
+        }
+
+        .triage-card.green {
+            border-color: #8bddaa;
+            background: var(--green-bg);
+        }
+
+        .triage-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 9px;
+            border-radius: 4px;
+            font-size: 9.5px;
+            font-weight: 800;
+            letter-spacing: .3px;
+            text-transform: uppercase;
+            margin-bottom: 11px;
+        }
+
+        .triage-card.red .triage-label {
+            background: var(--red);
+            color: #fff;
+        }
+
+        .triage-card.yellow .triage-label {
+            background: #f2b400;
+            color: #111936;
+        }
+
+        .triage-card.green .triage-label {
+            background: var(--green);
+            color: #fff;
+        }
+
+        .triage-alert {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .triage-card.red .triage-alert {
+            color: var(--red);
+        }
+
+        .triage-card.yellow .triage-alert {
+            color: var(--yellow);
+        }
+
+        .triage-card.green .triage-alert {
+            color: var(--green);
+        }
+
+        .triage-number {
+            font-size: 33px;
+            font-weight: 800;
+            color: var(--navy-dark);
+            line-height: 1;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .triage-desc {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #44506d;
+        }
+
+        .triage-note {
+            margin-top: 8px;
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--red);
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        .panel {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .panel-head {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .panel-head h2 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--navy-dark);
+            letter-spacing: .3px;
+        }
+
+        .live-badge {
+            padding: 5px 9px;
+            border-radius: 4px;
+            background: #eef2ff;
+            color: var(--navy);
+            font-size: 9.5px;
+            font-weight: 800;
+        }
+
+        .tracker-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .tracker-table th {
+            background: #f5f7fc;
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .5px;
+            text-align: left;
+            padding: 12px 14px;
+            text-transform: uppercase;
+        }
+
+        .tracker-table td {
+            padding: 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            font-size: 12px;
+        }
+
+        .tracker-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .patient-main {
+            font-weight: 800;
+            color: var(--navy-dark);
+            font-size: 12.5px;
+            line-height: 1.25;
+        }
+
+        .patient-sub {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+        .complaint {
+            font-size: 10px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .complaint.red {
+            color: var(--red);
+        }
+
+        .complaint.yellow {
+            color: var(--yellow);
+        }
+
+        .complaint.green {
+            color: var(--green);
+        }
+
+        .status-circle {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-circle.red {
+            background: #ef4444;
+        }
+
+        .status-circle.yellow {
+            background: #eab308;
+        }
+
+        .status-circle.green {
+            background: #22c55e;
+        }
+
+        .time-red {
+            font-weight: 800;
+            color: var(--red);
+        }
+
+        .time-blue {
+            font-weight: 800;
+            color: var(--navy);
+        }
+
+        .btn-mini {
+            border: 1px solid var(--navy);
+            background: var(--navy);
+            color: #fff;
+            border-radius: 5px;
+            padding: 7px 10px;
+            font-size: 9.5px;
+            font-weight: 800;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+        }
+
+        .btn-mini.outline {
+            background: #fff;
+            color: var(--navy);
+        }
+
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .form-panel {
+            padding: 18px 20px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-title h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--navy-dark);
+        }
+
+        .step-pill {
+            background: #eef2ff;
+            color: var(--navy);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .field label {
+            font-size: 10px;
+            color: #5d6680;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            border: 1px solid var(--border);
+            background: #f7f9fd;
+            border-radius: 7px;
+            padding: 11px 12px;
+            outline: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            color: var(--text);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 16px;
+            margin-top: 18px;
+        }
+
+        .btn-clear {
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            font-family: 'Poppins', sans-serif;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .bed-panel {
+            padding: 18px;
+        }
+
+        .bed-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .bed-item {
+            border-left: 4px solid;
+            background: #f7f9fd;
+            border-radius: 8px;
+            padding: 12px 13px;
+        }
+
+        .bed-item.red {
+            border-color: var(--red);
+        }
+
+        .bed-item.yellow {
+            border-color: var(--yellow);
+        }
+
+        .bed-item.green {
+            border-color: var(--green);
+        }
+
+        .bed-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .bed-name {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--navy-dark);
+            text-transform: uppercase;
+        }
+
+        .bed-area {
+            font-size: 9.5px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .bed-number {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--navy-dark);
+        }
+
+        .bed-number.red {
+            color: var(--red);
+        }
+
+        .bed-number span {
+            font-size: 10px;
+            color: var(--muted);
+            display: block;
+            text-align: right;
+            margin-top: -2px;
+        }
+
+        .load-title {
+            margin-top: 16px;
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .load-bar {
+            height: 8px;
+            border-radius: 8px;
+            background: #dfe6f7;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .load-fill {
+            height: 100%;
+            width: 65%;
+            background: var(--navy);
+            border-radius: 8px;
+        }
+
+        .load-caption {
+            font-size: 10px;
+            color: var(--muted);
+            font-weight: 700;
+            text-align: right;
+            margin-top: 7px;
+        }
+
+        .alert-bar {
+            margin-top: 18px;
+            background: #162947;
+            color: #fff;
+            border-radius: 12px;
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 8px 20px rgba(12, 24, 48, .18);
+        }
+
+        .alert-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            background: var(--red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .alert-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .alert-text {
+            flex: 1;
+        }
+
+        .alert-text strong {
+            display: block;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .alert-text span {
+            display: block;
+            font-size: 11px;
+            color: #cbd5e1;
+            margin-top: 2px;
+        }
+
+        .ambulance {
+            text-align: right;
+            padding-right: 8px;
+        }
+
+        .ambulance small {
+            display: block;
+            font-size: 9px;
+            color: #aeb9ca;
+            font-weight: 800;
+            letter-spacing: .4px;
+        }
+
+        .ambulance strong {
+            display: block;
+            color: #ff4d4d;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .float-add {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        @media (max-width: 1180px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .triage-col {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .bottom-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            #navbar-container {
+                display: none;
+            }
+
+            .topbar {
+                height: auto;
+                padding: 14px 18px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100%;
+                max-width: none;
+            }
+
+            .topbar-right {
+                margin-left: 0;
+                justify-content: space-between;
+            }
+
+            .content {
+                padding: 18px;
+            }
+
+            .page-head {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .head-actions {
+                flex-direction: column;
+            }
+
+            .triage-col {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tracker-table {
+                min-width: 720px;
+            }
+
+            .table-scroll {
+                overflow-x: auto;
+            }
+
+            .alert-bar {
+                align-items: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .ambulance {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+
+        <div id="navbar-container"></div>
+
+        <main class="main">
+
+            <header class="topbar">
+                <div class="module-title">ER / <span>IGD</span></div>
+
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="M21 21l-4.3-4.3"></path>
+                    </svg>
+                    <input type="text" placeholder="Search Patient ID or Name...">
+                </div>
+
+                <div class="topbar-right">
+                    <div class="top-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.7 21a2 2 0 0 1-3.4 0"></path>
+                        </svg>
+                    </div>
+
+                    <div class="top-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.1 9a3 3 0 1 1 5.8 1c0 2-3 2-3 4M12 17h.01"></path>
+                        </svg>
+                    </div>
+
+                    <div class="system-status">
+                        <small>SYSTEM STATUS</small>
+                        <span><i class="status-dot"></i> Online</span>
+                    </div>
+                </div>
+            </header>
+
+            <section class="content">
+
+                <div class="page-head">
+                    <div class="page-title">
+                        <h1>Emergency Response Dashboard</h1>
+                        <p>Real-time triage monitoring and patient management.</p>
+                    </div>
+
+                    <div class="head-actions">
+                        <button class="btn btn-primary">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M19 8v6M22 11h-6"></path>
+                            </svg>
+                            RAPID REGISTRATION
+                        </button>
+
+                        <button class="btn btn-danger">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10.3 3h3.4l.7 3h3.1l1.6 3-2.2 2.2 1.1 3.1-2.8 2-2.6-1.8-2.6 1.8-2.8-2 1.1-3.1L6.1 9l1.6-3h3.1z"></path>
+                            </svg>
+                            MASS CASUALTY ALERT
+                        </button>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+
+                    <aside class="triage-col">
+                        <div class="triage-card red">
+                            <div class="triage-label">TRIAGE RED [P1]</div>
+                            <div class="triage-alert">*</div>
+                            <div>
+                                <span class="triage-number">03</span>
+                                <span class="triage-desc">Active Critical Cases</span>
+                            </div>
+                            <div class="triage-note">Immediate intervention required</div>
+                        </div>
+
+                        <div class="triage-card yellow">
+                            <div class="triage-label">TRIAGE YELLOW [P2]</div>
+                            <div class="triage-alert">!</div>
+                            <div>
+                                <span class="triage-number">08</span>
+                                <span class="triage-desc">Moderate Cases</span>
+                            </div>
+                        </div>
+
+                        <div class="triage-card green">
+                            <div class="triage-label">TRIAGE GREEN [P3]</div>
+                            <div class="triage-alert">◎</div>
+                            <div>
+                                <span class="triage-number">12</span>
+                                <span class="triage-desc">Mild Cases</span>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <section>
+                        <div class="panel">
+                            <div class="panel-head">
+                                <h2>ACTIVE TREATMENT TRACKER</h2>
+                                <span class="live-badge">LIVE RESPONSE 5s</span>
+                            </div>
+
+                            <div class="table-scroll">
+                                <table class="tracker-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Status</th>
+                                            <th>Patient Info</th>
+                                            <th>Arrival</th>
+                                            <th>Time Active</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><span class="status-circle red"></span></td>
+                                            <td>
+                                                <div class="patient-main">Ny. Sri Wahyuni (45th)</div>
+                                                <div class="patient-sub">ID: IGD-20231024-001 · Chart Plan / ACS</div>
+                                                <div class="complaint red">Chest Pain</div>
+                                            </td>
+                                            <td>08:12</td>
+                                            <td class="time-red">00:14:22</td>
+                                            <td><button class="btn-mini">DIRECT TO TPPRI</button></td>
+                                        </tr>
+
+                                        <tr>
+                                            <td><span class="status-circle yellow"></span></td>
+                                            <td>
+                                                <div class="patient-main">Tn. Bambang S. (32th)</div>
+                                                <div class="patient-sub">ID: IGD-20231024-004 · Open Fracture</div>
+                                                <div class="complaint yellow">Open Fracture Left Arm</div>
+                                            </td>
+                                            <td>08:30</td>
+                                            <td class="time-blue">00:45:10</td>
+                                            <td><button class="btn-mini outline">DIRECT TO TPPRI</button></td>
+                                        </tr>
+
+                                        <tr>
+                                            <td><span class="status-circle red"></span></td>
+                                            <td>
+                                                <div class="patient-main">An. Dika (8th)</div>
+                                                <div class="patient-sub">ID: IGD-20231024-007 · Seizure</div>
+                                                <div class="complaint red">Severe Dehydration</div>
+                                            </td>
+                                            <td>08:45</td>
+                                            <td class="time-red">00:08:45</td>
+                                            <td><button class="btn-mini">DIRECT TO TPPRI</button></td>
+                                        </tr>
+
+                                        <tr>
+                                            <td><span class="status-circle green"></span></td>
+                                            <td>
+                                                <div class="patient-main">Ny. Siti Aminah (60th)</div>
+                                                <div class="patient-sub">ID: IGD-20231024-009 · Nausea</div>
+                                                <div class="complaint green">Vomiting</div>
+                                            </td>
+                                            <td>09:10</td>
+                                            <td class="time-blue">00:05:00</td>
+                                            <td><button class="btn-mini outline">DIRECT TO TPPRI</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bottom-grid">
+                            <div class="panel form-panel">
+                                <div class="section-title">
+                                    <h3>Rapid Intake Form</h3>
+                                    <span class="step-pill">STEP 1: INTAKE</span>
+                                </div>
+
+                                <div class="form-grid">
+                                    <div class="field">
+                                        <label>Patient Identification</label>
+                                        <input type="text" placeholder="Scan QR or Enter NIK/Name">
+                                    </div>
+
+                                    <div class="field">
+                                        <label>Payer Type</label>
+                                        <select>
+                                            <option>BPJS Kesehatan</option>
+                                            <option>Umum / Tunai</option>
+                                            <option>Asuransi</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="field">
+                                        <label>Primary Complaint</label>
+                                        <input type="text" placeholder="e.g. Dyspnea, Trauma, Fever">
+                                    </div>
+
+                                    <div class="field">
+                                        <label>Companion Name / Relationship</label>
+                                        <input type="text" placeholder="Full Name (Relationship)">
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button class="btn-clear">CLEAR FORM</button>
+                                    <button class="btn btn-primary">SAVE & TRIAGE NEXT</button>
+                                </div>
+                            </div>
+
+                            <div class="panel bed-panel">
+                                <div class="section-title">
+                                    <h3>Bed Availability</h3>
+                                </div>
+
+                                <div class="bed-list">
+                                    <div class="bed-item red">
+                                        <div class="bed-row">
+                                            <div>
+                                                <div class="bed-name">Resuscitation</div>
+                                                <div class="bed-area">Area Merah</div>
+                                            </div>
+                                            <div class="bed-number red">1/2 <span>Available</span></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="bed-item yellow">
+                                        <div class="bed-row">
+                                            <div>
+                                                <div class="bed-name">Observation</div>
+                                                <div class="bed-area">Area Kuning</div>
+                                            </div>
+                                            <div class="bed-number">4/10 <span>Available</span></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="bed-item green">
+                                        <div class="bed-row">
+                                            <div>
+                                                <div class="bed-name">Ambulatory</div>
+                                                <div class="bed-area">Area Hijau</div>
+                                            </div>
+                                            <div class="bed-number">12/20 <span>Available</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="load-title">Facility Load</div>
+                                <div class="load-bar">
+                                    <div class="load-fill"></div>
+                                </div>
+                                <div class="load-caption">65% Capacity Utilized</div>
+                            </div>
+                        </div>
+
+                        <div class="alert-bar">
+                            <div class="alert-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10.3 3h3.4L22 20H2z"></path>
+                                    <path d="M12 9v4"></path>
+                                    <path d="M12 17h.01"></path>
+                                </svg>
+                            </div>
+
+                            <div class="alert-text">
+                                <strong>Regional Disaster Protocol: NORMAL</strong>
+                                <span>Last synced with BPBD Semarang at 09:15 AM. No active regional alerts.</span>
+                            </div>
+
+                            <div class="ambulance">
+                                <small>AMBULANCE ETA</small>
+                                <strong>08 MIN</strong>
+                            </div>
+
+                            <button class="float-add">+</button>
+                        </div>
+                    </section>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        function loadNavbar() {
+            fetch('../navbar.html')
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Navbar gagal dimuat.');
+                    }
+                    return response.text();
+                })
+                .then(function (html) {
+                    document.getElementById('navbar-container').innerHTML = html;
+
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+
+                    var current = window.location.pathname.split('/').pop();
+
+                    document.querySelectorAll('#navbar-container .nav-item').forEach(function (link) {
+                        if (link.getAttribute('data-page') === current) {
+                            link.classList.add('active');
+                        }
+                    });
+                })
+                .catch(function (error) {
+                    console.error(error);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadNavbar();
+        });
+    </script>
+</body>
+
+</html>

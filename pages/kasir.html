@@ -1,11 +1,1077 @@
-<div class="container">
-<h2>Kasir</h2>
+<!DOCTYPE html>
+<html lang="id">
 
-<div class="card">
-<p>Total Tagihan: Rp 810.000</p>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasir & Pembayaran - SIMRS Amino</title>
 
-<button>Bayar Tunai</button>
-<button>BPJS</button>
-</div>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
-</div>
+    <style>
+        :root {
+            --navy: #1b2a9c;
+            --navy-dark: #07164f;
+            --blue: #263aaf;
+            --bg: #eef2fb;
+            --panel: #ffffff;
+            --border: #e0e6f3;
+            --text: #0b1538;
+            --muted: #8b94ad;
+            --green: #16a34a;
+            --green-bg: #e8f8ef;
+            --red: #dc2626;
+            --red-bg: #ffecec;
+            --yellow: #d97706;
+            --yellow-bg: #fff7df;
+            --shadow: 0 4px 14px rgba(18, 32, 90, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        #navbar-container {
+            flex-shrink: 0;
+        }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            height: 64px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 0 26px;
+        }
+
+        .hospital-label {
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .hospital-label strong {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 800;
+            color: var(--navy-dark);
+        }
+
+        .hospital-label span {
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        .search-box {
+            width: 420px;
+            max-width: 44vw;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            background: #f5f7fc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 13px;
+        }
+
+        .search-box svg {
+            width: 15px;
+            height: 15px;
+            color: var(--muted);
+        }
+
+        .search-box input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12.5px;
+            color: var(--text);
+        }
+
+        .topbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .top-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: #f5f7fc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4d5674;
+            cursor: pointer;
+        }
+
+        .top-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .cashier-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 4px;
+        }
+
+        .cashier-text {
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        .cashier-text .name {
+            font-size: 12.5px;
+            font-weight: 800;
+            color: var(--navy-dark);
+        }
+
+        .cashier-text .role {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--navy), #4c5fdb);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .content {
+            padding: 22px 26px 24px;
+            display: grid;
+            grid-template-columns: 1fr 290px;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .left-col,
+        .right-col {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .billing-card {
+            padding: 20px;
+        }
+
+        .billing-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .billing-title h1 {
+            margin: 0;
+            font-size: 19px;
+            font-weight: 800;
+            color: var(--navy-dark);
+        }
+
+        .billing-title p {
+            margin: 5px 0 0;
+            font-size: 11.5px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .billing-title strong {
+            color: var(--navy);
+        }
+
+        .payer-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #d7fae7;
+            color: var(--green);
+            padding: 9px 13px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .payer-badge svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .patient-box {
+            background: #f6f8fd;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            display: grid;
+            grid-template-columns: 1.1fr 0.7fr 1fr auto;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .patient-label {
+            font-size: 9.5px;
+            color: var(--muted);
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .patient-value {
+            font-size: 12.5px;
+            font-weight: 800;
+            color: var(--navy-dark);
+            line-height: 1.35;
+        }
+
+        .detail-link {
+            border: none;
+            background: transparent;
+            color: var(--navy);
+            font-family: 'Poppins', sans-serif;
+            font-size: 11.5px;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .service-table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+
+        .service-table th {
+            background: #f3f6fc;
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            text-align: left;
+            padding: 12px 14px;
+            letter-spacing: .4px;
+        }
+
+        .service-table td {
+            padding: 15px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+            font-size: 12px;
+        }
+
+        .service-name {
+            font-weight: 800;
+            color: var(--navy-dark);
+            margin-bottom: 3px;
+        }
+
+        .service-desc {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        .qty {
+            font-weight: 700;
+            color: var(--text);
+            text-align: center;
+        }
+
+        .price {
+            font-weight: 700;
+            color: var(--text);
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .total-row td {
+            background: var(--navy);
+            color: #fff;
+            border-bottom: none;
+            padding: 16px 14px;
+        }
+
+        .total-label {
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .total-price {
+            text-align: right;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .activity-panel {
+            padding: 18px;
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .panel-head h2 {
+            margin: 0;
+            font-size: 14.5px;
+            font-weight: 800;
+            color: var(--navy-dark);
+        }
+
+        .panel-head a {
+            color: var(--navy);
+            text-decoration: none;
+            font-size: 11.5px;
+            font-weight: 800;
+        }
+
+        .transaction-list {
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+        }
+
+        .transaction-item {
+            display: grid;
+            grid-template-columns: 34px 1fr auto;
+            gap: 12px;
+            align-items: center;
+            background: #f7f9fd;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .transaction-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #d7fae7;
+            color: var(--green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .transaction-icon svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .transaction-name {
+            font-size: 12.5px;
+            font-weight: 800;
+            color: var(--navy-dark);
+        }
+
+        .transaction-sub {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .transaction-amount {
+            text-align: right;
+        }
+
+        .transaction-amount strong {
+            display: block;
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--navy-dark);
+        }
+
+        .paid-badge {
+            display: inline-block;
+            margin-top: 5px;
+            background: #d7fae7;
+            color: var(--green);
+            border-radius: 999px;
+            padding: 3px 8px;
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .payment-panel {
+            padding: 18px;
+        }
+
+        .section-title {
+            margin: 0 0 13px;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--navy-dark);
+            text-transform: uppercase;
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .pay-method {
+            border: 1.5px solid var(--border);
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 14px 8px;
+            min-height: 74px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            color: var(--navy-dark);
+            font-family: 'Poppins', sans-serif;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .pay-method svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .pay-method.active {
+            background: var(--navy);
+            color: #fff;
+            border-color: var(--navy);
+            box-shadow: 0 6px 14px rgba(27, 42, 156, .25);
+        }
+
+        .amount-box {
+            background: #f8faff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 13px;
+        }
+
+        .amount-label {
+            font-size: 10.5px;
+            font-weight: 800;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .amount-input {
+            display: grid;
+            grid-template-columns: 40px 1fr;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 10px;
+        }
+
+        .amount-input span {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--navy-dark);
+        }
+
+        .amount-input input {
+            border: none;
+            outline: none;
+            width: 100%;
+            text-align: right;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text);
+            background: transparent;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 9px;
+            margin-bottom: 13px;
+        }
+
+        .keypad button {
+            height: 42px;
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            background: #fff;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--navy-dark);
+            cursor: pointer;
+        }
+
+        .keypad button.clear {
+            background: var(--red-bg);
+            color: var(--red);
+            border-color: #ffc4c4;
+        }
+
+        .change-box {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 13px;
+        }
+
+        .change-box span {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .change-box strong {
+            font-size: 12.5px;
+            color: var(--green);
+            font-weight: 800;
+            text-align: right;
+        }
+
+        .process-btn {
+            width: 100%;
+            border: none;
+            border-radius: 10px;
+            background: var(--navy);
+            color: #fff;
+            padding: 14px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 7px 16px rgba(27, 42, 156, .28);
+            margin-bottom: 11px;
+        }
+
+        .process-btn svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .reset-btn {
+            width: 100%;
+            border: 1px solid var(--navy);
+            border-radius: 8px;
+            background: #fff;
+            color: var(--navy);
+            padding: 11px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 11.5px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .help-panel {
+            padding: 16px 18px;
+        }
+
+        .help-title {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .help-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .help-item {
+            border: 1px solid var(--border);
+            background: #f8faff;
+            border-radius: 8px;
+            padding: 11px 12px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--navy);
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .help-item svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        @media (max-width: 1150px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .right-col {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .help-panel {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 760px) {
+            #navbar-container {
+                display: none;
+            }
+
+            .topbar {
+                height: auto;
+                flex-direction: column;
+                align-items: stretch;
+                padding: 14px 18px;
+            }
+
+            .search-box {
+                width: 100%;
+                max-width: none;
+            }
+
+            .topbar-right {
+                margin-left: 0;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+
+            .content {
+                padding: 18px;
+            }
+
+            .patient-box {
+                grid-template-columns: 1fr;
+            }
+
+            .right-col {
+                display: flex;
+            }
+
+            .service-table {
+                min-width: 650px;
+            }
+
+            .table-scroll {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+
+        <div id="navbar-container"></div>
+
+        <main class="main">
+
+            <header class="topbar">
+                <div class="hospital-label">
+                    <strong>RSJD Dr. Amino</strong>
+                    <span>Gondohutomo</span>
+                </div>
+
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="M21 21l-4.3-4.3"></path>
+                    </svg>
+                    <input type="text" placeholder="Cari No. RM atau Nama Pasien...">
+                </div>
+
+                <div class="topbar-right">
+                    <div class="top-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.7 21a2 2 0 0 1-3.4 0"></path>
+                        </svg>
+                    </div>
+
+                    <div class="top-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.1 9a3 3 0 1 1 5.8 1c0 2-3 2-3 4M12 17h.01"></path>
+                        </svg>
+                    </div>
+
+                    <div class="top-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.6h.1a1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1A1.7 1.7 0 0 0 20.9 10H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z">
+                            </path>
+                        </svg>
+                    </div>
+
+                    <div class="cashier-profile">
+                        <div class="cashier-text">
+                            <div class="name">Andi Prasetyo</div>
+                            <div class="role">Petugas Kasir</div>
+                        </div>
+                        <div class="avatar">AP</div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="content">
+
+                <div class="left-col">
+                    <section class="panel billing-card">
+                        <div class="billing-head">
+                            <div class="billing-title">
+                                <h1>Tagihan Saat Ini</h1>
+                                <p>Nomor Registrasi: <strong>REG/20231024/001</strong></p>
+                            </div>
+
+                            <div class="payer-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 6L9 17l-5-5"></path>
+                                </svg>
+                                BPJS Kesehatan
+                            </div>
+                        </div>
+
+                        <div class="patient-box">
+                            <div>
+                                <div class="patient-label">Nama Pasien</div>
+                                <div class="patient-value">Tn. Budi<br>Santoso</div>
+                            </div>
+
+                            <div>
+                                <div class="patient-label">No. RM</div>
+                                <div class="patient-value">00-82-41-92</div>
+                            </div>
+
+                            <div>
+                                <div class="patient-label">Unit Layanan</div>
+                                <div class="patient-value">Poli Jiwa<br>Dewasa</div>
+                            </div>
+
+                            <button class="detail-link">Lihat Detail<br>Medis</button>
+                        </div>
+
+                        <div class="table-scroll">
+                            <table class="service-table">
+                                <thead>
+                                    <tr>
+                                        <th>Uraian Layanan</th>
+                                        <th style="text-align:center;">Unit/Qty</th>
+                                        <th style="text-align:right;">Subtotal</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="service-name">Biaya Konsultasi Dokter Spesialis</div>
+                                            <div class="service-desc">Pemeriksaan rutin & Psikoterapi awal</div>
+                                        </td>
+                                        <td class="qty">1</td>
+                                        <td class="price">Rp 150.000</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="service-name">Farmasi - Resep Obat</div>
+                                            <div class="service-desc">Risperidone 2mg, Sertraline 50mg (30 hari)</div>
+                                        </td>
+                                        <td class="qty">1 Paket</td>
+                                        <td class="price">Rp 425.500</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="service-name">Laboratorium Klinik</div>
+                                            <div class="service-desc">Cek Darah Lengkap & Fungsi Hati</div>
+                                        </td>
+                                        <td class="qty">1</td>
+                                        <td class="price">Rp 210.000</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="service-name">Biaya Administrasi</div>
+                                            <div class="service-desc">Pendaftaran & Rekam Medis Elektronik</div>
+                                        </td>
+                                        <td class="qty">1</td>
+                                        <td class="price">Rp 25.000</td>
+                                    </tr>
+
+                                    <tr class="total-row">
+                                        <td colspan="2" class="total-label">Total Tagihan</td>
+                                        <td class="total-price">Rp 810.500</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="panel activity-panel">
+                        <div class="panel-head">
+                            <h2>Transaksi Terakhir Hari Ini</h2>
+                            <a href="#">Lihat Semua Log</a>
+                        </div>
+
+                        <div class="transaction-list">
+                            <div class="transaction-item">
+                                <div class="transaction-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 6L9 17l-5-5"></path>
+                                    </svg>
+                                </div>
+
+                                <div>
+                                    <div class="transaction-name">Ny. Siti Aminah</div>
+                                    <div class="transaction-sub">Pembayaran Tunai · 10:45 WIB</div>
+                                </div>
+
+                                <div class="transaction-amount">
+                                    <strong>Rp 320.000</strong>
+                                    <span class="paid-badge">Selesai</span>
+                                </div>
+                            </div>
+
+                            <div class="transaction-item">
+                                <div class="transaction-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 6L9 17l-5-5"></path>
+                                    </svg>
+                                </div>
+
+                                <div>
+                                    <div class="transaction-name">Tn. Agus Salim</div>
+                                    <div class="transaction-sub">Klaim BPJS · 10:30 WIB</div>
+                                </div>
+
+                                <div class="transaction-amount">
+                                    <strong>Rp 1.450.000</strong>
+                                    <span class="paid-badge">Selesai</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <aside class="right-col">
+                    <section class="panel payment-panel">
+                        <h2 class="section-title">Metode Pembayaran</h2>
+
+                        <div class="payment-methods">
+                            <button class="pay-method active">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="7" width="20" height="12" rx="2"></rect>
+                                    <path d="M2 11h20"></path>
+                                </svg>
+                                Tunai
+                            </button>
+
+                            <button class="pay-method">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 21h18"></path>
+                                    <path d="M5 21V9l7-6 7 6v12"></path>
+                                    <path d="M9 21v-6h6v6"></path>
+                                </svg>
+                                Transfer
+                            </button>
+
+                            <button class="pay-method">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                                    <path d="M2 10h20"></path>
+                                </svg>
+                                Kartu Kredit
+                            </button>
+
+                            <button class="pay-method">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                    <path d="M9 12l2 2 4-4"></path>
+                                </svg>
+                                Klaim BPJS
+                            </button>
+                        </div>
+
+                        <div class="amount-box">
+                            <div class="amount-label">Jumlah Bayar (Tunai)</div>
+                            <div class="amount-input">
+                                <span>Rp</span>
+                                <input type="text" id="amountInput" value="1.000.000">
+                            </div>
+                        </div>
+
+                        <div class="keypad">
+                            <button type="button">1</button>
+                            <button type="button">2</button>
+                            <button type="button">3</button>
+                            <button type="button">4</button>
+                            <button type="button">5</button>
+                            <button type="button">6</button>
+                            <button type="button">7</button>
+                            <button type="button">8</button>
+                            <button type="button">9</button>
+                            <button type="button">0</button>
+                            <button type="button">000</button>
+                            <button type="button" class="clear">⌫</button>
+                        </div>
+
+                        <div class="change-box">
+                            <span>Kembalian</span>
+                            <strong>Siap Bayar<br>Rp 189.500</strong>
+                        </div>
+
+                        <button class="process-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                                <path d="M7 8h10"></path>
+                                <path d="M7 12h10"></path>
+                                <path d="M7 16h6"></path>
+                            </svg>
+                            Proses Pembayaran & Cetak Struk
+                        </button>
+
+                        <button class="reset-btn">Batal / Reset</button>
+                    </section>
+
+                    <section class="panel help-panel">
+                        <div class="help-title">Bantuan Cepat</div>
+
+                        <div class="help-list">
+                            <div class="help-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M6 9V2h12v7"></path>
+                                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                                    <rect x="6" y="14" width="12" height="8"></rect>
+                                </svg>
+                                Cetak Ulang Struk Terakhir
+                            </div>
+
+                            <div class="help-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <path d="M14 2v6h6"></path>
+                                    <path d="M8 13h8"></path>
+                                    <path d="M8 17h6"></path>
+                                </svg>
+                                Laporan Harian Kasir
+                            </div>
+                        </div>
+                    </section>
+                </aside>
+
+            </section>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        function loadNavbar() {
+            fetch('../navbar.html')
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Navbar gagal dimuat.');
+                    }
+                    return response.text();
+                })
+                .then(function (html) {
+                    document.getElementById('navbar-container').innerHTML = html;
+
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+
+                    var current = window.location.pathname.split('/').pop();
+
+                    document.querySelectorAll('#navbar-container .nav-item').forEach(function (link) {
+                        if (link.getAttribute('data-page') === current) {
+                            link.classList.add('active');
+                        }
+                    });
+                })
+                .catch(function (error) {
+                    console.error(error);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadNavbar();
+
+            document.querySelectorAll('.pay-method').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    document.querySelectorAll('.pay-method').forEach(function (item) {
+                        item.classList.remove('active');
+                    });
+                    btn.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

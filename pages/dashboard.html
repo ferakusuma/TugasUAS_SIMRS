@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - SIMRS Amino</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --navy: #1b2a9c;
+            --navy-dark: #07164f;
+            --blue: #263aaf;
+            --bg: #eef2fb;
+            --panel: #ffffff;
+            --border: #e0e6f3;
+            --text: #091537;
+            --muted: #8b94ad;
+            --green: #16a34a;
+            --green-bg: #e8f8ef;
+            --red: #dc2626;
+            --red-bg: #fff1f1;
+            --yellow: #d97706;
+            --yellow-bg: #fff7df;
+            --purple: #5b5bd6;
+            --shadow: 0 4px 14px rgba(18, 32, 90, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        #navbar-container {
+            flex-shrink: 0;
+        }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            height: 64px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 0 26px;
+        }
+
+        .search-box {
+            width: 360px;
+            max-width: 44vw;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            background: #f5f7fc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 13px;
+        }
+
+        .search-box svg {
+            width: 15px;
+            height: 15px;
+            color: var(--muted);
+        }
+
+        .search-box input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12.5px;
+            color: var(--text);
+        }
+
+        .topbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .top-icon {
+            position: relative;
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: #f5f7fc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4d5674;
+            cursor: pointer;
+        }
+
+        .top-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .top-icon .notif-dot {
+            position: absolute;
+            top: 6px;
+            right: 7px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--red);
+            border: 1.5px solid #fff;
+        }
+
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 4px;
+        }
+
+        .admin-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--navy), #5264df);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .admin-text {
+            line-height: 1.2;
+        }
+
+        .admin-text .name {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--navy-dark);
+        }
+
+        .admin-text .role {
+            font-size: 10px;
+            color: var(--muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .content {
+            padding: 22px 26px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .page-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .breadcrumb {
+            font-size: 11.5px;
+            color: var(--muted);
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .breadcrumb span {
+            color: var(--navy);
+        }
+
+        .page-title h1 {
+            margin: 0;
+            font-size: 27px;
+            font-weight: 800;
+            color: var(--navy-dark);
+            letter-spacing: -0.5px;
+            line-height: 1.15;
+        }
+
+        .head-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #fff;
+            padding: 10px 13px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .btn-primary {
+            background: var(--navy);
+            color: #fff;
+            border-color: var(--navy);
+            box-shadow: 0 5px 14px rgba(27, 42, 156, .22);
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: var(--shadow);
+            min-height: 112px;
+        }
+
+        .stat-card.danger {
+            background: var(--red-bg);
+            border-color: #ff9d9d;
+        }
+
+        .stat-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .stat-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .stat-icon.blue {
+            background: #eef2ff;
+            color: var(--navy);
+        }
+
+        .stat-icon.green {
+            background: var(--green-bg);
+            color: var(--green);
+        }
+
+        .stat-icon.yellow {
+            background: var(--yellow-bg);
+            color: var(--yellow);
+        }
+
+        .stat-icon.red {
+            background: #ffe0e0;
+            color: var(--red);
+        }
+
+        .stat-change {
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .stat-change.up {
+            color: var(--green);
+        }
+
+        .stat-change.down {
+            color: var(--red);
+        }
+
+        .stat-label {
+            font-size: 10.5px;
+            font-weight: 800;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--navy-dark);
+            line-height: 1;
+        }
+
+        .stat-sub {
+            margin-top: 7px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        .stat-card.danger .stat-sub strong {
+            color: var(--red);
+        }
+
+        .progress-line {
+            height: 6px;
+            background: #e4e9f6;
+            border-radius: 8px;
+            margin-top: 14px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 92%;
+            height: 100%;
+            border-radius: 8px;
+            background: var(--green);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .chart-panel {
+            min-height: 430px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .panel-head h2 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--navy-dark);
+            line-height: 1.25;
+        }
+
+        .panel-link {
+            font-size: 10.5px;
+            font-weight: 800;
+            color: var(--navy);
+            text-decoration: none;
+        }
+
+        .chart-area {
+            flex: 1;
+            position: relative;
+            border-bottom: 1px solid #dfe5f3;
+            margin: 6px 4px 0;
+            min-height: 300px;
+        }
+
+        .chart-bar {
+            position: absolute;
+            bottom: 0;
+            width: 18px;
+            border-radius: 5px 5px 0 0;
+            background: var(--navy);
+        }
+
+        .chart-bar.one {
+            height: 26%;
+            left: 14%;
+        }
+
+        .chart-bar.two {
+            height: 38%;
+            left: 30%;
+            background: #33a867;
+        }
+
+        .chart-bar.three {
+            height: 54%;
+            left: 46%;
+            background: #f4b84b;
+        }
+
+        .chart-bar.four {
+            height: 68%;
+            left: 62%;
+        }
+
+        .chart-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding: 0 4px;
+            font-size: 9.5px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        .legend-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .legend-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.blue {
+            background: var(--navy);
+        }
+
+        .legend-dot.green {
+            background: var(--green);
+        }
+
+        .legend-dot.yellow {
+            background: #f4b84b;
+        }
+
+        .queue-panel {
+            min-height: 430px;
+            overflow: hidden;
+        }
+
+        .queue-panel .panel-head {
+            padding: 18px 18px 10px;
+            margin: 0;
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .mini-square {
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4b5678;
+            cursor: pointer;
+        }
+
+        .mini-square svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .update-note {
+            padding: 0 18px 12px;
+            font-size: 10.5px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .queue-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .queue-table th {
+            background: #f3f6fc;
+            color: var(--muted);
+            text-align: left;
+            font-size: 9.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 11px 14px;
+            letter-spacing: .4px;
+        }
+
+        .queue-table td {
+            padding: 15px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            font-size: 12px;
+        }
+
+        .clinic-name {
+            font-size: 12.5px;
+            font-weight: 800;
+            color: var(--navy-dark);
+            line-height: 1.25;
+        }
+
+        .doctor-name {
+            font-size: 10.5px;
+            color: var(--muted);
+            font-weight: 600;
+            margin-top: 3px;
+        }
+
+        .queue-num {
+            font-weight: 800;
+            color: var(--navy);
+        }
+
+        .queue-done {
+            font-weight: 800;
+            color: var(--green);
+        }
+
+        .queue-total {
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .badge {
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 9.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .badge.yellow {
+            background: #fff0bd;
+            color: #a46a00;
+        }
+
+        .badge.green {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .badge.red {
+            background: #ffe1e1;
+            color: var(--red);
+        }
+
+        .table-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 13px 18px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+            background: #f8faff;
+        }
+
+        .pager {
+            display: flex;
+            gap: 7px;
+        }
+
+        .pager button {
+            width: 28px;
+            height: 28px;
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #5c6680;
+        }
+
+        .notice-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .notice-card {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: #fff;
+        }
+
+        .notice-card.blue {
+            background: #eef4ff;
+        }
+
+        .notice-card.green {
+            background: #eafaf1;
+        }
+
+        .notice-card.yellow {
+            background: #fff6df;
+        }
+
+        .notice-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .notice-card.blue .notice-icon {
+            background: #dce8ff;
+            color: var(--navy);
+        }
+
+        .notice-card.green .notice-icon {
+            background: #ccf2dd;
+            color: var(--green);
+        }
+
+        .notice-card.yellow .notice-icon {
+            background: #ffedba;
+            color: var(--yellow);
+        }
+
+        .notice-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .notice-title {
+            font-size: 10.5px;
+            font-weight: 800;
+            color: var(--navy-dark);
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+
+        .notice-text {
+            font-size: 11px;
+            color: #64708a;
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        .footer {
+            height: 42px;
+            padding: 0 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10.5px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .float-add {
+            position: fixed;
+            right: 28px;
+            bottom: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            font-size: 29px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 18px rgba(27, 42, 156, .28);
+            cursor: pointer;
+        }
+
+        @media (max-width: 1180px) {
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .notice-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            #navbar-container {
+                display: none;
+            }
+
+            .topbar {
+                height: auto;
+                flex-direction: column;
+                align-items: stretch;
+                padding: 14px 18px;
+            }
+
+            .search-box {
+                width: 100%;
+                max-width: none;
+            }
+
+            .topbar-right {
+                margin-left: 0;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+
+            .content {
+                padding: 18px;
+            }
+
+            .page-head {
+                flex-direction: column;
+            }
+
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+
+            .queue-table {
+                min-width: 720px;
+            }
+
+            .table-scroll {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+
+        <div id="navbar-container"></div>
+
+        <main class="main">
+
+            <header class="topbar">
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="M21 21l-4.3-4.3"></path>
+                    </svg>
+                    <input type="text" placeholder="Cari Pasien, RM, atau Rekam Medis...">
+                </div>
+
+                <div class="topbar-right">
+                    <div class="top-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.7 21a2 2 0 0 1-3.4 0"></path>
+                        </svg>
+                        <span class="notif-dot"></span>
+                    </div>
+
+                    <div class="top-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.1 9a3 3 0 1 1 5.8 1c0 2-3 2-3 4M12 17h.01"></path>
+                        </svg>
+                    </div>
+
+                    <div class="top-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.6h.1a1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1A1.7 1.7 0 0 0 20.9 10H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z">
+                            </path>
+                        </svg>
+                    </div>
+
+                    <div class="admin-profile">
+                        <div class="admin-text">
+                            <div class="name">Dr. Amino Gondohutomo</div>
+                            <div class="role">Administrator Utama</div>
+                        </div>
+                        <div class="admin-avatar">AG</div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="content">
+
+                <div class="page-head">
+                    <div class="page-title">
+                        <div class="breadcrumb">Dashboard &nbsp;›&nbsp; <span>Monitoring Operasional</span></div>
+                        <h1>Status Operasional Real-<br>time</h1>
+                    </div>
+
+                    <div class="head-actions">
+                        <button class="btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                                <path d="M16 2v4M8 2v4M3 10h18"></path>
+                            </svg>
+                            Hari Ini, 24 Mei 2024
+                        </button>
+
+                        <button class="btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 6h16M7 12h10M10 18h4"></path>
+                            </svg>
+                            Semua Klinik
+                        </button>
+
+                        <button class="btn btn-primary">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 12a9 9 0 1 1-3-6.7"></path>
+                                <path d="M21 3v6h-6"></path>
+                            </svg>
+                            Refresh Data
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <div class="stat-icon blue">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.8"></path>
+                                    <path d="M16 3.1a4 4 0 0 1 0 7.8"></path>
+                                </svg>
+                            </div>
+                            <span class="stat-change up">+12%</span>
+                        </div>
+                        <div class="stat-label">Total Pasien</div>
+                        <div class="stat-value">1,284</div>
+                        <div class="stat-sub">Target Harian: 1,500</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <div class="stat-icon green">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                                    <path d="M8 2v4M16 2v4M3 10h18"></path>
+                                    <path d="M9 15l2 2 4-5"></path>
+                                </svg>
+                            </div>
+                            <span class="stat-change">85/92 Aktif</span>
+                        </div>
+                        <div class="stat-label">Dokter On-Duty</div>
+                        <div class="stat-value">92.3%</div>
+                        <div class="progress-line">
+                            <div class="progress-fill"></div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <div class="stat-icon yellow">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 6v6l3 3"></path>
+                                </svg>
+                            </div>
+                            <span class="stat-change down">+5m</span>
+                        </div>
+                        <div class="stat-label">Waktu Tunggu Rata-Rata</div>
+                        <div class="stat-value">24.5 <span style="font-size:15px;">Menit</span></div>
+                        <div class="stat-sub">Sesuai SLA (&lt; 30m)</div>
+                    </div>
+
+                    <div class="stat-card danger">
+                        <div class="stat-top">
+                            <div class="stat-icon red">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10.3 3h3.4L22 20H2z"></path>
+                                    <path d="M12 9v4"></path>
+                                    <path d="M12 17h.01"></path>
+                                </svg>
+                            </div>
+                            <span class="badge red">High Priority</span>
+                        </div>
+                        <div class="stat-label">Kasus Aktif IGD</div>
+                        <div class="stat-value" style="color: var(--red);">18</div>
+                        <div class="stat-sub"><strong>3</strong> Triage Merah (Kritis)</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="panel chart-panel">
+                        <div class="panel-head">
+                            <h2>Tren Kunjungan 7<br>Hari</h2>
+                            <a href="#" class="panel-link">Detail<br>Laporan</a>
+                        </div>
+
+                        <div class="chart-area">
+                            <div class="chart-bar one"></div>
+                            <div class="chart-bar two"></div>
+                            <div class="chart-bar three"></div>
+                            <div class="chart-bar four"></div>
+                        </div>
+
+                        <div class="chart-labels">
+                            <span>Sen</span>
+                            <span>Sel</span>
+                            <span>Rab</span>
+                            <span>Kam</span>
+                            <span>Jum</span>
+                            <span>Sab</span>
+                            <span>Min</span>
+                        </div>
+
+                        <div class="chart-legend">
+                            <div class="legend-row">
+                                <div class="legend-left">
+                                    <span class="legend-dot blue"></span>
+                                    BPJS Kesehatan
+                                </div>
+                                <strong>78%</strong>
+                            </div>
+
+                            <div class="legend-row">
+                                <div class="legend-left">
+                                    <span class="legend-dot green"></span>
+                                    Umum / Mandiri
+                                </div>
+                                <strong>18%</strong>
+                            </div>
+
+                            <div class="legend-row">
+                                <div class="legend-left">
+                                    <span class="legend-dot yellow"></span>
+                                    Asuransi Lain
+                                </div>
+                                <strong>4%</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel queue-panel">
+                        <div class="panel-head">
+                            <h2>Status Antrean Klinik</h2>
+                            <div class="panel-actions">
+                                <button class="mini-square">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <path d="M7 10l5 5 5-5"></path>
+                                        <path d="M12 15V3"></path>
+                                    </svg>
+                                </button>
+                                <button class="mini-square">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="1"></circle>
+                                        <circle cx="12" cy="5" r="1"></circle>
+                                        <circle cx="12" cy="19" r="1"></circle>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="update-note">Update terakhir: 14:32 WIB</div>
+
+                        <div class="table-scroll">
+                            <table class="queue-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nama Klinik</th>
+                                        <th>Menunggu</th>
+                                        <th>Dipanggil</th>
+                                        <th>Selesai</th>
+                                        <th>Status Beban</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="clinic-name">Klinik Psikiatri<br>Dewasa</div>
+                                            <div class="doctor-name">Dr. Bambang Setiawan, Sp.KJ</div>
+                                        </td>
+                                        <td class="queue-num">24</td>
+                                        <td class="queue-done">08</td>
+                                        <td class="queue-total">156</td>
+                                        <td><span class="badge yellow">Padat</span></td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="clinic-name">Klinik Tumbuh<br>Kembang</div>
+                                            <div class="doctor-name">An. Sarah Wijayanti, Sp.KJ(K)</div>
+                                        </td>
+                                        <td class="queue-num">12</td>
+                                        <td class="queue-done">05</td>
+                                        <td class="queue-total">42</td>
+                                        <td><span class="badge green">Normal</span></td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="clinic-name">Klinik Saraf<br>(Neurologi)</div>
+                                            <div class="doctor-name">Dr. Hendra Gunawan, Sp.N</div>
+                                        </td>
+                                        <td class="queue-num">45</td>
+                                        <td class="queue-done">10</td>
+                                        <td class="queue-total">188</td>
+                                        <td><span class="badge red">Overload</span></td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="clinic-name">Klinik Psikologi</div>
+                                            <div class="doctor-name">Dra. Marina Putri, M.Psi</div>
+                                        </td>
+                                        <td class="queue-num">06</td>
+                                        <td class="queue-done">02</td>
+                                        <td class="queue-total">22</td>
+                                        <td><span class="badge green">Normal</span></td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>
+                                            <div class="clinic-name">IGD Psikiatri</div>
+                                            <div class="doctor-name">Tim Dokter Jaga 24 Jam</div>
+                                        </td>
+                                        <td class="queue-num">04</td>
+                                        <td class="queue-done">06</td>
+                                        <td class="queue-total">28</td>
+                                        <td><span class="badge red">Critical</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="table-footer">
+                            <span>Menampilkan 5 dari 24 klinik operasional</span>
+                            <div class="pager">
+                                <button>‹</button>
+                                <button>›</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="notice-row">
+                    <div class="notice-card blue">
+                        <div class="notice-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 16v-4"></path>
+                                <path d="M12 8h.01"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="notice-title">Pengumuman Internal</div>
+                            <div class="notice-text">Rapat koordinasi akreditasi RS akan dilaksanakan besok jam 09:00 WIB di Aula Utama.</div>
+                        </div>
+                    </div>
+
+                    <div class="notice-card green">
+                        <div class="notice-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="notice-title">Logistik Farmasi</div>
+                            <div class="notice-text">Stok Risperidone 2mg tersedia kembali. Pengiriman 50 box telah diverifikasi oleh gudang.</div>
+                        </div>
+                    </div>
+
+                    <div class="notice-card yellow">
+                        <div class="notice-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10.3 3h3.4L22 20H2z"></path>
+                                <path d="M12 9v4"></path>
+                                <path d="M12 17h.01"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="notice-title">Alert Sistem</div>
+                            <div class="notice-text">Backup database harian tertunda di server pusat. Hubungi tim IT untuk pengecekan manual.</div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <footer class="footer">
+                © 2024 RSJD Dr. Amino Gondohutomo · Sistem Informasi Manajemen Rumah Sakit/SIMRS v.3.2.1
+            </footer>
+
+            <button class="float-add">+</button>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        function loadNavbar() {
+            fetch('../navbar.html')
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Navbar gagal dimuat.');
+                    }
+                    return response.text();
+                })
+                .then(function (html) {
+                    document.getElementById('navbar-container').innerHTML = html;
+
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+
+                    var current = window.location.pathname.split('/').pop();
+
+                    document.querySelectorAll('#navbar-container .nav-item').forEach(function (link) {
+                        if (link.getAttribute('data-page') === current) {
+                            link.classList.add('active');
+                        }
+                    });
+                })
+                .catch(function (error) {
+                    console.error(error);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadNavbar();
+        });
+    </script>
+</body>
+
+</html>

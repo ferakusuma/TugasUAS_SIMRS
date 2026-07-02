@@ -1,8 +1,1158 @@
-<div class="container">
-<h2>Rawat Inap</h2>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rawat Inap (TPPRI) - SIMRS Amino</title>
 
-<div class="card">
-<p>Bed: A-101</p>
-<p>Status: Terisi</p>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: 'Poppins', sans-serif;
+        background: #f3f4f9;
+        color: #1b2140;
+    }
+
+    .app {
+        display: flex;
+        min-height: 100vh;
+    }
+
+    #navbar-container {
+        flex-shrink: 0;
+    }
+
+    .main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .topbar {
+        background: #ffffff;
+        border-bottom: 1px solid #e7e9f2;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 14px 26px;
+    }
+
+    .search-box {
+        flex: 1;
+        max-width: 420px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        background: #f3f4f9;
+        border: 1px solid #e7e9f2;
+        border-radius: 9px;
+        padding: 9px 14px;
+    }
+
+    .search-box svg {
+        width: 16px;
+        height: 16px;
+        color: #9aa0b4;
+        flex-shrink: 0;
+    }
+
+    .search-box input {
+        border: none;
+        outline: none;
+        background: transparent;
+        font-family: 'Poppins', sans-serif;
+        font-size: 13px;
+        color: #4a4f66;
+        width: 100%;
+    }
+
+    .topbar-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
+
+    .icon-btn {
+        position: relative;
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        background: #f3f4f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #4a4f66;
+        cursor: pointer;
+    }
+
+    .icon-btn svg {
+        width: 17px;
+        height: 17px;
+    }
+
+    .icon-btn .badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: #e0432f;
+        color: #fff;
+        font-size: 9.5px;
+        font-weight: 700;
+        min-width: 15px;
+        height: 15px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 3px;
+    }
+
+    .profile {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .profile .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #1b2a9c, #4759d6);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+    .profile .name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1b2140;
+        line-height: 1.3;
+    }
+
+    .profile .role {
+        font-size: 11px;
+        color: #9aa0b4;
+        font-weight: 500;
+    }
+
+    .content {
+        padding: 24px 26px 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .page-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .page-header h2 {
+        margin: 0 0 4px 0;
+        font-size: 21px;
+        font-weight: 700;
+        color: #1b2140;
+    }
+
+    .breadcrumb {
+        font-size: 12.5px;
+        color: #9aa0b4;
+        font-weight: 500;
+    }
+
+    .breadcrumb .active-crumb {
+        color: #4a4f66;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 10px 16px;
+        border-radius: 9px;
+        border: 1px solid #e7e9f2;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .btn svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    .btn-outline {
+        background: #ffffff;
+        color: #1b2140;
+    }
+
+    .btn-primary {
+        background: #1b2a9c;
+        color: #ffffff;
+        border-color: #1b2a9c;
+    }
+
+    .stat-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr) 1.3fr;
+        gap: 14px;
+    }
+
+    .stat-card {
+        background: #ffffff;
+        border: 1px solid #e7e9f2;
+        border-radius: 12px;
+        padding: 16px;
+    }
+
+    .stat-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .stat-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-icon svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .stat-icon.green {
+        background: #e4f7ec;
+        color: #16a34a;
+    }
+
+    .stat-icon.red {
+        background: #fdeaea;
+        color: #e0432f;
+    }
+
+    .stat-icon.amber {
+        background: #fef3e2;
+        color: #d98a1f;
+    }
+
+    .stat-icon.blue {
+        background: #e9ebfa;
+        color: #1b2a9c;
+    }
+
+    .stat-label {
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: #9aa0b4;
+        text-transform: uppercase;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1b2140;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+
+    .stat-sub {
+        font-size: 11.5px;
+        color: #9aa0b4;
+        font-weight: 500;
+    }
+
+    .filter-card {
+        background: #ffffff;
+        border: 1px solid #e7e9f2;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filter-title {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #1b2140;
+    }
+
+    .filter-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .chip {
+        font-family: 'Poppins', sans-serif;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 20px;
+        border: 1px solid #e7e9f2;
+        background: #ffffff;
+        color: #4a4f66;
+        cursor: pointer;
+    }
+
+    .chip.active {
+        background: #1b2a9c;
+        color: #ffffff;
+        border-color: #1b2a9c;
+    }
+
+    .body-grid {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 18px;
+        align-items: start;
+    }
+
+    .panel {
+        background: #ffffff;
+        border: 1px solid #e7e9f2;
+        border-radius: 12px;
+        padding: 18px;
+    }
+
+    .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .panel-head h3 {
+        margin: 0;
+        font-size: 14.5px;
+        font-weight: 700;
+        color: #1b2140;
+    }
+
+    .legend {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: 11.5px;
+        color: #4a4f66;
+        font-weight: 500;
+    }
+
+    .legend span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .dot.available {
+        background: #16a34a;
+    }
+
+    .dot.occupied {
+        background: #e0432f;
+    }
+
+    .dot.reserved {
+        background: #d98a1f;
+    }
+
+    .view-toggle {
+        display: flex;
+        gap: 4px;
+        background: #f3f4f9;
+        border-radius: 8px;
+        padding: 3px;
+    }
+
+    .view-toggle button {
+        border: none;
+        background: transparent;
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #9aa0b4;
+    }
+
+    .view-toggle button.active {
+        background: #ffffff;
+        color: #1b2a9c;
+        box-shadow: 0 1px 2px rgba(27, 42, 156, 0.15);
+    }
+
+    .view-toggle svg {
+        width: 13px;
+        height: 13px;
+    }
+
+    .room-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    .room-card {
+        border: 1px solid #e7e9f2;
+        border-radius: 10px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .room-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .room-tag {
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: #9aa0b4;
+    }
+
+    .room-tag.vip {
+        color: #b5851f;
+    }
+
+    .room-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1b2140;
+    }
+
+    .room-info {
+        font-size: 11px;
+        color: #9aa0b4;
+        font-weight: 500;
+        min-height: 14px;
+    }
+
+    .room-info.patient {
+        color: #4a4f66;
+    }
+
+    .room-btn {
+        font-family: 'Poppins', sans-serif;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 8px;
+        border-radius: 7px;
+        border: none;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .room-btn.select {
+        background: #1b2a9c;
+        color: #ffffff;
+    }
+
+    .room-btn.details {
+        background: #f3f4f9;
+        color: #9aa0b4;
+        cursor: default;
+    }
+
+    .room-btn.incoming {
+        background: #fef3e2;
+        color: #d98a1f;
+        cursor: default;
+    }
+
+    .right-col {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .triage-panel {
+        padding: 16px;
+    }
+
+    .triage-badge {
+        background: #1b2a9c;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 20px;
+    }
+
+    .triage-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0;
+        border-top: 1px solid #eceef6;
+    }
+
+    .triage-tag {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10.5px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .triage-tag.er {
+        background: #fdeaea;
+        color: #e0432f;
+    }
+
+    .triage-tag.op {
+        background: #e9ebfa;
+        color: #1b2a9c;
+    }
+
+    .triage-name {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #1b2140;
+    }
+
+    .triage-sub {
+        font-size: 11px;
+        color: #9aa0b4;
+        font-weight: 500;
+    }
+
+    .triage-sub.critical {
+        color: #e0432f;
+    }
+
+    .triage-plus {
+        margin-left: auto;
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        background: #f3f4f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #4a4f66;
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+    .empty-panel {
+        padding: 26px 18px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 6px;
+    }
+
+    .empty-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: #f3f4f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9aa0b4;
+        margin-bottom: 6px;
+    }
+
+    .empty-icon svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .empty-panel h4 {
+        margin: 0;
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #1b2140;
+    }
+
+    .empty-panel p {
+        margin: 0 0 14px 0;
+        font-size: 11.5px;
+        color: #9aa0b4;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+
+    .empty-panel .btn-outline {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .divider-or {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        font-size: 10.5px;
+        color: #9aa0b4;
+        font-weight: 600;
+        margin: 4px 0;
+    }
+
+    .divider-or::before,
+    .divider-or::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #eceef6;
+    }
+
+    .btn-green {
+        width: 100%;
+        justify-content: center;
+        background: #16a34a;
+        color: #fff;
+        border-color: #16a34a;
+    }
+
+    .capacity-card {
+        background: #1b2a9c;
+        border-radius: 12px;
+        padding: 16px;
+        color: #fff;
+        max-width: 260px;
+    }
+
+    .capacity-label {
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: #b9c0f2;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .capacity-row {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .capacity-value {
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .capacity-sub {
+        font-size: 11.5px;
+        color: #b9c0f2;
+        font-weight: 500;
+    }
+
+    .capacity-bar {
+        height: 6px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.2);
+        overflow: hidden;
+    }
+
+    .capacity-bar-fill {
+        height: 100%;
+        width: 84%;
+        background: #ffffff;
+        border-radius: 4px;
+    }
+
+    @media (max-width: 1100px) {
+        .stat-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .body-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .room-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 720px) {
+        #navbar-container {
+            display: none;
+        }
+
+        .topbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .topbar-right {
+            margin-left: 0;
+            justify-content: space-between;
+        }
+
+        .stat-row {
+            grid-template-columns: 1fr;
+        }
+
+        .room-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+</head>
+
+<body>
+<div class="app">
+
+    <div id="navbar-container"></div>
+
+    <div class="main">
+
+        <div class="topbar">
+            <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M21 21l-4.3-4.3" />
+                </svg>
+                <input type="text" placeholder="Cari pasien berdasarkan No. RM atau Nama...">
+            </div>
+
+            <div class="topbar-right">
+                <div class="icon-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+                    </svg>
+                    <span class="badge">3</span>
+                </div>
+
+                <div class="icon-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M9.1 9a3 3 0 1 1 5.8 1c0 2-3 2-3 4M12 17h.01" />
+                    </svg>
+                </div>
+
+                <div class="profile">
+                    <div class="avatar">HW</div>
+                    <div>
+                        <div class="name">Dr. Hendra Wijaya</div>
+                        <div class="role">Admin Rawat Inap</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+
+            <div class="page-header">
+                <div>
+                    <h2>Pendaftaran Rawat Inap (TPPRI)</h2>
+                    <div class="breadcrumb">
+                        Dashboard Utama &nbsp;›&nbsp;
+                        <span class="active-crumb">Manajemen Kamar &amp; Admisi</span>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button class="btn btn-outline">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                            <rect x="6" y="14" width="12" height="8" />
+                        </svg>
+                        Laporan Sensus Harian
+                    </button>
+
+                    <button class="btn btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M12 8v8M8 12h8" />
+                        </svg>
+                        Admisi Baru
+                    </button>
+                </div>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon green">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M20 6L9 17l-5-5" />
+                            </svg>
+                        </div>
+                        <span class="stat-label">Tersedia</span>
+                    </div>
+                    <div class="stat-value">42</div>
+                    <div class="stat-sub">Siap untuk pasien baru</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon red">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="16" rx="2" />
+                                <path d="M3 10h18M9 4v6" />
+                            </svg>
+                        </div>
+                        <span class="stat-label">Terisi</span>
+                    </div>
+                    <div class="stat-value">198</div>
+                    <div class="stat-sub">Pasien dirawat</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon amber">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                                <rect x="9" y="3" width="6" height="4" rx="1" />
+                            </svg>
+                        </div>
+                        <span class="stat-label">Dipesan</span>
+                    </div>
+                    <div class="stat-value">10</div>
+                    <div class="stat-sub">Transfer masuk</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon blue">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4l16 16M20 4L4 20" />
+                            </svg>
+                        </div>
+                        <span class="stat-label">Pembersihan</span>
+                    </div>
+                    <div class="stat-value">8</div>
+                    <div class="stat-sub">Perlu perawatan</div>
+                </div>
+
+                <div class="filter-card">
+                    <div class="filter-title">Filter Kelas Kamar</div>
+                    <div class="filter-chips">
+                        <button class="chip active">SEMUA KELAS</button>
+                        <button class="chip">VIP</button>
+                        <button class="chip">KELAS 1</button>
+                        <button class="chip">KELAS 2</button>
+                        <button class="chip">KELAS 3</button>
+                        <button class="chip">ICU/NICU</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="body-grid">
+
+                <div class="panel">
+                    <div class="panel-head">
+                        <h3>Peta Kamar: Bangsal A - Wijaya Kusuma</h3>
+
+                        <div class="legend">
+                            <span><i class="dot available"></i>Tersedia</span>
+                            <span><i class="dot occupied"></i>Terisi</span>
+                            <span><i class="dot reserved"></i>Dipesan</span>
+                        </div>
+
+                        <div class="view-toggle">
+                            <button class="active">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7" />
+                                    <rect x="14" y="3" width="7" height="7" />
+                                    <rect x="3" y="14" width="7" height="7" />
+                                    <rect x="14" y="14" width="7" height="7" />
+                                </svg>
+                            </button>
+
+                            <button>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 6h18M3 12h18M3 18h18" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="room-grid">
+                        <div class="room-card">
+                            <div class="room-top">
+                                <span class="room-tag vip">VIP · 101</span>
+                                <span class="dot available"></span>
+                            </div>
+                            <div class="room-name">Kamar 01</div>
+                            <div class="room-info">Unit Wijaya Kusuma</div>
+                            <button class="room-btn select">Pilih Kamar</button>
+                        </div>
+
+                        <div class="room-card">
+                            <div class="room-top">
+                                <span class="room-tag">KELAS 1 · 201</span>
+                                <span class="dot occupied"></span>
+                            </div>
+                            <div class="room-name">Kamar 21</div>
+                            <div class="room-info patient">Pasien: Tn. Sumardi</div>
+                            <button class="room-btn details">Adm. 24/10/2023</button>
+                        </div>
+
+                        <div class="room-card">
+                            <div class="room-top">
+                                <span class="room-tag">KELAS 2 · 304</span>
+                                <span class="dot available"></span>
+                            </div>
+                            <div class="room-name">Kamar 44</div>
+                            <div class="room-info">Unit Wijaya Kusuma</div>
+                            <button class="room-btn select">Pilih Kamar</button>
+                        </div>
+
+                        <div class="room-card">
+                            <div class="room-top">
+                                <span class="room-tag">KELAS 3 · 401</span>
+                                <span class="dot reserved"></span>
+                            </div>
+                            <div class="room-name">Kamar 61</div>
+                            <div class="room-info patient">Dipesan: Ny. Amisah</div>
+                            <button class="room-btn incoming">ETA 14:30 WIB</button>
+                        </div>
+
+                        <div class="room-card">
+                            <div class="room-top">
+                                <span class="room-tag vip">VIP · 102</span>
+                                <span class="dot available"></span>
+                            </div>
+                            <div class="room-name">Kamar 02</div>
+                            <div class="room-info patient">Ny. Sartika</div>
+                            <button class="room-btn select">Pilih Kamar</button>
+                        </div>
+
+                        <div class="room-card">
+                            <div class="room-top">
+                                <span class="room-tag">KELAS 1 · 202</span>
+                                <span class="dot occupied"></span>
+                            </div>
+                            <div class="room-name">Kamar 22</div>
+                            <div class="room-info patient">Ny. Sartika</div>
+                            <button class="room-btn details">Detail</button>
+                        </div>
+
+                        <div class="room-card">
+                            <div class="room-top">
+                                <span class="room-tag">KELAS 1 · 203</span>
+                                <span class="dot available"></span>
+                            </div>
+                            <div class="room-name">Kamar 23</div>
+                            <div class="room-info">Unit Wijaya Kusuma</div>
+                            <button class="room-btn select">Pilih Kamar</button>
+                        </div>
+
+                        <div class="room-card">
+                            <div class="room-top">
+                                <span class="room-tag">KELAS 2 · 301</span>
+                                <span class="dot occupied"></span>
+                            </div>
+                            <div class="room-name">Kamar 31</div>
+                            <div class="room-info patient">Tn. Budi S.</div>
+                            <button class="room-btn details">Adm. 24/10/2023</button>
+                        </div>
+
+                        <div class="room-card">
+                            <div class="room-top">
+                                <span class="room-tag">KELAS 2 · 302</span>
+                                <span class="dot available"></span>
+                            </div>
+                            <div class="room-name">Kamar 32</div>
+                            <div class="room-info">Unit Wijaya Kusuma</div>
+                            <button class="room-btn select">Pilih Kamar</button>
+                        </div>
+
+                        <div class="room-card">
+                            <div class="room-top">
+                                <span class="room-tag">KELAS 2 · 303</span>
+                                <span class="dot available"></span>
+                            </div>
+                            <div class="room-name">Kamar 33</div>
+                            <div class="room-info">Unit Wijaya Kusuma</div>
+                            <button class="room-btn select">Pilih Kamar</button>
+                        </div>
+
+                        <div class="room-card">
+                            <div class="room-top">
+                                <span class="room-tag">KELAS 3 · 402</span>
+                                <span class="dot available"></span>
+                            </div>
+                            <div class="room-name">Kamar 62</div>
+                            <div class="room-info">Unit Wijaya Kusuma</div>
+                            <button class="room-btn select">Pilih Kamar</button>
+                        </div>
+
+                        <div class="room-card">
+                            <div class="room-top">
+                                <span class="room-tag">KELAS 3 · 403</span>
+                                <span class="dot available"></span>
+                            </div>
+                            <div class="room-name">Kamar 63</div>
+                            <div class="room-info">Unit Wijaya Kusuma</div>
+                            <button class="room-btn select">Pilih Kamar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="right-col">
+
+                    <div class="panel triage-panel">
+                        <div class="panel-head" style="margin-bottom:6px;">
+                            <h3>Triase Waitlist</h3>
+                            <span class="triage-badge">4 MENUNGGU</span>
+                        </div>
+
+                        <div class="triage-item">
+                            <div class="triage-tag er">IGD</div>
+                            <div>
+                                <div class="triage-name">Tn. Raharjo (Kritis)</div>
+                                <div class="triage-sub critical">Trauma Center · Menunggu 15m</div>
+                            </div>
+                        </div>
+
+                        <div class="triage-item">
+                            <div class="triage-tag op">OP</div>
+                            <div>
+                                <div class="triage-name">Ny. Sinta Pertiwi</div>
+                                <div class="triage-sub">Rujukan Poliklinik · Menunggu 45m</div>
+                            </div>
+                            <div class="triage-plus">+</div>
+                        </div>
+                    </div>
+
+                    <div class="panel empty-panel">
+                        <div class="empty-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="8" r="4" />
+                                <path d="M4 20c0-3.5 3-6 7-6s7 2.5 7 6" />
+                                <path d="M19 8l2 2m0-2l-2 2" />
+                            </svg>
+                        </div>
+
+                        <h4>Belum Ada Pasien Dipilih</h4>
+                        <p>Pilih kamar atau cari pasien untuk memulai proses admisi.</p>
+
+                        <button class="btn btn-outline">Cari Registrasi No. RM</button>
+                        <div class="divider-or">ATAU</div>
+                        <button class="btn btn-green">Daftar Identitas Baru</button>
+                    </div>
+
+                    <div class="capacity-card">
+                        <div class="capacity-label">Kapasitas Rumah Sakit</div>
+                        <div class="capacity-row">
+                            <span class="capacity-value">84%</span>
+                            <span class="capacity-sub">210/250 Bed</span>
+                        </div>
+                        <div class="capacity-bar">
+                            <div class="capacity-bar-fill"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
 </div>
-</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<script>
+    function loadNavbar() {
+        fetch('../navbar.html')
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('Navbar gagal dimuat. Pastikan file navbar.html berada di folder utama, sejajar dengan folder pages.');
+                }
+                return response.text();
+            })
+            .then(function (html) {
+                document.getElementById('navbar-container').innerHTML = html;
+
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+
+                var current = window.location.pathname.split('/').pop();
+
+                document.querySelectorAll('#navbar-container .nav-item').forEach(function (link) {
+                    if (link.getAttribute('data-page') === current) {
+                        link.classList.add('active');
+                    }
+                });
+            })
+            .catch(function (error) {
+                console.error(error);
+            });
+    }
+
+    function initPageInteraction() {
+        document.querySelectorAll('.filter-chips .chip').forEach(function (chip) {
+            chip.addEventListener('click', function () {
+                document.querySelectorAll('.filter-chips .chip').forEach(function (item) {
+                    item.classList.remove('active');
+                });
+                chip.classList.add('active');
+            });
+        });
+
+        document.querySelectorAll('.view-toggle button').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.view-toggle button').forEach(function (item) {
+                    item.classList.remove('active');
+                });
+                btn.classList.add('active');
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        loadNavbar();
+        initPageInteraction();
+    });
+</script>
+</body>
+</html>
