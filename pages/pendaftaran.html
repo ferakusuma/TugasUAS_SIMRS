@@ -5,11 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIMRS Amino - Pendaftaran</title>
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-
     <style>
         :root {
             --navy: #1a2a6c;
@@ -42,20 +40,41 @@
             color: inherit;
         }
 
+        button {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :focus-visible {
+            outline: 2.5px solid var(--blue-accent);
+            outline-offset: 2px;
+        }
+
+        /* ===== Layout ===== */
         .app {
-            display: flex;
+            display: grid;
+            grid-template-columns: 270px 1fr;
             min-height: 100vh;
         }
 
+        /* Sidebar akan diisi otomatis dari navbar.html */
         #navbar-container {
             flex-shrink: 0;
+            background: #f4f6fc;
+            border-right: 1px solid var(--border);
         }
 
+        #navbar-container .sidebar-loading {
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 13px;
+            width: 270px;
+        }
+
+        /* ===== Topbar ===== */
         .main {
-            flex: 1;
-            min-width: 0;
             display: flex;
             flex-direction: column;
+            min-width: 0;
         }
 
         .topbar {
@@ -65,6 +84,7 @@
             padding: 16px 32px;
             background: #fff;
             border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
         }
 
         .hospital-name {
@@ -84,6 +104,7 @@
             border-radius: 10px;
             padding: 10px 16px;
             max-width: 520px;
+            min-width: 160px;
             color: var(--text-muted);
         }
 
@@ -137,6 +158,13 @@
             background: #f3f5fb;
             cursor: pointer;
             color: #4b5065;
+            border: none;
+            flex-shrink: 0;
+        }
+
+        .icon-btn:hover {
+            background: #e6ebfa;
+            color: var(--navy);
         }
 
         .icon-btn svg {
@@ -161,28 +189,35 @@
             border-radius: 10px;
             object-fit: cover;
             border: 2px solid var(--navy);
+            flex-shrink: 0;
         }
 
+        /* ===== Content Grid ===== */
         .content {
             display: grid;
             grid-template-columns: 1fr 380px;
             gap: 24px;
             padding: 24px 32px;
             align-items: start;
+            flex: 1;
         }
 
+        /* ===== Form Panel ===== */
         .panel {
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 28px 32px;
             box-shadow: 0 1px 3px rgba(20, 25, 60, .04);
+            min-width: 0;
         }
 
         .panel-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
             margin-bottom: 24px;
         }
 
@@ -199,6 +234,7 @@
             width: 20px;
             height: 20px;
             color: var(--navy);
+            flex-shrink: 0;
         }
 
         .status-pill {
@@ -208,6 +244,7 @@
             font-size: 12px;
             padding: 6px 14px;
             border-radius: 999px;
+            white-space: nowrap;
         }
 
         .form-grid {
@@ -220,6 +257,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            min-width: 0;
         }
 
         .field.full {
@@ -230,6 +268,10 @@
             font-size: 13px;
             font-weight: 600;
             color: #333850;
+            line-height: 1.4;
+            display: flex;
+            align-items: flex-end;
+            min-height: 36px;
         }
 
         .input-wrap {
@@ -281,15 +323,20 @@
             color: #fff;
             border: none;
             font-family: 'Poppins', sans-serif;
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 600;
-            padding: 9px 14px;
+            padding: 9px 12px;
             border-radius: 7px;
             cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-inline:hover {
+            background: var(--navy-dark);
         }
 
         .field input.has-inline-btn {
-            padding-right: 112px;
+            padding-right: 122px;
         }
 
         .verified-note {
@@ -304,6 +351,7 @@
         .verified-note svg {
             width: 14px;
             height: 14px;
+            flex-shrink: 0;
         }
 
         .date-input-wrap {
@@ -359,6 +407,11 @@
             font-weight: 600;
             color: #4b5065;
             cursor: pointer;
+            transition: border-color .15s, background .15s, color .15s;
+        }
+
+        .payer-card:hover {
+            border-color: var(--blue-accent);
         }
 
         .payer-card svg {
@@ -397,15 +450,21 @@
             box-shadow: 0 6px 16px rgba(26, 42, 108, .28);
         }
 
+        .submit-btn:hover {
+            filter: brightness(1.06);
+        }
+
         .submit-btn svg {
             width: 18px;
             height: 18px;
         }
 
+        /* ===== Right Column ===== */
         .side-col {
             display: flex;
             flex-direction: column;
             gap: 20px;
+            min-width: 0;
         }
 
         .stat-card {
@@ -452,11 +511,29 @@
 
         .stat-breakdown {
             display: flex;
-            gap: 16px;
+            gap: 18px;
             margin-top: 14px;
             font-size: 12px;
             font-weight: 600;
-            opacity: .85;
+            opacity: .92;
+            position: relative;
+        }
+
+        .stat-breakdown span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-breakdown b {
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .stat-breakdown .sep {
+            width: 1px;
+            height: 14px;
+            background: rgba(255, 255, 255, .3);
         }
 
         .activity-card,
@@ -494,6 +571,10 @@
             color: var(--blue-accent);
         }
 
+        .card-head a:hover {
+            text-decoration: underline;
+        }
+
         .activity-item {
             padding: 14px 0;
             border-bottom: 1px solid var(--border);
@@ -509,6 +590,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 4px;
+            gap: 8px;
         }
 
         .rm-code {
@@ -520,6 +602,7 @@
         .activity-time {
             font-size: 11.5px;
             color: var(--text-muted);
+            white-space: nowrap;
         }
 
         .patient-name {
@@ -533,6 +616,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
         }
 
         .tag {
@@ -540,6 +624,7 @@
             font-weight: 700;
             padding: 3px 10px;
             border-radius: 999px;
+            flex-shrink: 0;
         }
 
         .tag.bpjs {
@@ -564,6 +649,7 @@
         .poli-tag svg {
             width: 12px;
             height: 12px;
+            flex-shrink: 0;
         }
 
         .map-thumb {
@@ -588,6 +674,10 @@
             cursor: pointer;
         }
 
+        .map-btn:hover {
+            background: #f0f0f0;
+        }
+
         .map-caption {
             font-size: 11.5px;
             color: var(--text-muted);
@@ -596,6 +686,7 @@
             line-height: 1.5;
         }
 
+        /* ===== Footer ===== */
         .footer {
             display: flex;
             align-items: center;
@@ -606,17 +697,21 @@
             font-size: 12px;
             color: var(--text-muted);
             margin-top: auto;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .footer-status {
             display: flex;
             gap: 20px;
+            flex-wrap: wrap;
         }
 
         .footer-status span {
             display: flex;
             align-items: center;
             gap: 6px;
+            white-space: nowrap;
         }
 
         .status-dot {
@@ -624,43 +719,17 @@
             height: 7px;
             border-radius: 50%;
             background: var(--green);
+            flex-shrink: 0;
         }
 
-        @media (max-width: 1180px) {
+        /* ===== Responsive ===== */
+        @media (max-width: 1200px) {
             .content {
                 grid-template-columns: 1fr;
             }
-
-            .side-col {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .map-card {
-                grid-column: 1 / -1;
-            }
         }
 
-        @media (max-width: 760px) {
-            #navbar-container {
-                display: none;
-            }
-
-            .topbar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .topbar-right {
-                margin-left: 0;
-                justify-content: space-between;
-                flex-wrap: wrap;
-            }
-
-            .content {
-                padding: 18px;
-            }
-
+        @media (max-width: 900px) {
             .form-grid {
                 grid-template-columns: 1fr;
             }
@@ -670,22 +739,47 @@
             }
 
             .payer-options {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 760px) {
+            .app {
                 grid-template-columns: 1fr;
             }
 
-            .side-col {
-                display: flex;
+            #navbar-container {
+                display: none;
+            }
+
+            .hospital-name {
+                display: none;
+            }
+
+            .topbar {
+                padding: 14px 18px;
+            }
+
+            .doctor-info {
+                display: none;
+            }
+
+            .content {
+                padding: 18px;
+            }
+
+            .panel {
+                padding: 20px;
+            }
+
+            .payer-options {
+                grid-template-columns: 1fr;
             }
 
             .footer {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 8px;
-            }
-
-            .footer-status {
-                flex-direction: column;
-                gap: 6px;
+                padding: 14px 18px;
             }
         }
     </style>
@@ -695,13 +789,17 @@
 
     <div class="app">
 
-        <div id="navbar-container"></div>
+        <!-- ===== Sidebar dimuat dari navbar.html ===== -->
+        <div id="navbar-container">
+            <div class="sidebar-loading">Memuat menu...</div>
+        </div>
 
+        <!-- ===== Main ===== -->
         <div class="main">
 
+            <!-- Topbar -->
             <header class="topbar">
                 <div class="hospital-name">RSJD Dr. Amino Gondohutomo</div>
-
                 <div class="search-box">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="7" />
@@ -709,44 +807,41 @@
                     </svg>
                     <input type="text" placeholder="Cari Pasien Lama (Nama/No.RM/NIK)...">
                 </div>
-
                 <div class="topbar-right">
                     <div class="doctor-info">
                         <div class="name">Dokter Utama</div>
                         <div class="role">ADMINISTRATOR</div>
                     </div>
-
-                    <div class="icon-btn">
+                    <button class="icon-btn" aria-label="Notifikasi">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
                             <path d="M13.7 21a2 2 0 0 1-3.4 0" />
                         </svg>
                         <span class="dot"></span>
-                    </div>
-
-                    <div class="icon-btn">
+                    </button>
+                    <button class="icon-btn" aria-label="Bantuan">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10" />
                             <path d="M9.1 9a3 3 0 1 1 5.8 1c0 2-3 2-3 4M12 17h.01" />
                         </svg>
-                    </div>
-
-                    <div class="icon-btn">
+                    </button>
+                    <button class="icon-btn" aria-label="Pengaturan">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="3" />
                             <path
                                 d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                         </svg>
-                    </div>
-
+                    </button>
                     <img class="avatar"
                         src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=100&h=100&fit=crop&crop=faces"
-                        alt="avatar">
+                        alt="Foto profil Dokter Utama">
                 </div>
             </header>
 
+            <!-- Content -->
             <div class="content">
 
+                <!-- Form Panel -->
                 <section class="panel">
                     <div class="panel-header">
                         <div class="panel-title">
@@ -766,13 +861,13 @@
                         <span class="status-pill">Status: Online</span>
                     </div>
 
-                    <div class="form-grid">
+                    <form class="form-grid" novalidate>
                         <div class="field">
-                            <label>Nomor Induk Kependudukan (NIK)</label>
+                            <label for="nik">Nomor Induk Kependudukan (NIK)</label>
                             <div class="input-wrap">
-                                <input type="text" class="has-inline-btn" placeholder="16-digit nomor NIK"
-                                    value="3374xxxxxxxxxxxx">
-                                <button class="btn-inline">Cek Dukcapil</button>
+                                <input id="nik" type="text" class="has-inline-btn" placeholder="16-digit nomor NIK"
+                                    inputmode="numeric" maxlength="16" value="3374xxxxxxxxxxxx">
+                                <button type="button" class="btn-inline">Cek Dukcapil</button>
                             </div>
                             <div class="verified-note">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -784,14 +879,14 @@
                         </div>
 
                         <div class="field">
-                            <label>Nama Lengkap Sesuai Identitas</label>
-                            <input type="text" placeholder="Masukkan nama lengkap">
+                            <label for="nama">Nama Lengkap Sesuai Identitas</label>
+                            <input id="nama" type="text" placeholder="Masukkan nama lengkap">
                         </div>
 
                         <div class="field">
-                            <label>Tanggal Lahir</label>
+                            <label for="tgl-lahir">Tanggal Lahir</label>
                             <div class="date-input-wrap">
-                                <input type="text" placeholder="mm/dd/yyyy">
+                                <input id="tgl-lahir" type="text" placeholder="dd/mm/yyyy">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <rect x="3" y="4" width="18" height="18" rx="2" />
                                     <path d="M16 2v4M8 2v4M3 10h18" />
@@ -800,19 +895,20 @@
                         </div>
 
                         <div class="field">
-                            <label>Nomor Telepon / WhatsApp</label>
-                            <input type="text" placeholder="08xx-xxxx-xxxx">
+                            <label for="telp">Nomor Telepon / WhatsApp</label>
+                            <input id="telp" type="tel" placeholder="08xx-xxxx-xxxx">
                         </div>
 
                         <div class="field full">
-                            <label>Alamat Lengkap</label>
-                            <textarea placeholder="Jl. Alamat Lengkap, RT/RW, Kelurahan, Kecamatan"></textarea>
+                            <label for="alamat">Alamat Lengkap</label>
+                            <textarea id="alamat"
+                                placeholder="Jl. Alamat Lengkap, RT/RW, Kelurahan, Kecamatan"></textarea>
                         </div>
 
                         <div class="payer-block">
                             <div>
-                                <label class="payer-label">Pilih Poliklinik Tujuan</label>
-                                <select>
+                                <label class="payer-label" for="poli">Pilih Poliklinik Tujuan</label>
+                                <select id="poli">
                                     <option>-- Pilih Poliklinik --</option>
                                     <option>Poli Jiwa Umum</option>
                                     <option>Poli NAPZA</option>
@@ -820,26 +916,25 @@
                                     <option>Layanan Psikologi</option>
                                 </select>
                             </div>
-
                             <div>
-                                <label class="payer-label">Jenis Penjamin / Payer</label>
-                                <div class="payer-options">
-                                    <div class="payer-card active">
+                                <span class="payer-label">Jenis Penjamin / Payer</span>
+                                <div class="payer-options" role="radiogroup" aria-label="Jenis Penjamin">
+                                    <div class="payer-card active" role="radio" aria-checked="true" tabindex="0">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <rect x="2" y="7" width="20" height="12" rx="2" />
                                             <path d="M2 11h20" />
                                         </svg>
                                         BPJS
                                     </div>
-
-                                    <div class="payer-card">
+                                    <div class="payer-card" role="radio" aria-checked="false" tabindex="0">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M3 21h18M5 21V9l7-6 7 6v12M9 21v-6h6v6" />
+                                            <rect x="2" y="5" width="20" height="14" rx="2" />
+                                            <circle cx="8" cy="12" r="2" />
+                                            <path d="M14 10h6M14 14h4" />
                                         </svg>
                                         Askes
                                     </div>
-
-                                    <div class="payer-card">
+                                    <div class="payer-card" role="radio" aria-checked="false" tabindex="0">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <circle cx="12" cy="12" r="9" />
                                             <path d="M8 12h8M12 8v8" />
@@ -850,23 +945,25 @@
                             </div>
                         </div>
 
-                        <button class="submit-btn">
+                        <button type="submit" class="submit-btn">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="4" width="18" height="16" rx="2" />
                                 <path d="M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01" />
                             </svg>
                             Generate & Cetak Nomor Antrian
                         </button>
-                    </div>
+                    </form>
                 </section>
 
+                <!-- Right column -->
                 <aside class="side-col">
                     <div class="stat-card">
                         <div class="stat-label">TOTAL PENDAFTARAN HARI INI</div>
                         <div class="stat-number">142 <span>Pasien</span></div>
                         <div class="stat-breakdown">
-                            <span>BPJS</span>
-                            <span>UMUM/ASKES</span>
+                            <span><b>98</b> BPJS</span>
+                            <span class="sep"></span>
+                            <span><b>44</b> Umum/Askes</span>
                         </div>
                     </div>
 
@@ -960,19 +1057,17 @@
                                 Lokasi Poliklinik
                             </div>
                         </div>
-
                         <div class="map-thumb">
-                            <button class="map-btn">Buka Denah Gedung</button>
+                            <button type="button" class="map-btn">Buka Denah Gedung</button>
                         </div>
-
-                        <div class="map-caption">
-                            *Gunakan denah ini untuk memandu pasien baru menuju lokasi poliklinik tujuan.
-                        </div>
+                        <div class="map-caption">*Gunakan denah ini untuk memandu pasien baru menuju lokasi poliklinik
+                            tujuan.</div>
                     </div>
                 </aside>
 
             </div>
 
+            <!-- Footer -->
             <footer class="footer">
                 <span>© 2024 RSJD Dr. Amino Gondohutomo | SIMRS V.3.2.1</span>
                 <div class="footer-status">
@@ -987,6 +1082,9 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <script>
+        // Ambil sidebar dari navbar.html (satu folder di atas /pages) lalu suntikkan ke halaman ini.
+        // CATATAN: fetch() butuh server lokal (mis. VS Code "Live Server"),
+        // tidak bisa jalan kalau file dibuka langsung dari file explorer.
         function loadNavbar() {
             fetch('../navbar.html')
                 .then(function (response) {
@@ -1011,21 +1109,36 @@
                     });
                 })
                 .catch(function (error) {
+                    document.getElementById('navbar-container').innerHTML =
+                        '<div class="sidebar-loading">Gagal memuat navbar.html.<br>Pastikan file ini dibuka lewat Live Server, bukan dibuka langsung.</div>';
                     console.error(error);
                 });
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            loadNavbar();
-
-            document.querySelectorAll('.payer-card').forEach(function (card) {
+        // Pilih salah satu jenis penjamin (BPJS / Askes / Tunai)
+        function initPayerCards() {
+            var cards = document.querySelectorAll('.payer-card');
+            cards.forEach(function (card) {
                 card.addEventListener('click', function () {
-                    document.querySelectorAll('.payer-card').forEach(function (item) {
-                        item.classList.remove('active');
+                    cards.forEach(function (c) {
+                        c.classList.remove('active');
+                        c.setAttribute('aria-checked', 'false');
                     });
                     card.classList.add('active');
+                    card.setAttribute('aria-checked', 'true');
+                });
+                card.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        card.click();
+                    }
                 });
             });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadNavbar();
+            initPayerCards();
         });
     </script>
 

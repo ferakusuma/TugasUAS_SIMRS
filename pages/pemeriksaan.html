@@ -1,59 +1,981 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
+
 <head>
-<title>Pemeriksaan</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pemeriksaan Dokter - SIMRS Amino</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --navy: #12206b;
+            --navy-dark: #0a1550;
+            --blue: #1c2f9c;
+            --bg: #eef1fb;
+            --panel: #ffffff;
+            --border: #e1e5f2;
+            --text-dark: #171a35;
+            --text-muted: #6b7280;
+            --green: #16a34a;
+            --green-bg: #e7f8ee;
+            --red: #dc2626;
+            --red-bg: #fdecec;
+            --orange: #c8790a;
+            --orange-bg: #fdf1dc;
+        }
 
-<style>
-body {font-family:Arial; margin:0; background:#f4f6fb;}
-.container {margin-left:240px; padding:20px;}
+        * {
+            box-sizing: border-box;
+        }
 
-.card {background:white; padding:20px; border-radius:10px;}
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text-dark);
+            font-size: 14px;
+        }
 
-textarea, input {
-    width:100%;
-    padding:10px;
-    margin:10px 0;
-}
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
 
-.btn {
-    padding:10px;
-    background:#0f2d52;
-    color:white;
-    border:none;
-}
-</style>
+        /* Sidebar dimuat dari navbar.html */
+        #navbar-container {
+            flex-shrink: 0;
+            background: #f4f6fc;
+            border-right: 1px solid var(--border);
+        }
+
+        #navbar-container .sidebar-loading {
+            padding: 26px;
+            color: var(--text-muted);
+            font-size: 13px;
+            width: 270px;
+        }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== Topbar ===== */
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 16px 32px;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-box {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f3f5fb;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 16px;
+            max-width: 480px;
+            color: var(--text-muted);
+        }
+
+        .search-box svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .search-box input {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            width: 100%;
+            color: var(--text-dark);
+        }
+
+        .topbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .icon-btn {
+            position: relative;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3d4160;
+            cursor: pointer;
+        }
+
+        .icon-btn svg {
+            width: 19px;
+            height: 19px;
+        }
+
+        .doctor-info {
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        .doctor-info .name {
+            font-weight: 700;
+            font-size: 13.5px;
+        }
+
+        .doctor-info .role {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid var(--navy);
+        }
+
+        /* ===== Content ===== */
+        .content {
+            padding: 26px 32px 40px;
+        }
+
+        /* ===== Kartu identitas pasien ===== */
+        .patient-bar {
+            background: var(--panel);
+            border: 1.5px solid var(--navy);
+            border-radius: 16px;
+            padding: 22px 26px;
+            display: flex;
+            align-items: center;
+            gap: 26px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .patient-photo {
+            width: 88px;
+            height: 88px;
+            border-radius: 14px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .patient-field label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .4px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .patient-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--navy);
+            line-height: 1.2;
+        }
+
+        .patient-sub {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .patient-sub .muted {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 8px 14px;
+            border-radius: 8px;
+        }
+
+        .pill.bpjs {
+            background: #e6ecff;
+            color: var(--blue);
+        }
+
+        .pill.allergy {
+            background: var(--red-bg);
+            color: var(--red);
+        }
+
+        .pill svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .patient-actions {
+            margin-left: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 12.5px;
+            padding: 11px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            white-space: nowrap;
+            border: none;
+        }
+
+        .btn svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .btn-navy {
+            background: var(--navy);
+            color: #fff;
+        }
+
+        .btn-outline-navy {
+            background: #fff;
+            border: 1.5px solid var(--navy);
+            color: var(--navy);
+        }
+
+        /* ===== Layout utama ===== */
+        .body-grid {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 22px;
+            align-items: start;
+        }
+
+        .left-col,
+        .right-col {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1.5px solid var(--navy);
+            border-radius: 16px;
+            padding: 22px 24px 26px;
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .panel-head h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-head h2 svg {
+            width: 19px;
+            height: 19px;
+            color: var(--navy);
+        }
+
+        .severity-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .severity-chip {
+            font-family: 'Poppins', sans-serif;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: #fff;
+            color: #4b5065;
+            cursor: pointer;
+        }
+
+        .severity-chip.low.active {
+            background: var(--green-bg);
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .severity-chip.mid {
+            color: #4b5065;
+        }
+
+        .field-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: .3px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .field-block {
+            margin-bottom: 22px;
+        }
+
+        .field-block:last-child {
+            margin-bottom: 0;
+        }
+
+        textarea.input-area {
+            width: 100%;
+            min-height: 110px;
+            resize: vertical;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13.5px;
+            color: var(--text-dark);
+            outline: none;
+        }
+
+        textarea.input-area:focus {
+            border-color: var(--navy);
+        }
+
+        .diagnosis-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+
+        .diagnosis-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--green-bg);
+            color: #0f6b4f;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        .diagnosis-tag button {
+            border: none;
+            background: transparent;
+            color: #0f6b4f;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .diagnosis-row input {
+            flex: 1;
+            min-width: 160px;
+            border: none;
+            outline: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13.5px;
+            color: var(--text-dark);
+        }
+
+        /* ===== E-Prescribing ===== */
+        .btn-add-obat {
+            background: var(--navy);
+            color: #fff;
+        }
+
+        table.obat-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table.obat-table thead th {
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .3px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            padding-bottom: 12px;
+            border-bottom: 1.5px solid var(--border);
+        }
+
+        table.obat-table tbody td {
+            padding: 16px 6px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+            font-size: 13.5px;
+        }
+
+        table.obat-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .obat-name {
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .obat-sediaan {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .obat-waktu {
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        .del-btn {
+            border: none;
+            background: transparent;
+            color: var(--red);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .del-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* ===== Disposisi ===== */
+        .disposisi-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .disposisi-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            cursor: pointer;
+        }
+
+        .disposisi-item.selected {
+            border-color: var(--navy);
+            background: #f4f6ff;
+        }
+
+        .radio-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            flex-shrink: 0;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .disposisi-item.selected .radio-dot {
+            border-color: var(--navy);
+        }
+
+        .radio-dot span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--navy);
+            display: none;
+        }
+
+        .disposisi-item.selected .radio-dot span {
+            display: block;
+        }
+
+        .disposisi-title {
+            font-size: 14.5px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .disposisi-sub {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        /* ===== Verifikasi Dokter ===== */
+        .ttd-box {
+            border: 1.5px dashed #b9c2ec;
+            background: #f4f6ff;
+            border-radius: 12px;
+            padding: 26px 16px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .ttd-box svg {
+            width: 30px;
+            height: 30px;
+            color: var(--navy);
+            margin-bottom: 8px;
+        }
+
+        .ttd-label {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        .verif-name {
+            text-align: center;
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+
+        .verif-nip {
+            text-align: center;
+            font-size: 11.5px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .verif-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .verif-actions .btn {
+            flex: 1;
+        }
+
+        .btn-batal {
+            background: #fff;
+            border: 1.5px solid var(--border);
+            color: var(--text-dark);
+        }
+
+        .btn-simpan {
+            background: var(--navy);
+            color: #fff;
+        }
+
+        @media (max-width: 1200px) {
+            .body-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            #navbar-container {
+                display: none;
+            }
+
+            .content {
+                padding: 18px;
+            }
+
+            .patient-bar {
+                padding: 18px;
+            }
+
+            .patient-actions {
+                margin-left: 0;
+                flex-direction: row;
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="container">
+    <div class="app">
 
-<h2>Pemeriksaan Dokter</h2>
+        <!-- ===== Sidebar dimuat dari navbar.html ===== -->
+        <div id="navbar-container">
+            <div class="sidebar-loading">Memuat menu...</div>
+        </div>
 
-<div class="card">
+        <!-- ===== Main ===== -->
+        <main class="main">
 
-<h3>Data Pasien</h3>
-<p>Budi Santoso | BPJS Aktif</p>
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="M21 21l-4.3-4.3" />
+                    </svg>
+                    <input type="text" placeholder="Cari pasien berdasarkan No. RM atau Nama...">
+                </div>
+                <div class="topbar-right">
+                    <div class="icon-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+                        </svg>
+                    </div>
+                    <div class="icon-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M9.1 9a3 3 0 1 1 5.8 1c0 2-3 2-3 4M12 17h.01" />
+                        </svg>
+                    </div>
+                    <div class="doctor-info">
+                        <div class="name">dr. Heru Prasetyo</div>
+                        <div class="role">SPESIALIS KEDOKTERAN JIWA</div>
+                    </div>
+                    <img class="avatar"
+                        src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=100&h=100&fit=crop&crop=faces"
+                        alt="avatar">
+                </div>
+            </header>
 
-<label>Anamnesis</label>
-<textarea></textarea>
+            <!-- Content -->
+            <section class="content">
 
-<label>Diagnosa</label>
-<input type="text">
+                <!-- Identitas pasien -->
+                <div class="patient-bar">
+                    <img class="patient-photo"
+                        src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&h=200&fit=crop&crop=faces"
+                        alt="Foto pasien">
 
-<label>Tindakan</label>
-<select>
-    <option>Rawat Jalan</option>
-    <option>Rawat Inap</option>
-    <option>Rujuk Internal</option>
-    <option>Rujuk Eksternal</option>
-</select>
+                    <div class="patient-field">
+                        <label>Nama Pasien</label>
+                        <div class="patient-name">Tn. Bambang Hermawan</div>
+                    </div>
 
-<button class="btn">Simpan</button>
+                    <div class="patient-field">
+                        <label>No. RM / Usia</label>
+                        <div class="patient-sub">00-42-19-87<br><span class="muted">/ 45 Tahun</span></div>
+                    </div>
 
-</div>
+                    <div class="patient-field">
+                        <label>Penjamin</label>
+                        <span class="pill bpjs">BPJS Kesehatan</span>
+                    </div>
 
-</div>
+                    <div class="patient-field">
+                        <label>Alergi Obat</label>
+                        <span class="pill allergy">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M12 9v4M12 17h.01" />
+                                <path
+                                    d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z" />
+                            </svg>
+                            Amoxicillin
+                        </span>
+                    </div>
+
+                    <div class="patient-actions">
+                        <button class="btn btn-navy">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="9" />
+                                <path d="M12 7v5l3 3" />
+                            </svg>
+                            Riwayat Medis
+                        </button>
+                        <button class="btn btn-outline-navy">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="8" width="18" height="8" rx="1" />
+                                <path
+                                    d="M6 8V5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v3M6 16v3a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3" />
+                            </svg>
+                            Cetak Gelang
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Layout utama -->
+                <div class="body-grid">
+
+                    <!-- Kolom kiri -->
+                    <div class="left-col">
+
+                        <!-- Pemeriksaan & Diagnosis -->
+                        <div class="panel">
+                            <div class="panel-head">
+                                <h2>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path
+                                            d="M9 3h6l1 3h3a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3l1-3z" />
+                                        <path d="M9 12h6M9 16h4" />
+                                    </svg>
+                                    Pemeriksaan & Diagnosis
+                                </h2>
+                                <div class="severity-toggle">
+                                    <button class="severity-chip low active">RENDAH</button>
+                                    <button class="severity-chip mid">SEDANG</button>
+                                    <button class="severity-chip mid">TINGGI</button>
+                                </div>
+                            </div>
+
+                            <div class="field-block">
+                                <div class="field-label">Keluhan Utama & Anamnesis</div>
+                                <textarea class="input-area"
+                                    placeholder="Tuliskan keluhan utama pasien dan riwayat penyakit..."></textarea>
+                            </div>
+
+                            <div class="field-block">
+                                <div class="field-label">Diagnosis (ICD-10)</div>
+                                <div class="diagnosis-row">
+                                    <span class="diagnosis-tag">F20.0 - Paranoid Schizophrenia <button
+                                            aria-label="Hapus diagnosis">×</button></span>
+                                    <input type="text" placeholder="Ketik kode atau nama diagnosis...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- E-Prescribing -->
+                        <div class="panel">
+                            <div class="panel-head">
+                                <h2>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path
+                                            d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
+                                        <path d="M9 7h6M9 11h6M9 15h3" />
+                                    </svg>
+                                    E-Prescribing
+                                </h2>
+                                <button class="btn btn-add-obat">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <path d="M12 5v14M5 12h14" />
+                                    </svg>
+                                    Tambah Obat
+                                </button>
+                            </div>
+
+                            <table class="obat-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nama Obat</th>
+                                        <th>Dosis/Aturan</th>
+                                        <th>Waktu</th>
+                                        <th>Jumlah</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="obat-name">Risperidone 2mg</div>
+                                            <div class="obat-sediaan">SEDIAAN: TABLET</div>
+                                        </td>
+                                        <td>2 × 1 Tablet</td>
+                                        <td class="obat-waktu">Sesudah Makan</td>
+                                        <td>60 Tab</td>
+                                        <td>
+                                            <button class="del-btn" aria-label="Hapus obat">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2">
+                                                    <path
+                                                        d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="obat-name">Trihexyphenidyl 2mg</div>
+                                            <div class="obat-sediaan">SEDIAAN: TABLET</div>
+                                        </td>
+                                        <td>2 × 0.5 Tablet</td>
+                                        <td class="obat-waktu">Sesudah Makan</td>
+                                        <td>30 Tab</td>
+                                        <td>
+                                            <button class="del-btn" aria-label="Hapus obat">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2">
+                                                    <path
+                                                        d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Kolom kanan -->
+                    <div class="right-col">
+
+                        <!-- Tindak Lanjut (Disposisi) -->
+                        <div class="panel">
+                            <div class="panel-head">
+                                <h2>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="5" y="3" width="14" height="18" rx="2" />
+                                        <path d="M9 3h6v3H9z" />
+                                        <path d="M9 12l2 2 4-4" />
+                                    </svg>
+                                    Tindak Lanjut (Disposisi)
+                                </h2>
+                            </div>
+
+                            <div class="disposisi-list">
+                                <div class="disposisi-item selected">
+                                    <div class="radio-dot"><span></span></div>
+                                    <div>
+                                        <div class="disposisi-title">Selesaikan Rawat Jalan</div>
+                                        <div class="disposisi-sub">PASIEN DIPERBOLEHKAN PULANG</div>
+                                    </div>
+                                </div>
+                                <div class="disposisi-item">
+                                    <div class="radio-dot"><span></span></div>
+                                    <div>
+                                        <div class="disposisi-title">Permintaan Rawat Inap</div>
+                                        <div class="disposisi-sub">PASIEN BUTUH OBSERVASI LANJUT</div>
+                                    </div>
+                                </div>
+                                <div class="disposisi-item">
+                                    <div class="radio-dot"><span></span></div>
+                                    <div>
+                                        <div class="disposisi-title">Rujuk Eksternal</div>
+                                        <div class="disposisi-sub">RS LAIN (FASILITAS PENUNJANG)</div>
+                                    </div>
+                                </div>
+                                <div class="disposisi-item">
+                                    <div class="radio-dot"><span></span></div>
+                                    <div>
+                                        <div class="disposisi-title">Rujuk Internal (Konsul)</div>
+                                        <div class="disposisi-sub">ANTAR SPESIALIS DALAM RS</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Verifikasi Dokter -->
+                        <div class="panel">
+                            <div class="field-label" style="margin-bottom:16px;">Verifikasi Dokter</div>
+
+                            <div class="ttd-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 20c3-4 6-1 9-4s2-6 6-6" />
+                                    <path d="M15 4l4 4" />
+                                </svg>
+                                <div class="ttd-label">TTD Digital Valid</div>
+                            </div>
+
+                            <div class="verif-name">dr. Heru Prasetyo, Sp.KJ</div>
+                            <div class="verif-nip">NIP. 19850312 201001 1 004</div>
+
+                            <div class="verif-actions">
+                                <button class="btn btn-batal">Batal</button>
+                                <button class="btn btn-simpan">Simpan Rekam Medis</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        // Ambil sidebar dari navbar.html (satu folder di atas /pages) lalu suntikkan ke halaman ini.
+        // CATATAN: fetch() butuh server lokal (mis. VS Code "Live Server"),
+        // tidak bisa jalan kalau file dibuka langsung dari file explorer.
+        function loadNavbar() {
+            fetch('../navbar.html')
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Navbar gagal dimuat.');
+                    }
+                    return response.text();
+                })
+                .then(function (html) {
+                    document.getElementById('navbar-container').innerHTML = html;
+
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+
+                    var current = window.location.pathname.split('/').pop();
+
+                    document.querySelectorAll('#navbar-container .nav-item').forEach(function (link) {
+                        if (link.getAttribute('data-page') === current) {
+                            link.classList.add('active');
+                        }
+                    });
+                })
+                .catch(function (error) {
+                    document.getElementById('navbar-container').innerHTML =
+                        '<div class="sidebar-loading">Gagal memuat navbar.html.<br>Pastikan file ini dibuka lewat Live Server, bukan dibuka langsung.</div>';
+                    console.error(error);
+                });
+        }
+
+        // Interaksi ringan: pilih disposisi & tingkat keparahan
+        document.querySelectorAll('.disposisi-item').forEach(function (item) {
+            item.addEventListener('click', function () {
+                document.querySelectorAll('.disposisi-item').forEach(function (el) {
+                    el.classList.remove('selected');
+                });
+                item.classList.add('selected');
+            });
+        });
+
+        document.querySelectorAll('.severity-chip').forEach(function (chip) {
+            chip.addEventListener('click', function () {
+                document.querySelectorAll('.severity-chip').forEach(function (el) {
+                    el.classList.remove('active');
+                });
+                chip.classList.add('active');
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadNavbar();
+        });
+    </script>
 
 </body>
+
 </html>
