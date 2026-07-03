@@ -1,9 +1,1396 @@
-<div class="container">
-<h2>Farmasi</h2>
+<!DOCTYPE html>
+<html lang="id">
 
-<div class="card">
-<p>Resep: Paracetamol 500mg</p>
-<p>Status: Menunggu pengambilan</p>
-<button>Proses Obat</button>
-</div>
-</div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMRS Amino - Farmasi</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --navy: #1a2a6c;
+            --navy-dark: #0f1a4a;
+            --blue-accent: #2b3a8f;
+            --bg: #eef1fa;
+            --panel: #ffffff;
+            --border: #e1e5f2;
+            --text-dark: #1c2440;
+            --text-muted: #6b7280;
+            --green: #16a34a;
+            --green-bg: #e7f8ee;
+            --red: #dc2626;
+            --red-bg: #fff1f1;
+            --yellow: #d97706;
+            --yellow-bg: #fff7df;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text-dark);
+            font-size: 14px;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :focus-visible {
+            outline: 2.5px solid var(--blue-accent);
+            outline-offset: 2px;
+        }
+
+        /* ===== Layout ===== */
+        .app {
+            display: grid;
+            grid-template-columns: 270px 1fr;
+            min-height: 100vh;
+        }
+
+        #navbar-container {
+            flex-shrink: 0;
+            background: #f4f6fc;
+            border-right: 1px solid var(--border);
+        }
+
+        #navbar-container .sidebar-loading {
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 13px;
+            width: 270px;
+        }
+
+        .main {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        /* ===== Topbar ===== */
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 16px 32px;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .hospital-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--navy-dark);
+            white-space: nowrap;
+        }
+
+        .search-box {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f3f5fb;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 16px;
+            max-width: 460px;
+            min-width: 160px;
+            color: var(--text-muted);
+        }
+
+        .search-box svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .search-box input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            width: 100%;
+            color: var(--text-dark);
+        }
+
+        .topbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .doctor-info {
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        .doctor-info .name {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .doctor-info .role {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .icon-btn {
+            position: relative;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #f3f5fb;
+            cursor: pointer;
+            color: #4b5065;
+            border: none;
+            flex-shrink: 0;
+        }
+
+        .icon-btn:hover {
+            background: #e6ebfa;
+            color: var(--navy);
+        }
+
+        .icon-btn svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .icon-btn .dot {
+            position: absolute;
+            top: 6px;
+            right: 7px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--red);
+            border: 1.5px solid #fff;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid var(--navy);
+            flex-shrink: 0;
+        }
+
+        /* ===== Content Grid: 3 kolom ===== */
+        .content {
+            display: grid;
+            grid-template-columns: 300px 1fr 320px;
+            gap: 20px;
+            padding: 22px 26px;
+            align-items: start;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(20, 25, 60, .04);
+            min-width: 0;
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 18px 18px 12px;
+        }
+
+        .panel-head-title {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 15.5px;
+            font-weight: 800;
+            color: var(--navy-dark);
+        }
+
+        .panel-head-title svg {
+            width: 18px;
+            height: 18px;
+            color: var(--navy);
+            flex-shrink: 0;
+        }
+
+        .count-badge {
+            background: var(--navy);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        /* ===== Kolom Kiri: Resep Masuk ===== */
+        .queue-col {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .tab-row {
+            display: flex;
+            gap: 6px;
+            padding: 0 14px 14px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            border: 1px solid var(--border);
+            background: #f6f8fd;
+            color: var(--text-muted);
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 9px 6px;
+            border-radius: 9px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: var(--navy);
+            border-color: var(--navy);
+            color: #fff;
+        }
+
+        .rx-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 0 14px 16px;
+            max-height: 640px;
+            overflow-y: auto;
+        }
+
+        .rx-card {
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 13px 14px;
+            cursor: pointer;
+            background: #fff;
+            transition: border-color .15s, box-shadow .15s;
+        }
+
+        .rx-card:hover {
+            border-color: var(--blue-accent);
+        }
+
+        .rx-card.selected {
+            border-color: var(--navy);
+            box-shadow: 0 0 0 1px var(--navy);
+            background: #f7f8ff;
+        }
+
+        .rx-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .rx-flag {
+            font-size: 9.5px;
+            font-weight: 800;
+            letter-spacing: .4px;
+            text-transform: uppercase;
+            color: var(--red);
+        }
+
+        .rx-flag.regular {
+            color: var(--text-muted);
+        }
+
+        .rx-flag.bpjs {
+            color: var(--blue-accent);
+        }
+
+        .rx-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .rx-patient {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 3px;
+        }
+
+        .rx-sub {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 9px;
+        }
+
+        .rx-bottom-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .status-badge.menunggu {
+            background: var(--red-bg);
+            color: var(--red);
+        }
+
+        .status-badge.disiapkan {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .status-badge.selesai {
+            background: var(--green-bg);
+            color: var(--green);
+        }
+
+        .rx-item-count {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        /* ===== Kolom Tengah: Detail Resep ===== */
+        .detail-col {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .detail-head-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 18px 0;
+        }
+
+        .detail-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--navy-dark);
+        }
+
+        .label-btn {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 9px 14px;
+            border-radius: 9px;
+            cursor: pointer;
+        }
+
+        .label-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .received-note {
+            padding: 6px 18px 14px;
+            font-size: 11.5px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .info-boxes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 0 18px;
+        }
+
+        .info-box {
+            background: #f6f8fd;
+            border-radius: 12px;
+            padding: 13px 14px;
+        }
+
+        .info-box-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            margin-bottom: 6px;
+        }
+
+        .info-box-value {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.4;
+        }
+
+        .info-box-sub {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-top: 3px;
+        }
+
+        .drug-section {
+            padding: 6px 18px 0;
+        }
+
+        .drug-section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .drug-section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--navy-dark);
+        }
+
+        .drug-section-title svg {
+            width: 15px;
+            height: 15px;
+            color: var(--navy);
+        }
+
+        .drug-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .drug-table th {
+            background: #f3f6fc;
+            color: var(--text-muted);
+            text-align: left;
+            font-size: 9.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+            padding: 9px 12px;
+        }
+
+        .drug-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+            font-size: 12.5px;
+        }
+
+        .drug-name {
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .drug-name.controlled {
+            color: var(--red);
+        }
+
+        .drug-form {
+            font-size: 10.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .drug-qty {
+            font-weight: 700;
+            color: var(--navy);
+            white-space: nowrap;
+        }
+
+        .drug-note {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .action-row {
+            padding: 14px 18px 4px;
+        }
+
+        .btn-finish {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            background: var(--green);
+            color: #fff;
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 6px 14px rgba(22, 163, 74, .25);
+        }
+
+        .btn-finish:hover {
+            filter: brightness(1.05);
+        }
+
+        .btn-finish svg {
+            width: 17px;
+            height: 17px;
+        }
+
+        .stock-alert {
+            margin: 16px 18px 18px;
+            background: var(--yellow-bg);
+            border: 1px solid #f6d78a;
+            border-radius: 12px;
+            padding: 14px 16px;
+        }
+
+        .stock-alert-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .stock-alert-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11.5px;
+            font-weight: 800;
+            color: var(--yellow);
+            text-transform: uppercase;
+        }
+
+        .stock-alert-title svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .stock-alert-link {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--blue-accent);
+            text-align: right;
+        }
+
+        .stock-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .stock-item {
+            background: #fff;
+            border-radius: 10px;
+            padding: 11px 12px;
+        }
+
+        .stock-item-name {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+
+        .stock-item-form {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .stock-item-qty {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--red);
+        }
+
+        .stock-item-qty span {
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        /* ===== Kolom Kanan: Penyerahan Obat ===== */
+        .handover-col {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .handover-body {
+            padding: 0 18px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .scan-box {
+            background: #f6f8fd;
+            border: 1.5px dashed #c7cdea;
+            border-radius: 12px;
+            padding: 20px 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .scan-box:hover {
+            border-color: var(--blue-accent);
+        }
+
+        .scan-box svg {
+            width: 30px;
+            height: 30px;
+            color: var(--navy);
+        }
+
+        .scan-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .scan-sub {
+            font-size: 10.5px;
+            color: var(--text-muted);
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .checklist-label {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .check-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .check-row:last-child {
+            border-bottom: none;
+        }
+
+        .check-row input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            accent-color: var(--navy);
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .check-row label {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-dark);
+            cursor: pointer;
+        }
+
+        .signature-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .signature-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .signature-clear {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--red);
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .signature-pad {
+            height: 110px;
+            background: #f6f8fd;
+            border: 1.5px dashed #c7cdea;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #9aa1b5;
+            font-weight: 500;
+        }
+
+        .btn-confirm {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 13.5px;
+            padding: 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 6px 14px rgba(26, 42, 108, .25);
+        }
+
+        .btn-confirm:hover {
+            filter: brightness(1.06);
+        }
+
+        .btn-confirm svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .confirm-note {
+            font-size: 10.5px;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-align: center;
+            margin-top: -6px;
+        }
+
+        /* ===== Footer ===== */
+        .footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 32px;
+            background: #fff;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: auto;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .footer-status {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-status span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            flex-shrink: 0;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 1300px) {
+            .content {
+                grid-template-columns: 280px 1fr;
+            }
+
+            .handover-col {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .info-boxes,
+            .stock-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            #navbar-container {
+                display: none;
+            }
+
+            .hospital-name {
+                display: none;
+            }
+
+            .topbar {
+                padding: 14px 18px;
+            }
+
+            .doctor-info {
+                display: none;
+            }
+
+            .content {
+                padding: 18px;
+            }
+
+            .footer {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 14px 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- ===== Sidebar dimuat dari navbar.html ===== -->
+        <div id="navbar-container">
+            <div class="sidebar-loading">Memuat menu...</div>
+        </div>
+
+        <!-- ===== Main ===== -->
+        <div class="main">
+
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="hospital-name">RSJD Dr. Amino Gondohutomo</div>
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="M21 21l-4.3-4.3" />
+                    </svg>
+                    <input type="text" placeholder="Cari Resep / No. RM...">
+                </div>
+                <div class="topbar-right">
+                    <div class="doctor-info">
+                        <div class="name">Apt. Budi Santoso, S.Farm</div>
+                        <div class="role">APOTEKER UTAMA</div>
+                    </div>
+                    <button class="icon-btn" aria-label="Notifikasi">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+                        </svg>
+                        <span class="dot"></span>
+                    </button>
+                    <button class="icon-btn" aria-label="Pengaturan">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3" />
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                        </svg>
+                    </button>
+                    <img class="avatar"
+                        src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=100&h=100&fit=crop&crop=faces"
+                        alt="Foto profil Apoteker Utama">
+                </div>
+            </header>
+
+            <!-- Content: 3 kolom -->
+            <div class="content">
+
+                <!-- ===== Kolom 1: Resep Masuk ===== -->
+                <section class="panel queue-col">
+                    <div class="panel-head">
+                        <div class="panel-head-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 2h6l1 4H8l1-4z" />
+                                <path d="M6 6h12l1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L6 6z" />
+                                <path d="M9 12h6M9 16h4" />
+                            </svg>
+                            Resep Masuk
+                        </div>
+                        <span class="count-badge" id="antreanCount">12 Antrean</span>
+                    </div>
+
+                    <div class="tab-row">
+                        <button class="tab-btn active" data-filter="semua">Semua</button>
+                        <button class="tab-btn" data-filter="prioritas">Prioritas</button>
+                        <button class="tab-btn" data-filter="bpjs">BPJS</button>
+                    </div>
+
+                    <div class="rx-list" id="rxList">
+
+                        <div class="rx-card selected" data-filter="prioritas bpjs" data-resep-id="7729-A"
+                            tabindex="0">
+                            <div class="rx-top-row">
+                                <span class="rx-flag">Priority &middot; IGD</span>
+                                <span class="rx-time">10:45</span>
+                            </div>
+                            <div class="rx-patient">Tn. Ahmad Subarjo</div>
+                            <div class="rx-sub">RM: 102-99-44 &middot; Dr. Sartika</div>
+                            <div class="rx-bottom-row">
+                                <span class="status-badge menunggu">Menunggu</span>
+                                <span class="rx-item-count">4 Obat</span>
+                            </div>
+                        </div>
+
+                        <div class="rx-card" data-filter="bpjs" data-resep-id="7726-C" tabindex="0">
+                            <div class="rx-top-row">
+                                <span class="rx-flag regular">Reguler &middot; RJ</span>
+                                <span class="rx-time">10:52</span>
+                            </div>
+                            <div class="rx-patient">Ny. Sri Wahyuni</div>
+                            <div class="rx-sub">RM: 098-22-11 &middot; Dr. Gunawan</div>
+                            <div class="rx-bottom-row">
+                                <span class="status-badge disiapkan">Disiapkan</span>
+                                <span class="rx-item-count">2 Obat</span>
+                            </div>
+                        </div>
+
+                        <div class="rx-card" data-filter="bpjs" data-resep-id="7731-B" tabindex="0">
+                            <div class="rx-top-row">
+                                <span class="rx-flag bpjs">BPJS &middot; RJ</span>
+                                <span class="rx-time">11:05</span>
+                            </div>
+                            <div class="rx-patient">An. Rizky Aditya</div>
+                            <div class="rx-sub">RM: 112-44-00 &middot; Dr. Melati</div>
+                            <div class="rx-bottom-row">
+                                <span class="status-badge menunggu">Menunggu</span>
+                                <span class="rx-item-count">3 Obat</span>
+                            </div>
+                        </div>
+
+                        <div class="rx-card" data-filter="" data-resep-id="7733-A" tabindex="0">
+                            <div class="rx-top-row">
+                                <span class="rx-flag regular">Reguler &middot; RJ</span>
+                                <span class="rx-time">11:18</span>
+                            </div>
+                            <div class="rx-patient">Ny. Dewi Kartika</div>
+                            <div class="rx-sub">RM: 088-10-27 &middot; Dr. Hendra</div>
+                            <div class="rx-bottom-row">
+                                <span class="status-badge selesai">Selesai</span>
+                                <span class="rx-item-count">1 Obat</span>
+                            </div>
+                        </div>
+
+                        <div class="rx-card" data-filter="prioritas" data-resep-id="7734-A" tabindex="0">
+                            <div class="rx-top-row">
+                                <span class="rx-flag">Priority &middot; IGD</span>
+                                <span class="rx-time">11:22</span>
+                            </div>
+                            <div class="rx-patient">Bp. Agus Mulyanto</div>
+                            <div class="rx-sub">RM: 076-51-09 &middot; Dr. Sartika</div>
+                            <div class="rx-bottom-row">
+                                <span class="status-badge menunggu">Menunggu</span>
+                                <span class="rx-item-count">5 Obat</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- ===== Kolom 2: Detail Resep ===== -->
+                <section class="panel detail-col">
+                    <div class="detail-head-row">
+                        <div class="detail-title">Detail Resep #7729-A</div>
+                        <button class="label-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.6 12.4L12 21l-9-9V4h8l9.6 9.6a2 2 0 0 1 0 2.8z" />
+                                <path d="M7 7h.01" />
+                            </svg>
+                            Label
+                        </button>
+                    </div>
+                    <div class="received-note">Diterima 24 Okt 2023, 10:45 WIB</div>
+
+                    <div class="info-boxes">
+                        <div class="info-box">
+                            <div class="info-box-label">Pasien</div>
+                            <div class="info-box-value">Tn. Ahmad Subarjo (45 Th)</div>
+                            <div class="info-box-sub">RM: 102-99-44 &middot; Laki-laki</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-box-label">Dokter Pemeriksa</div>
+                            <div class="info-box-value">Dr. Sartika Rahmawati, Sp.KJ</div>
+                            <div class="info-box-sub">Poli Psikiatri Dewasa</div>
+                        </div>
+                    </div>
+
+                    <div class="drug-section">
+                        <div class="drug-section-head">
+                            <div class="drug-section-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 2h6l1 4H8l1-4z" />
+                                    <path d="M6 6h12l1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L6 6z" />
+                                </svg>
+                                Daftar Obat (Iter: 0)
+                            </div>
+                        </div>
+
+                        <table class="drug-table">
+                            <thead>
+                                <tr>
+                                    <th>Nama Obat</th>
+                                    <th>Dosis &amp; Aturan</th>
+                                    <th>Jumlah</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="drug-name">Risperidone 2mg</div>
+                                        <div class="drug-form">Tablet &middot; Generic</div>
+                                    </td>
+                                    <td class="drug-note">2 &times; 1 Hari<br>(Sesudah Makan)</td>
+                                    <td class="drug-qty">30 TAB</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="drug-name controlled">Diazepam 5mg</div>
+                                        <div class="drug-form">Tablet &middot; Obat Terbatas</div>
+                                    </td>
+                                    <td class="drug-note">1 &times; 1 Hari<br>(Malam)</td>
+                                    <td class="drug-qty">10 TAB</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="drug-name">Trihexyphenidyl 2mg</div>
+                                        <div class="drug-form">Tablet &middot; Generic</div>
+                                    </td>
+                                    <td class="drug-note">2 &times; 1 Hari<br>(Sesudah Makan)</td>
+                                    <td class="drug-qty">30 TAB</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="drug-name">Vitamin B Complex</div>
+                                        <div class="drug-form">Tablet &middot; Generic</div>
+                                    </td>
+                                    <td class="drug-note">1 &times; 1 Hari</td>
+                                    <td class="drug-qty">15 TAB</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="action-row">
+                        <button class="btn-finish" id="btnSelesaikan">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M8 12l3 3 5-6" />
+                            </svg>
+                            Selesaikan Racikan
+                        </button>
+                    </div>
+
+                    <div class="stock-alert">
+                        <div class="stock-alert-head">
+                            <div class="stock-alert-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10.3 3h3.4L22 20H2z" />
+                                    <path d="M12 9v4" />
+                                    <path d="M12 17h.01" />
+                                </svg>
+                                Peringatan Stok Tipis
+                            </div>
+                            <a href="lab.html" class="stock-alert-link">Lihat Inventori</a>
+                        </div>
+                        <div class="stock-grid">
+                            <div class="stock-item">
+                                <div class="stock-item-name">Haloperidol 5mg</div>
+                                <div class="stock-item-form">Injeksi &middot; Ampul</div>
+                                <div class="stock-item-qty">8 <span>AMPL</span></div>
+                            </div>
+                            <div class="stock-item">
+                                <div class="stock-item-name">Amitriptyline</div>
+                                <div class="stock-item-form">Tablet &middot; Generic</div>
+                                <div class="stock-item-qty">42 <span>TAB</span></div>
+                            </div>
+                            <div class="stock-item">
+                                <div class="stock-item-name">Clozapine 25mg</div>
+                                <div class="stock-item-form">Tablet &middot; Generic</div>
+                                <div class="stock-item-qty">15 <span>TAB</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== Kolom 3: Penyerahan Obat ===== -->
+                <section class="panel handover-col">
+                    <div class="panel-head">
+                        <div class="panel-head-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5" />
+                            </svg>
+                            Penyerahan Obat
+                        </div>
+                    </div>
+
+                    <div class="handover-body">
+                        <div>
+                            <div class="checklist-label">Konfirmasi Identitas Pasien</div>
+                            <div class="scan-box" id="scanBox">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                                    <path d="M14 14h3v3h-3zM19 14h2v2h-2zM14 19h2v2h-2zM19 19h2v2h-2z" />
+                                </svg>
+                                <div class="scan-title">Scan Kartu Pasien / Resep</div>
+                                <div class="scan-sub">Gunakan barcode scanner untuk verifikasi cepat</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="checklist-label">Checklist Verifikasi:</div>
+                            <div class="check-row">
+                                <input type="checkbox" id="chk1">
+                                <label for="chk1">Nama &amp; Tgl Lahir Sesuai</label>
+                            </div>
+                            <div class="check-row">
+                                <input type="checkbox" id="chk2">
+                                <label for="chk2">Edukasi Cara Minum Obat</label>
+                            </div>
+                            <div class="check-row">
+                                <input type="checkbox" id="chk3">
+                                <label for="chk3">Efek Samping Dijelaskan</label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="signature-head">
+                                <div class="signature-title">Tanda Tangan Penerima</div>
+                                <button type="button" class="signature-clear" id="clearSign">HAPUS</button>
+                            </div>
+                            <div class="signature-pad" id="signaturePad">Tanda tangan di sini...</div>
+                        </div>
+
+                        <button class="btn-confirm" id="btnKonfirmasi">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 21h18M5 21V9l7-6 7 6v12M9 21v-6h6v6" />
+                            </svg>
+                            Konfirmasi Penyerahan
+                        </button>
+                        <div class="confirm-note">Diserahkan oleh: Apt. Budi Santoso</div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <span>© 2024 RSJD Dr. Amino Gondohutomo | SIMRS V.3.2.1</span>
+                <div class="footer-status">
+                    <span><span class="status-dot"></span> Sistem Dukcapil Terkoneksi</span>
+                    <span><span class="status-dot"></span> VClaim BPJS Aktif</span>
+                </div>
+            </footer>
+
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        // Ambil sidebar dari navbar.html (satu folder di atas /pages) lalu suntikkan ke halaman ini.
+        // CATATAN: fetch() butuh server lokal (mis. VS Code "Live Server"),
+        // tidak bisa jalan kalau file dibuka langsung dari file explorer.
+        function loadNavbar() {
+            fetch('../navbar.html')
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Navbar gagal dimuat.');
+                    }
+                    return response.text();
+                })
+                .then(function (html) {
+                    document.getElementById('navbar-container').innerHTML = html;
+
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+
+                    var current = window.location.pathname.split('/').pop();
+
+                    document.querySelectorAll('#navbar-container .nav-item').forEach(function (link) {
+                        if (link.getAttribute('data-page') === current) {
+                            link.classList.add('active');
+                        }
+                    });
+                })
+                .catch(function (error) {
+                    document.getElementById('navbar-container').innerHTML =
+                        '<div class="sidebar-loading">Gagal memuat navbar.html.<br>Pastikan file ini dibuka lewat Live Server, bukan dibuka langsung.</div>';
+                    console.error(error);
+                });
+        }
+
+        // Filter tab: Semua / Prioritas / BPJS
+        function initTabs() {
+            var tabs = document.querySelectorAll('.tab-btn');
+            var cards = document.querySelectorAll('.rx-card');
+
+            tabs.forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    tabs.forEach(function (t) { t.classList.remove('active'); });
+                    tab.classList.add('active');
+
+                    var filter = tab.getAttribute('data-filter');
+                    var visibleCount = 0;
+
+                    cards.forEach(function (card) {
+                        var cardFilters = (card.getAttribute('data-filter') || '').split(' ');
+                        var show = filter === 'semua' || cardFilters.indexOf(filter) !== -1;
+                        card.style.display = show ? '' : 'none';
+                        if (show) visibleCount++;
+                    });
+
+                    document.getElementById('antreanCount').textContent = visibleCount + ' Antrean';
+                });
+            });
+        }
+
+        // Pilih salah satu resep dari daftar -> highlight kartu terpilih
+        function initRxSelection() {
+            var cards = document.querySelectorAll('.rx-card');
+            cards.forEach(function (card) {
+                card.addEventListener('click', function () {
+                    cards.forEach(function (c) { c.classList.remove('selected'); });
+                    card.classList.add('selected');
+
+                    var resepId = card.getAttribute('data-resep-id');
+                    var titleEl = document.querySelector('.detail-title');
+                    if (titleEl && resepId) {
+                        titleEl.textContent = 'Detail Resep #' + resepId;
+                    }
+                });
+                card.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        card.click();
+                    }
+                });
+            });
+        }
+
+        // Tombol "Selesaikan Racikan"
+        function initFinishButton() {
+            var btn = document.getElementById('btnSelesaikan');
+            if (!btn) return;
+            btn.addEventListener('click', function () {
+                var selected = document.querySelector('.rx-card.selected .status-badge');
+                if (selected) {
+                    selected.textContent = 'Disiapkan';
+                    selected.className = 'status-badge disiapkan';
+                }
+            });
+        }
+
+        // Area tanda tangan sederhana (klik untuk menandai sudah ditandatangani)
+        function initSignaturePad() {
+            var pad = document.getElementById('signaturePad');
+            var clearBtn = document.getElementById('clearSign');
+            if (!pad || !clearBtn) return;
+
+            pad.addEventListener('click', function () {
+                pad.textContent = '✓ Tanda tangan tersimpan';
+                pad.style.color = 'var(--green)';
+                pad.style.fontWeight = '700';
+                pad.style.borderStyle = 'solid';
+                pad.style.borderColor = 'var(--green)';
+            });
+
+            clearBtn.addEventListener('click', function () {
+                pad.textContent = 'Tanda tangan di sini...';
+                pad.style.color = '#9aa1b5';
+                pad.style.fontWeight = '500';
+                pad.style.borderStyle = 'dashed';
+                pad.style.borderColor = '#c7cdea';
+            });
+        }
+
+        // Tombol "Konfirmasi Penyerahan" -> validasi checklist sebelum submit
+        function initConfirmButton() {
+            var btn = document.getElementById('btnKonfirmasi');
+            if (!btn) return;
+            btn.addEventListener('click', function () {
+                var checks = document.querySelectorAll('.check-row input[type="checkbox"]');
+                var allChecked = Array.prototype.every.call(checks, function (c) { return c.checked; });
+
+                if (!allChecked) {
+                    alert('Mohon lengkapi seluruh checklist verifikasi sebelum konfirmasi penyerahan.');
+                    return;
+                }
+
+                var selectedCard = document.querySelector('.rx-card.selected .status-badge');
+                if (selectedCard) {
+                    selectedCard.textContent = 'Selesai';
+                    selectedCard.className = 'status-badge selesai';
+                }
+                alert('Obat berhasil diserahkan kepada pasien.');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadNavbar();
+            initTabs();
+            initRxSelection();
+            initFinishButton();
+            initSignaturePad();
+            initConfirmButton();
+        });
+    </script>
+
+</body>
+
+</html>
