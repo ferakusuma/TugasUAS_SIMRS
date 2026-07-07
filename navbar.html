@@ -1,185 +1,228 @@
-<!DOCTYPE html>
-<html lang="id">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    .sidebar,
+    .sidebar * {
+        font-family: 'Poppins', sans-serif;
+        box-sizing: border-box;
+    }
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    .sidebar {
+        width: 275px;
+        min-height: 100vh;
+        background: #f4f6ff;
+        padding: 28px 22px;
+        border-right: 1px solid #dfe4f2;
+        overflow-y: auto;
+        flex-shrink: 0;
+        position: sticky;
+        top: 0;
+    }
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+    .sidebar-brand {
+        padding-bottom: 26px;
+        margin-bottom: 22px;
+        border-bottom: 1px solid #dce2f1;
+    }
 
-        body {
-            margin: 0;
-            font-family: 'Poppins', sans-serif;
-            background: #ffffff;
-        }
+    .sidebar-brand h1 {
+        margin: 0 0 10px 0;
+        font-size: 24px;
+        font-weight: 800;
+        color: #061760;
+        letter-spacing: -0.5px;
+    }
 
+    .sidebar-brand p {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 700;
+        color: #697386;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 13px;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 17px;
+        min-height: 48px;
+        padding: 13px 16px;
+        border-radius: 12px;
+        color: #202946;
+        text-decoration: none;
+        font-size: 17px;
+        font-weight: 600;
+        line-height: 1;
+        transition: 0.2s ease;
+    }
+
+    .nav-item i {
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .nav-item svg {
+        width: 22px;
+        height: 22px;
+        stroke-width: 2.2;
+    }
+
+    .nav-item:hover {
+        background: #e7ebfb;
+        color: #25349a;
+    }
+
+    .nav-item.active {
+        background: #273493;
+        color: #ffffff;
+        box-shadow: 0 8px 16px rgba(39, 52, 147, 0.28);
+    }
+
+    .nav-item.active svg {
+        color: #ffffff;
+    }
+
+    .sidebar-footer {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #dce2f1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn-help {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 48px;
+        border: 1px solid #273493;
+        border-radius: 10px;
+        color: #273493;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .logout-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 42px;
+        color: #dc2626;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        padding: 0 12px;
+    }
+
+    @media (max-width: 760px) {
         .sidebar {
-            width: 275px;
-            min-height: 100vh;
-            background: #f4f6ff;
-            padding: 28px 22px;
-            border-right: 1px solid #dfe4f2;
-            overflow-y: auto;
+            display: none;
         }
+    }
+</style>
 
-        .sidebar-brand {
-            padding-bottom: 26px;
-            margin-bottom: 22px;
-            border-bottom: 1px solid #dce2f1;
-        }
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <h1>SIMRS Amino</h1>
+        <p>Provinsi Jawa Tengah</p>
+    </div>
 
-        .sidebar-brand h1 {
-            margin: 0 0 10px 0;
-            font-size: 24px;
-            font-weight: 800;
-            color: #061760;
-            letter-spacing: -0.5px;
-        }
+    <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-item" data-page="dashboard.html">
+            <i data-lucide="layout-grid"></i>
+            <span>Dashboard</span>
+        </a>
 
-        .sidebar-brand p {
-            margin: 0;
-            font-size: 13px;
-            font-weight: 700;
-            color: #697386;
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-        }
+        <a href="pendaftaran.html" class="nav-item" data-page="pendaftaran.html">
+            <i data-lucide="user-plus"></i>
+            <span>Pendaftaran</span>
+        </a>
 
-        .sidebar-nav {
-            display: flex;
-            flex-direction: column;
-            gap: 13px;
-        }
+        <a href="antrean.html" class="nav-item" data-page="antrean.html">
+            <i data-lucide="clipboard-list"></i>
+            <span>Antrean</span>
+        </a>
 
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 17px;
-            min-height: 48px;
-            padding: 13px 16px;
-            border-radius: 12px;
-            color: #202946;
-            text-decoration: none;
-            font-size: 17px;
-            font-weight: 600;
-            line-height: 1;
-            transition: 0.2s ease;
-        }
+        <a href="pemeriksaan.html" class="nav-item" data-page="pemeriksaan.html">
+            <i data-lucide="notebook-text"></i>
+            <span>Pemeriksaan</span>
+        </a>
 
-        .nav-item i {
-            width: 22px;
-            height: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
+        <a href="asesmen-keperawatan.html" class="nav-item" data-page="asesmen-keperawatan.html">
+            <i data-lucide="clipboard-pen-line"></i>
+            <span>Asesmen Awal</span>
+        </a>
 
-        .nav-item svg {
-            width: 22px;
-            height: 22px;
-            stroke-width: 2.2;
-        }
+        <a href="farmasi.html" class="nav-item" data-page="farmasi.html">
+            <i data-lucide="pill"></i>
+            <span>Farmasi</span>
+        </a>
 
-        .nav-item:hover {
-            background: #e7ebfb;
-            color: #25349a;
-        }
+        <a href="lab.html" class="nav-item" data-page="lab.html">
+            <i data-lucide="search"></i>
+            <span>Laboratorium</span>
+        </a>
 
-        .nav-item.active {
-            background: #273493;
-            color: #ffffff;
-            box-shadow: 0 8px 16px rgba(39, 52, 147, 0.28);
-        }
+        <a href="radiologi.html" class="nav-item" data-page="radiologi.html">
+            <i data-lucide="image"></i>
+            <span>Radiologi</span>
+        </a>
 
-        .nav-item.active svg {
-            color: #ffffff;
-        }
-    </style>
-</head>
+        <a href="rawat-inap.html" class="nav-item" data-page="rawat-inap.html">
+            <i data-lucide="activity"></i>
+            <span>Rawat Inap</span>
+        </a>
 
-<body>
+        <a href="igd.html" class="nav-item" data-page="igd.html">
+            <i data-lucide="asterisk"></i>
+            <span>IGD</span>
+        </a>
 
-    <aside class="sidebar">
-        <div class="sidebar-brand">
-            <h1>SIMRS Amino</h1>
-            <p>Provinsi Jawa Tengah</p>
-        </div>
+        <a href="kasir.html" class="nav-item" data-page="kasir.html">
+            <i data-lucide="wallet-cards"></i>
+            <span>Kasir</span>
+        </a>
 
-        <nav class="sidebar-nav">
-            <a href="dashboard.html" class="nav-item" data-page="dashboard.html">
-                <i data-lucide="layout-grid"></i>
-                <span>Dashboard</span>
-            </a>
+        <a href="logistik.html" class="nav-item" data-page="logistik.html">
+            <i data-lucide="archive"></i>
+            <span>Logistik</span>
+        </a>
 
-            <a href="pendaftaran.html" class="nav-item" data-page="pendaftaran.html">
-                <i data-lucide="user-plus"></i>
-                <span>Pendaftaran</span>
-            </a>
+        <a href="laporan.html" class="nav-item" data-page="laporan.html">
+            <i data-lucide="bar-chart-3"></i>
+            <span>Laporan</span>
+        </a>
 
-            <a href="antrean.html" class="nav-item" data-page="antrean.html">
-                <i data-lucide="clipboard-list"></i>
-                <span>Antrean</span>
-            </a>
+        <a href="pengaturan.html" class="nav-item" data-page="pengaturan.html">
+            <i data-lucide="settings"></i>
+            <span>Pengaturan</span>
+        </a>
+    </nav>
 
-            <a href="pemeriksaan.html" class="nav-item" data-page="pemeriksaan.html">
-                <i data-lucide="notebook-text"></i>
-                <span>Pemeriksaan</span>
-            </a>
+    <div class="sidebar-footer">
+        <a href="#" class="btn-help">
+            <i data-lucide="headphones"></i>
+            <span>Bantuan Teknis</span>
+        </a>
 
-            <a href="farmasi.html" class="nav-item" data-page="farmasi.html">
-                <i data-lucide="pill"></i>
-                <span>Farmasi</span>
-            </a>
-
-            <a href="lab.html" class="nav-item" data-page="lab.html">
-                <i data-lucide="search"></i>
-                <span>Laboratorium</span>
-            </a>
-
-            <a href="radiologi.html" class="nav-item" data-page="radiologi.html">
-                <i data-lucide="image"></i>
-                <span>Radiologi</span>
-            </a>
-
-            <a href="rawat-inap.html" class="nav-item" data-page="rawat-inap.html">
-                <i data-lucide="activity"></i>
-                <span>Rawat Inap</span>
-            </a>
-
-            <a href="igd.html" class="nav-item" data-page="igd.html">
-                <i data-lucide="clock-3"></i>
-                <span>IGD</span>
-            </a>
-
-            <a href="kasir.html" class="nav-item" data-page="kasir.html">
-                <i data-lucide="briefcase-business"></i>
-                <span>Kasir</span>
-            </a>
-
-        </nav>
-    </aside>
-
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        lucide.createIcons();
-
-        var current = window.location.pathname.split('/').pop();
-
-        document.querySelectorAll('.nav-item').forEach(function (link) {
-            if (link.getAttribute('data-page') === current) {
-                link.classList.add('active');
-            }
-        });
-    </script>
-
-</body>
-
-</html>
+        <a href="login.html" class="logout-link">
+            <i data-lucide="log-out"></i>
+            <span>Log Out</span>
+        </a>
+    </div>
+</aside>

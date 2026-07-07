@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asesmen Awal Keperawatan - SIMRS Amino</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --navy: #2442b8;
+            --navy-dark: #061760;
+            --bg: #f4f7fc;
+            --panel: #ffffff;
+            --border: #dce4f2;
+            --text: #102033;
+            --muted: #687386;
+            --green: #0f8a54;
+            --green-soft: #dff5ea;
+            --red: #dc2626;
+            --red-soft: #ffe4e2;
+            --shadow: 0 4px 14px rgba(16, 32, 70, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        #navbar-container {
+            flex-shrink: 0;
+        }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            height: 66px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 0 32px;
+        }
+
+        .search-box {
+            width: 460px;
+            max-width: 45vw;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #eef3fb;
+            border-radius: 12px;
+            padding: 11px 16px;
+        }
+
+        .search-box svg {
+            width: 18px;
+            height: 18px;
+            color: #4b5563;
+        }
+
+        .search-box input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .topbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .top-icon {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--navy);
+            cursor: pointer;
+        }
+
+        .top-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-left: 18px;
+            border-left: 1px solid var(--border);
+        }
+
+        .profile-text {
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        .profile-text .name {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--navy);
+        }
+
+        .profile-text .role {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e1e7f2;
+        }
+
+        .content {
+            padding: 28px 34px 36px;
+            max-width: 1080px;
+            width: 100%;
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            font-weight: 600;
+            color: #5c667a;
+            margin-bottom: 10px;
+        }
+
+        .breadcrumb span {
+            color: var(--navy);
+            font-weight: 800;
+        }
+
+        .page-title {
+            margin: 0 0 28px;
+            font-size: 27px;
+            font-weight: 800;
+            color: var(--navy);
+            letter-spacing: -0.4px;
+        }
+
+        .patient-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-top: 5px solid var(--navy);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            display: grid;
+            grid-template-columns: auto 1fr repeat(3, minmax(130px, 1fr)) auto;
+            gap: 22px;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .patient-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 14px;
+            background: var(--navy);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .patient-icon svg {
+            width: 30px;
+            height: 30px;
+        }
+
+        .patient-main h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .patient-main p {
+            margin: 4px 0 0;
+            font-size: 13px;
+            color: #3c465a;
+            font-weight: 600;
+        }
+
+        .patient-info-label {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .patient-info-value {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .insurance-badge {
+            display: inline-flex;
+            background: var(--green-soft);
+            color: var(--green);
+            font-size: 12px;
+            font-weight: 800;
+            padding: 5px 12px;
+            border-radius: 999px;
+        }
+
+        .patient-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .square-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: #17233b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .square-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .section-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 18px;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .section-title svg {
+            width: 22px;
+            height: 22px;
+            color: var(--navy);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 118px;
+            resize: vertical;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 14px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            outline: none;
+            color: var(--text);
+            background: #fff;
+        }
+
+        textarea:focus,
+        input:focus {
+            border-color: var(--navy);
+        }
+
+        .vital-list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 800;
+            color: #5f687a;
+            margin-bottom: 7px;
+        }
+
+        .input-unit {
+            position: relative;
+        }
+
+        .input-unit input {
+            width: 100%;
+            height: 42px;
+            border: 1px solid #9ca3af;
+            background: #fff;
+            padding: 0 56px 0 12px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 15px;
+            color: var(--text);
+            outline: none;
+        }
+
+        .input-unit span {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            font-weight: 600;
+            color: #5f687a;
+        }
+
+        .allergy-card {
+            border-left: 4px solid var(--red);
+        }
+
+        .allergy-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .allergy-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .allergy-title svg {
+            width: 22px;
+            height: 22px;
+            color: var(--red);
+        }
+
+        .priority-badge {
+            background: var(--red-soft);
+            color: var(--red);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .allergy-input {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #9ca3af;
+            height: 42px;
+            padding: 0 10px 0 12px;
+            margin-bottom: 14px;
+            background: #fff;
+        }
+
+        .allergy-input input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .plus-btn {
+            border: none;
+            background: transparent;
+            color: var(--navy);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .plus-btn svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .allergy-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .allergy-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffd8d4;
+            color: #9f1d1d;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .allergy-tag span {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .footer-actions {
+            border-top: 1px solid #cbd5e1;
+            padding-top: 26px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 15px 28px;
+            min-width: 110px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .btn-outline {
+            background: #fff;
+            color: #374151;
+            border: 1px solid #cbd5e1;
+        }
+
+        .btn-primary {
+            background: var(--navy);
+            color: #fff;
+            box-shadow: 0 7px 16px rgba(36, 66, 184, .24);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        @media (max-width: 1100px) {
+            .patient-card {
+                grid-template-columns: auto 1fr;
+            }
+
+            .patient-actions {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 760px) {
+            #navbar-container {
+                display: none;
+            }
+
+            .topbar {
+                height: auto;
+                flex-direction: column;
+                align-items: stretch;
+                padding: 16px;
+            }
+
+            .search-box {
+                width: 100%;
+                max-width: none;
+            }
+
+            .topbar-right {
+                margin-left: 0;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+
+            .profile {
+                padding-left: 0;
+                border-left: none;
+            }
+
+            .content {
+                padding: 18px;
+            }
+
+            .page-title {
+                font-size: 23px;
+            }
+
+            .patient-card {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+
+        <div id="navbar-container"></div>
+
+        <main class="main">
+
+            <header class="topbar">
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="M21 21l-4.3-4.3"></path>
+                    </svg>
+                    <input type="text" placeholder="Cari Pasien, RM, atau Layanan...">
+                </div>
+
+                <div class="topbar-right">
+                    <div class="top-icon">
+                        <i data-lucide="bell"></i>
+                    </div>
+                    <div class="top-icon">
+                        <i data-lucide="circle-help"></i>
+                    </div>
+                    <div class="top-icon">
+                        <i data-lucide="settings"></i>
+                    </div>
+
+                    <div class="profile">
+                        <div class="profile-text">
+                            <div class="name">Dr. Amino Gondohutomo</div>
+                            <div class="role">Dokter Utama</div>
+                        </div>
+                        <img class="avatar"
+                            src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=faces"
+                            alt="avatar">
+                    </div>
+                </div>
+            </header>
+
+            <section class="content">
+
+                <div class="breadcrumb">
+                    Pemeriksaan &nbsp;/&nbsp; Rawat Jalan &nbsp;/&nbsp; <span>Asesmen Awal Keperawatan</span>
+                </div>
+
+                <h1 class="page-title">Asesmen Awal Keperawatan</h1>
+
+                <section class="patient-card">
+                    <div class="patient-icon">
+                        <i data-lucide="user"></i>
+                    </div>
+
+                    <div class="patient-main">
+                        <h2>BUDI SANTOSO</h2>
+                        <p>RM: 01-44-89-22</p>
+                    </div>
+
+                    <div>
+                        <div class="patient-info-label">Usia / Tgl Lahir</div>
+                        <div class="patient-info-value">45 Thn / 12 Mei 1979</div>
+                    </div>
+
+                    <div>
+                        <div class="patient-info-label">Jenis Kelamin</div>
+                        <div class="patient-info-value">Laki-laki</div>
+                    </div>
+
+                    <div>
+                        <div class="patient-info-label">Penjamin</div>
+                        <span class="insurance-badge">BPJS Kesehatan</span>
+                    </div>
+
+                    <div class="patient-actions">
+                        <button class="square-btn">
+                            <i data-lucide="history"></i>
+                        </button>
+                        <button class="square-btn">
+                            <i data-lucide="printer"></i>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="section-card">
+                    <h2 class="section-title">
+                        <i data-lucide="message-square"></i>
+                        Keluhan Utama
+                    </h2>
+
+                    <textarea placeholder="Tuliskan keluhan utama pasien secara detail..."></textarea>
+                </section>
+
+                <section class="section-card">
+                    <h2 class="section-title">
+                        <i data-lucide="chart-no-axes-combined"></i>
+                        Tanda-Tanda Vital
+                    </h2>
+
+                    <div class="vital-list">
+                        <div class="field">
+                            <label>Tekanan Darah</label>
+                            <div class="input-unit">
+                                <input type="text" value="120/80">
+                                <span>mmHg</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label>Suhu Tubuh</label>
+                            <div class="input-unit">
+                                <input type="text" value="36.5">
+                                <span>°C</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label>Denyut Nadi</label>
+                            <div class="input-unit">
+                                <input type="text" value="80">
+                                <span>x/mnt</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label>Frekuensi Napas</label>
+                            <div class="input-unit">
+                                <input type="text" value="20">
+                                <span>x/mnt</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label>Saturasi Oksigen (SpO2)</label>
+                            <div class="input-unit">
+                                <input type="text" value="98">
+                                <span>%</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label>Berat Badan</label>
+                            <div class="input-unit">
+                                <input type="text" value="70">
+                                <span>kg</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label>Tinggi Badan</label>
+                            <div class="input-unit">
+                                <input type="text" value="170">
+                                <span>cm</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section-card allergy-card">
+                    <div class="allergy-head">
+                        <div class="allergy-title">
+                            <i data-lucide="triangle-alert"></i>
+                            Skrining Alergi Obat
+                        </div>
+
+                        <span class="priority-badge">High Priority</span>
+                    </div>
+
+                    <div class="allergy-input">
+                        <input type="text" placeholder="Ketik nama obat/makanan lalu tekan Enter...">
+                        <button class="plus-btn">
+                            <i data-lucide="circle-plus"></i>
+                        </button>
+                    </div>
+
+                    <div class="allergy-tags">
+                        <div class="allergy-tag">Paracetamol <span>×</span></div>
+                        <div class="allergy-tag">Seafood <span>×</span></div>
+                    </div>
+                </section>
+
+                <div class="footer-actions">
+                    <button class="btn btn-outline">Batal</button>
+
+                    <button class="btn btn-primary">
+                        <i data-lucide="save"></i>
+                        Simpan Asesmen
+                    </button>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        function loadNavbar() {
+            fetch('../navbar.html')
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Navbar gagal dimuat.');
+                    }
+                    return response.text();
+                })
+                .then(function (html) {
+                    document.getElementById('navbar-container').innerHTML = html;
+
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+
+                    var current = window.location.pathname.split('/').pop();
+
+                    document.querySelectorAll('#navbar-container .nav-item').forEach(function (link) {
+                        if (link.getAttribute('data-page') === current) {
+                            link.classList.add('active');
+                        }
+                    });
+                })
+                .catch(function (error) {
+                    console.error(error);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadNavbar();
+
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        });
+    </script>
+</body>
+
+</html>
