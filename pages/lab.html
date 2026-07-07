@@ -1,8 +1,1229 @@
-<div class="container">
-<h2>Laboratorium</h2>
+<!DOCTYPE html>
+<html lang="id">
 
-<div class="card">
-<p>Permintaan: Darah Lengkap</p>
-<button>Input Hasil</button>
-</div>
-</div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratory Management Dashboard - SIMRS Amino</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --navy: #2340b8;
+            --navy-dark: #102b72;
+            --blue-soft: #edf2ff;
+            --bg: #f1f4fb;
+            --panel: #ffffff;
+            --border: #dce4f2;
+            --text: #132033;
+            --muted: #7c879c;
+            --green: #15803d;
+            --green-soft: #e7f8ee;
+            --red: #dc2626;
+            --red-soft: #fff1f1;
+            --yellow: #b7791f;
+            --yellow-soft: #fff7e7;
+            --shadow: 0 4px 14px rgba(17, 35, 89, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        #navbar-container {
+            flex-shrink: 0;
+        }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            height: 68px;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 0 24px;
+        }
+
+        .page-title {
+            min-width: 140px;
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--navy-dark);
+            line-height: 1.25;
+        }
+
+        .search-box {
+            width: 420px;
+            max-width: 40vw;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            background: #f4f7fd;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px 14px;
+        }
+
+        .search-box svg {
+            width: 16px;
+            height: 16px;
+            color: var(--muted);
+        }
+
+        .search-box input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        .top-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #eaf4ff;
+            border-radius: 999px;
+            padding: 9px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #334155;
+            white-space: nowrap;
+        }
+
+        .top-status .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+
+        .topbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .top-icon {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3c465a;
+            cursor: pointer;
+        }
+
+        .top-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-left: 14px;
+            border-left: 1px solid var(--border);
+        }
+
+        .profile-text {
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        .profile-text .name {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--navy-dark);
+        }
+
+        .profile-text .role {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e2e8f0;
+        }
+
+        .content {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) 1.55fr;
+            gap: 16px;
+        }
+
+        .stat-card,
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card {
+            padding: 18px 18px 16px;
+            min-height: 120px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #505c72;
+            margin-bottom: 26px;
+        }
+
+        .stat-value-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .stat-value {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--navy-dark);
+        }
+
+        .stat-note {
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-note.red {
+            color: var(--red);
+        }
+
+        .stat-note.green {
+            color: var(--green);
+        }
+
+        .stat-note.gray {
+            color: #475569;
+        }
+
+        .inventory-card {
+            padding: 18px;
+            border: 2px solid #3356c8;
+        }
+
+        .inventory-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .inventory-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--navy);
+        }
+
+        .inventory-title svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .inventory-link {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--navy);
+            text-decoration: none;
+        }
+
+        .inventory-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .inventory-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .inventory-item.red {
+            background: #fff6f4;
+        }
+
+        .inventory-item.yellow {
+            background: #f3f6ff;
+        }
+
+        .inv-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .inv-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .inv-dot.red {
+            background: #d92d20;
+        }
+
+        .inv-dot.yellow {
+            background: #8b5e16;
+        }
+
+        .inv-stock.red {
+            color: var(--red);
+            font-weight: 800;
+        }
+
+        .inv-stock.yellow {
+            color: #8b5e16;
+            font-weight: 800;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 18px 18px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-head.no-border {
+            border-bottom: none;
+            padding-bottom: 10px;
+        }
+
+        .panel-head h2 {
+            margin: 0;
+            font-size: 19px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .panel-tools {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #334155;
+        }
+
+        .panel-tools svg {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .requests-panel {
+            min-height: 760px;
+            overflow: hidden;
+        }
+
+        .request-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .request-item {
+            position: relative;
+            padding: 16px 18px 16px 22px;
+            border-top: 1px solid var(--border);
+            background: #fff;
+        }
+
+        .request-item::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 5px;
+            height: 100%;
+        }
+
+        .request-item.red::before {
+            background: var(--red);
+        }
+
+        .request-item.blue::before {
+            background: var(--navy);
+        }
+
+        .request-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .priority-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: .2px;
+        }
+
+        .priority-badge.red {
+            background: #cf2f24;
+            color: #fff;
+        }
+
+        .priority-badge.blue {
+            background: #173ea8;
+            color: #fff;
+        }
+
+        .request-time {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+        }
+
+        .request-name {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .request-id {
+            font-size: 13px;
+            color: #5b6579;
+            margin-top: 3px;
+            margin-bottom: 10px;
+        }
+
+        .request-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .request-tag {
+            background: #dbe7fb;
+            color: #314256;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 8px;
+            padding: 6px 10px;
+            line-height: 1;
+        }
+
+        .right-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .result-panel {
+            overflow: hidden;
+        }
+
+        .result-head {
+            padding: 18px;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 16px;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .initial-badge {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            background: #2e52ca;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .result-title h3 {
+            margin: 0;
+            font-size: 21px;
+            font-weight: 800;
+            line-height: 1.2;
+            color: var(--text);
+        }
+
+        .result-title p {
+            margin: 4px 0 0;
+            font-size: 14px;
+            color: #5b6579;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            line-height: 1.15;
+        }
+
+        .btn-outline {
+            background: #fff;
+            color: #1e293b;
+            border: 2px solid #9ca3af;
+        }
+
+        .btn-primary {
+            background: #173ea8;
+            color: #fff;
+        }
+
+        .result-body {
+            padding: 24px 26px;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .result-table th {
+            background: #f2f5fb;
+            color: #5d677b;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 14px 18px;
+            letter-spacing: .3px;
+        }
+
+        .result-table td {
+            padding: 18px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            font-size: 15px;
+        }
+
+        .result-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .param-name {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .result-box {
+            min-width: 88px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 16px;
+            border-radius: 2px;
+            border: 2px solid #d1d9e8;
+            background: #fff;
+            font-size: 18px;
+            font-weight: 500;
+            color: #22324a;
+        }
+
+        .result-box.alert {
+            border-color: #dc2626;
+            color: #dc2626;
+            font-weight: 800;
+        }
+
+        .unit-text,
+        .range-text {
+            font-size: 16px;
+            color: #334155;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .status-badge.normal {
+            background: #e8f8ee;
+            color: #0f7a44;
+        }
+
+        .status-badge.high {
+            background: #fde7e7;
+            color: #d12e2e;
+        }
+
+        .verify-panel {
+            overflow: hidden;
+        }
+
+        .verify-head {
+            padding: 16px 18px;
+            background: #eef4ff;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .verify-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .verify-title svg {
+            width: 22px;
+            height: 22px;
+            color: #1e3a8a;
+        }
+
+        .verify-count {
+            background: #f6e9bf;
+            color: #73510b;
+            border-radius: 999px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .verify-body {
+            padding: 18px;
+        }
+
+        .verify-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .verify-card {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #fff;
+            padding: 18px 16px;
+            display: grid;
+            grid-template-columns: 44px 1fr auto;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .verify-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            background: #e7f0ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3356c8;
+        }
+
+        .verify-icon svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .verify-name {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .verify-sub {
+            margin-top: 3px;
+            font-size: 12px;
+            color: #667085;
+            line-height: 1.35;
+        }
+
+        .verify-action {
+            color: #2144b9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .verify-action svg {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        .verify-footer {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-green {
+            background: #0b8c4f;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 16px 28px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            min-width: 390px;
+        }
+
+        .btn-green svg {
+            width: 18px;
+            height: 18px;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        .floating-btn {
+            position: fixed;
+            right: 24px;
+            bottom: 22px;
+            width: 74px;
+            height: 74px;
+            border-radius: 18px;
+            border: none;
+            background: #2446bb;
+            color: #fff;
+            font-size: 44px;
+            font-weight: 400;
+            line-height: 1;
+            box-shadow: 0 10px 24px rgba(36, 70, 187, 0.28);
+            cursor: pointer;
+        }
+
+        @media (max-width: 1250px) {
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .result-head {
+                grid-template-columns: 1fr;
+                align-items: flex-start;
+            }
+
+            .verify-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-green {
+                min-width: 100%;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 760px) {
+            #navbar-container {
+                display: none;
+            }
+
+            .topbar {
+                height: auto;
+                flex-direction: column;
+                align-items: stretch;
+                padding: 14px 18px;
+            }
+
+            .search-box {
+                width: 100%;
+                max-width: none;
+            }
+
+            .topbar-right {
+                margin-left: 0;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+
+            .profile {
+                border-left: none;
+                padding-left: 0;
+            }
+
+            .content {
+                padding: 18px;
+            }
+
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+
+            .result-table {
+                min-width: 760px;
+            }
+
+            .result-table-wrap {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+
+        <div id="navbar-container"></div>
+
+        <main class="main">
+
+            <header class="topbar">
+                <div class="page-title">
+                    Laboratory<br>
+                    Management<br>
+                    Dashboard
+                </div>
+
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="M21 21l-4.3-4.3"></path>
+                    </svg>
+                    <input type="text" placeholder="Search Patient ID, Name, or Lab No...">
+                </div>
+
+                <div class="top-status">
+                    <span class="dot"></span>
+                    System Online
+                </div>
+
+                <div class="topbar-right">
+                    <div class="top-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.7 21a2 2 0 0 1-3.4 0"></path>
+                        </svg>
+                    </div>
+
+                    <div class="top-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.1 9a3 3 0 1 1 5.8 1c0 2-3 2-3 4M12 17h.01"></path>
+                        </svg>
+                    </div>
+
+                    <div class="top-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
+                        </svg>
+                    </div>
+
+                    <div class="profile">
+                        <div class="profile-text">
+                            <div class="name">Dokter Utama</div>
+                            <div class="role">Pathologist Specialist</div>
+                        </div>
+                        <img class="avatar"
+                            src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=faces"
+                            alt="avatar">
+                    </div>
+                </div>
+            </header>
+
+            <section class="content">
+
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-label">Pending Tests</div>
+                        <div class="stat-value-row">
+                            <div class="stat-value" style="color:#173ea8;">24</div>
+                            <div class="stat-note red">8 Urgent</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-label">Executed</div>
+                        <div class="stat-value-row">
+                            <div class="stat-value">156</div>
+                            <div class="stat-note green">Today</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-label">Verified</div>
+                        <div class="stat-value-row">
+                            <div class="stat-value" style="color:#0b7a49;">142</div>
+                            <div class="stat-note gray">91%</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-label">Avg. TAT</div>
+                        <div class="stat-value-row">
+                            <div class="stat-value">45m</div>
+                            <div class="stat-note green">-10%</div>
+                        </div>
+                    </div>
+
+                    <div class="inventory-card stat-card">
+                        <div class="inventory-head">
+                            <div class="inventory-title">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8"></path>
+                                    <path d="M17 3h4v4"></path>
+                                    <path d="M10 14L21 3"></path>
+                                </svg>
+                                Inventory Alert
+                            </div>
+                            <a href="#" class="inventory-link">View All</a>
+                        </div>
+
+                        <div class="inventory-item red">
+                            <div class="inv-left">
+                                <span class="inv-dot red"></span>
+                                <span>Reagent Hematology X-1</span>
+                            </div>
+                            <span class="inv-stock red">5 Left</span>
+                        </div>
+
+                        <div class="inventory-item yellow">
+                            <div class="inv-left">
+                                <span class="inv-dot yellow"></span>
+                                <span>Vacutainer EDTA 3ml</span>
+                            </div>
+                            <span class="inv-stock yellow">120 Left</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="main-grid">
+
+                    <section class="panel requests-panel">
+                        <div class="panel-head">
+                            <h2>Pending Requests</h2>
+                            <div class="panel-tools">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 6h18"></path>
+                                    <path d="M6 12h12"></path>
+                                    <path d="M10 18h4"></path>
+                                </svg>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 12a9 9 0 1 1-3-6.7"></path>
+                                    <path d="M21 3v6h-6"></path>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="request-list">
+                            <div class="request-item red">
+                                <div class="request-top">
+                                    <span class="priority-badge red">URGENT (IGD)</span>
+                                    <span class="request-time">12:05 PM</span>
+                                </div>
+                                <div class="request-name">Budi Sudarsono (45Y)</div>
+                                <div class="request-id">ID: RM-20231012-01</div>
+                                <div class="request-tags">
+                                    <span class="request-tag">Darah Lengkap</span>
+                                    <span class="request-tag">GDS</span>
+                                </div>
+                            </div>
+
+                            <div class="request-item blue">
+                                <div class="request-top">
+                                    <span class="priority-badge blue">ROUTINE (RJ)</span>
+                                    <span class="request-time">12:15 PM</span>
+                                </div>
+                                <div class="request-name">Ani Wijaya (28Y)</div>
+                                <div class="request-id">ID: RM-20231012-05</div>
+                                <div class="request-tags">
+                                    <span class="request-tag">Kimia Klinik</span>
+                                    <span class="request-tag">Fungsi Hati</span>
+                                </div>
+                            </div>
+
+                            <div class="request-item blue">
+                                <div class="request-top">
+                                    <span class="priority-badge blue">ROUTINE (RI)</span>
+                                    <span class="request-time">12:20 PM</span>
+                                </div>
+                                <div class="request-name">Slamet Riyadi (62Y)</div>
+                                <div class="request-id">ID: RM-20231012-08</div>
+                                <div class="request-tags">
+                                    <span class="request-tag">Urinalisa</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="right-stack">
+
+                        <section class="panel result-panel">
+                            <div class="result-head">
+                                <div class="initial-badge">BS</div>
+
+                                <div class="result-title">
+                                    <h3>Input Results: Darah Lengkap</h3>
+                                    <p>Patient: Budi Sudarsono • ID: RM-20231012-01</p>
+                                </div>
+
+                                <div class="result-actions">
+                                    <button class="btn btn-outline">Save<br>Draft</button>
+                                    <button class="btn btn-primary">Commit<br>Results</button>
+                                </div>
+                            </div>
+
+                            <div class="result-body">
+                                <div class="result-table-wrap">
+                                    <table class="result-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Parameter</th>
+                                                <th>Result</th>
+                                                <th>Unit</th>
+                                                <th>Normal Range</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <tr>
+                                                <td><span class="param-name">Hemoglobin</span></td>
+                                                <td><span class="result-box">13.2</span></td>
+                                                <td><span class="unit-text">g/dL</span></td>
+                                                <td><span class="range-text">13.0 - 17.0</span></td>
+                                                <td><span class="status-badge normal">NORMAL</span></td>
+                                            </tr>
+
+                                            <tr>
+                                                <td><span class="param-name">Leukosit</span></td>
+                                                <td><span class="result-box alert">14.500</span></td>
+                                                <td><span class="unit-text">/µL</span></td>
+                                                <td><span class="range-text">4.000 - 10.000</span></td>
+                                                <td><span class="status-badge high">HIGH</span></td>
+                                            </tr>
+
+                                            <tr>
+                                                <td><span class="param-name">Trombosit</span></td>
+                                                <td><span class="result-box">250.000</span></td>
+                                                <td><span class="unit-text">/µL</span></td>
+                                                <td><span class="range-text">150.000 - 450.000</span></td>
+                                                <td><span class="status-badge normal">NORMAL</span></td>
+                                            </tr>
+
+                                            <tr>
+                                                <td><span class="param-name">Hematokrit</span></td>
+                                                <td><span class="result-box">40</span></td>
+                                                <td><span class="unit-text">%</span></td>
+                                                <td><span class="range-text">40 - 54</span></td>
+                                                <td><span class="status-badge normal">NORMAL</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="panel verify-panel">
+                            <div class="verify-head">
+                                <div class="verify-title">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                        <path d="M9 12l2 2 4-4"></path>
+                                    </svg>
+                                    Pending Verification
+                                </div>
+
+                                <div class="verify-count">8 Ready to Sign</div>
+                            </div>
+
+                            <div class="verify-body">
+                                <div class="verify-cards">
+                                    <div class="verify-card">
+                                        <div class="verify-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
+                                                </path>
+                                                <path d="M14 2v6h6"></path>
+                                                <path d="M16 13H8"></path>
+                                                <path d="M16 17H8"></path>
+                                                <path d="M10 9H8"></path>
+                                            </svg>
+                                        </div>
+
+                                        <div>
+                                            <div class="verify-name">Rina Permata (31Y)</div>
+                                            <div class="verify-sub">Profile: Prenatal<br>Screening</div>
+                                        </div>
+
+                                        <div class="verify-action">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M12 20h9"></path>
+                                                <path
+                                                    d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z">
+                                                </path>
+                                            </svg>
+                                        </div>
+                                    </div>
+
+                                    <div class="verify-card">
+                                        <div class="verify-icon">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
+                                                </path>
+                                                <path d="M14 2v6h6"></path>
+                                                <path d="M16 13H8"></path>
+                                                <path d="M16 17H8"></path>
+                                                <path d="M10 9H8"></path>
+                                            </svg>
+                                        </div>
+
+                                        <div>
+                                            <div class="verify-name">Joko Susilo (55Y)</div>
+                                            <div class="verify-sub">Profile: Cardiac Panel</div>
+                                        </div>
+
+                                        <div class="verify-action">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M12 20h9"></path>
+                                                <path
+                                                    d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z">
+                                                </path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="verify-footer">
+                                    <button class="btn-green">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 6L9 17l-5-5"></path>
+                                        </svg>
+                                        Batch Verification (Digital Signature)
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
+                    </div>
+                </div>
+
+            </section>
+        </main>
+
+        <button class="floating-btn">+</button>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        function loadNavbar() {
+            fetch('../navbar.html')
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Navbar gagal dimuat.');
+                    }
+                    return response.text();
+                })
+                .then(function (html) {
+                    document.getElementById('navbar-container').innerHTML = html;
+
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+
+                    var current = window.location.pathname.split('/').pop();
+
+                    document.querySelectorAll('#navbar-container .nav-item').forEach(function (link) {
+                        if (link.getAttribute('data-page') === current) {
+                            link.classList.add('active');
+                        }
+                    });
+                })
+                .catch(function (error) {
+                    console.error(error);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadNavbar();
+        });
+    </script>
+</body>
+
+</html>
