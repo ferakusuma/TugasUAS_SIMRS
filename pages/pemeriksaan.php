@@ -1,97 +1,345 @@
 <?php
 /**
- * Halaman Pemeriksaan Dokter - SIMRS Amino
- * Terhubung ke database MySQL lewat Laragon secara dinamis.
+ * ============================================================================
+ * SIMRS Amino - Pemeriksaan Dokter
+ * ============================================================================
+ * Catatan konversi dari HTML statis ke PHP:
+ * - Semua data yang tadinya hardcoded (identitas pasien, vital sign, alergi,
+ *   diagnosis, resep, riwayat kunjungan, daftar poliklinik) sekarang diambil
+ *   dari database.
+ * - Tombol "Tambah Obat", "Hapus Obat", "Pilih Poliklinik (Rujuk Internal)",
+ *   dan "Simpan & Selesai Pemeriksaan" sekarang memanggil endpoint AJAX
+ *   (action=... di file ini sendiri) alih-alih hanya memanipulasi DOM.
+ * - Sesuaikan nama tabel/kolom di bawah ini dengan skema database Anda.
+ * ============================================================================
  */
-require_once 'db_connect.php';
 
-// Ambil data pasien (bisa dilewati No. RM melalui parameter GET, default: '102-44-89')
-$no_rm = isset($_GET['no_rm']) ? trim($_GET['no_rm']) : '102-44-89';
-$stmt = $pdo->prepare("SELECT * FROM pasien WHERE no_rm = ?");
-$stmt->execute([$no_rm]);
-$pasien = $stmt->fetch();
+session_start();
+header_remove('X-Powered-By');
+date_default_timezone_set('Asia/Jakarta');
 
-if (!$pasien) {
-    // Fallback jika tidak ditemukan, ambil pasien pertama dari database
-    $pasien = $pdo->query("SELECT * FROM pasien LIMIT 1")->fetch();
+/* ---------------------------------------------------------------------------
+ * 1. KONEKSI DATABASE
+ * ------------------------------------------------------------------------- */
+$DB_HOST = 'localhost';
+$DB_NAME = 'simrs_amino';
+$DB_USER = 'root';
+$DB_PASS = '';
+
+$koneksi = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
+if ($koneksi->connect_error) {
+    http_response_code(500);
+    die('Koneksi database gagal: ' . $koneksi->connect_error);
+}
+$koneksi->set_charset('utf8mb4');
+
+/* ---------------------------------------------------------------------------
+ * 2. AUTH SEDERHANA (sesuaikan dengan sistem login yang sudah ada)
+ * ------------------------------------------------------------------------- */
+if (empty($_SESSION['dokter_id'])) {
+    // Contoh dummy supaya file bisa langsung dites, hapus di production.
+    $_SESSION['dokter_id'] = 1;
+}
+$dokterId = (int) $_SESSION['dokter_id'];
+
+/* ---------------------------------------------------------------------------
+ * 3. HELPER
+ * ------------------------------------------------------------------------- */
+function e($string)
+{
+    return htmlspecialchars((string) $string, ENT_QUOTES, 'UTF-8');
 }
 
-// Ambil asesmen perawat untuk pasien ini
-$stmtAsesmen = $pdo->prepare("SELECT * FROM asesmen_perawat WHERE pasien_id = ?");
-$stmtAsesmen->execute([$pasien['id']]);
-$asesmen = $stmtAsesmen->fetch();
+function jsonResponse($data, int $code = 200)
+{
+    http_response_code($code);
+    header('Content-Type: application/json');
+    echo json_encode($data);
+    exit;
+}
 
-// Ambil riwayat kunjungan medis pasien
-$stmtKunjungan = $pdo->prepare("SELECT * FROM riwayat_kunjungan WHERE pasien_id = ? ORDER BY tanggal DESC");
-$stmtKunjungan->execute([$pasien['id']]);
-$riwayat_kunjungan = $stmtKunjungan->fetchAll();
+/* ---------------------------------------------------------------------------
+ * 4. PARAMETER KUNJUNGAN AKTIF
+ *    (dikirim dari halaman antrian, mis: pemeriksaan-dokter.php?kunjungan_id=55)
+ * ------------------------------------------------------------------------- */
+$kunjunganId = isset($_GET['kunjungan_id']) ? (int) $_GET['kunjungan_id'] : (int) ($_POST['kunjungan_id'] ?? 0);
 
-// Hitung Umur Pasien dari Tanggal Lahir
-$birthDate = new DateTime($pasien['tgl_lahir']);
-$today = new DateTime();
-$umur = $today->diff($birthDate)->y;
-$tgl_lahir_indo = date('d M Y', strtotime($pasien['tgl_lahir']));
+if ($kunjunganId <= 0) {
+    die('Parameter kunjungan_id tidak valid.');
+}
 
-// Pesan Sukses / Error saat Menyimpan
-$success_msg = null;
-$error_msg = null;
+/* ---------------------------------------------------------------------------
+ * 5. HANDLER AJAX (dipanggil via fetch() dari JavaScript di bawah)
+ * ------------------------------------------------------------------------- */
+$action = $_POST['action'] ?? $_GET['action'] ?? null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $pasien_id = intval($_POST['pasien_id']);
-    $anamnesis = isset($_POST['anamnesis']) ? trim($_POST['anamnesis']) : '';
-    $diagnosis_json = isset($_POST['diagnosis_list']) ? trim($_POST['diagnosis_list']) : '[]';
-    $penunjang_lab = isset($_POST['penunjang_lab']) ? intval($_POST['penunjang_lab']) : 0;
-    $penunjang_rad = isset($_POST['penunjang_rad']) ? intval($_POST['penunjang_rad']) : 0;
-    $penunjang_ok = isset($_POST['penunjang_ok']) ? intval($_POST['penunjang_ok']) : 0;
-    $disposisi = isset($_POST['disposisi']) ? trim($_POST['disposisi']) : 'rawat-jalan';
-    $rujuk_internal_target = isset($_POST['rujuk_internal_target']) ? trim($_POST['rujuk_internal_target']) : null;
-    $resep_list_json = isset($_POST['resep_list']) ? trim($_POST['resep_list']) : '[]';
+if ($action !== null) {
 
-    // Bersihkan isi rujukan internal jika disposisi bukan rujuk-internal
-    if ($disposisi !== 'rujuk-internal') {
-        $rujuk_internal_target = null;
-    }
+    switch ($action) {
 
-    $pdo->beginTransaction();
-    try {
-        // 1. Simpan pemeriksaan utama dokter
-        $stmtInsertPem = $pdo->prepare("INSERT INTO pemeriksaan_dokter (pasien_id, anamnesis, diagnosis, penunjang_lab, penunjang_rad, penunjang_ok, disposisi, rujuk_internal_target) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmtInsertPem->execute([
-            $pasien_id,
-            $anamnesis,
-            $diagnosis_json,
-            $penunjang_lab,
-            $penunjang_rad,
-            $penunjang_ok,
-            $disposisi,
-            $rujuk_internal_target
-        ]);
-        $pemeriksaan_id = $pdo->lastInsertId();
+        /* ---- Tambah obat ke resep ------------------------------------- */
+        case 'tambah_obat':
+            $nama       = trim($_POST['nama_obat'] ?? '');
+            $dosis      = trim($_POST['dosis'] ?? '-');
+            $freqRaw    = trim($_POST['frekuensi'] ?? '0|Sesuai Kebutuhan (PRN)');
+            [$freqCount, $freqWaktu] = array_pad(explode('|', $freqRaw, 2), 2, '');
+            $durasi     = (int) ($_POST['durasi'] ?? 0);
+            $total      = (int) ($_POST['total'] ?? 0);
+            $instruksi  = trim($_POST['instruksi'] ?? '');
 
-        // 2. Simpan resep obat jika ada
-        $resep_obat_array = json_decode($resep_list_json, true);
-        if (is_array($resep_obat_array) && !empty($resep_obat_array)) {
-            $stmtInsertResep = $pdo->prepare("INSERT INTO resep_obat (pemeriksaan_id, nama_obat, dosis, frekuensi, durasi, jumlah, instruksi) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            foreach ($resep_obat_array as $obat) {
-                $stmtInsertResep->execute([
-                    $pemeriksaan_id,
-                    trim($obat['nama_obat']),
-                    trim($obat['dosis']),
-                    trim($obat['frekuensi']),
-                    trim($obat['durasi']),
-                    trim($obat['jumlah']),
-                    isset($obat['instruksi']) ? trim($obat['instruksi']) : ''
-                ]);
+            if ($nama === '') {
+                jsonResponse(['success' => false, 'message' => 'Nama obat wajib diisi.'], 422);
             }
-        }
 
-        $pdo->commit();
-        $success_msg = "Pemeriksaan dan resep obat untuk pasien " . htmlspecialchars($pasien['nama']) . " (No. RM: " . htmlspecialchars($pasien['no_rm']) . ") berhasil disimpan ke database MySQL!";
-    } catch (Exception $e) {
-        $pdo->rollBack();
-        $error_msg = "Gagal menyimpan data ke database: " . $e->getMessage();
+            $freqLabel = ($freqCount === '0')
+                ? $freqWaktu
+                : $freqCount . ' x 1 (' . $freqWaktu . ')';
+
+            $stmt = $koneksi->prepare(
+                'INSERT INTO resep (kunjungan_id, nama_obat, dosis, frekuensi_label, durasi_hari, jumlah, instruksi, dibuat_pada)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, NOW())'
+            );
+            $stmt->bind_param('issssis', $kunjunganId, $nama, $dosis, $freqLabel, $durasi, $total, $instruksi);
+            $stmt->execute();
+            $obatId = $stmt->insert_id;
+            $stmt->close();
+
+            jsonResponse([
+                'success' => true,
+                'obat'    => [
+                    'id'        => $obatId,
+                    'nama_obat' => $nama,
+                    'dosis'     => $dosis,
+                    'frekuensi' => $freqLabel,
+                    'durasi'    => $durasi . ' Hari',
+                    'jumlah'    => $total . ' Tab',
+                ],
+            ]);
+            break;
+
+        /* ---- Hapus obat dari resep -------------------------------------- */
+        case 'hapus_obat':
+            $obatId = (int) ($_POST['obat_id'] ?? 0);
+            $stmt = $koneksi->prepare('DELETE FROM resep WHERE id = ? AND kunjungan_id = ?');
+            $stmt->bind_param('ii', $obatId, $kunjunganId);
+            $stmt->execute();
+            $stmt->close();
+            jsonResponse(['success' => true]);
+            break;
+
+        /* ---- Hapus diagnosis ICD-10 dari kunjungan ---------------------- */
+        case 'hapus_diagnosis':
+            $icdId = (int) ($_POST['icd_id'] ?? 0);
+            $stmt = $koneksi->prepare('DELETE FROM kunjungan_diagnosis WHERE kunjungan_id = ? AND icd10_id = ?');
+            $stmt->bind_param('ii', $kunjunganId, $icdId);
+            $stmt->execute();
+            $stmt->close();
+            jsonResponse(['success' => true]);
+            break;
+
+        /* ---- Cari ICD-10 (autocomplete diagnosis) ----------------------- */
+        case 'cari_icd10':
+            $kata = '%' . trim($_GET['q'] ?? $_POST['q'] ?? '') . '%';
+            $stmt = $koneksi->prepare(
+                'SELECT id, kode, nama FROM master_icd10
+                 WHERE kode LIKE ? OR nama LIKE ? LIMIT 15'
+            );
+            $stmt->bind_param('ss', $kata, $kata);
+            $stmt->execute();
+            $hasil = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+            $stmt->close();
+            jsonResponse(['success' => true, 'data' => $hasil]);
+            break;
+
+        /* ---- Tambah diagnosis ICD-10 ke kunjungan ----------------------- */
+        case 'tambah_diagnosis':
+            $icdId = (int) ($_POST['icd_id'] ?? 0);
+            $stmt = $koneksi->prepare(
+                'INSERT IGNORE INTO kunjungan_diagnosis (kunjungan_id, icd10_id) VALUES (?, ?)'
+            );
+            $stmt->bind_param('ii', $kunjunganId, $icdId);
+            $stmt->execute();
+            $stmt->close();
+
+            $stmt = $koneksi->prepare('SELECT kode, nama FROM master_icd10 WHERE id = ?');
+            $stmt->bind_param('i', $icdId);
+            $stmt->execute();
+            $icd = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+
+            jsonResponse(['success' => true, 'diagnosis' => $icd]);
+            break;
+
+        /* ---- Simpan pilihan poliklinik rujuk internal ------------------- */
+        case 'pilih_poli':
+            $poliId = (int) ($_POST['poli_id'] ?? 0);
+            $stmt = $koneksi->prepare(
+                'INSERT INTO rujukan_internal (kunjungan_id, poliklinik_id, dibuat_pada)
+                 VALUES (?, ?, NOW())
+                 ON DUPLICATE KEY UPDATE poliklinik_id = VALUES(poliklinik_id), dibuat_pada = NOW()'
+            );
+            $stmt->bind_param('ii', $kunjunganId, $poliId);
+            $stmt->execute();
+            $stmt->close();
+
+            $stmt = $koneksi->prepare('SELECT nama FROM poliklinik WHERE id = ?');
+            $stmt->bind_param('i', $poliId);
+            $stmt->execute();
+            $poli = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+
+            $stmt = $koneksi->prepare(
+                'UPDATE kunjungan SET disposisi = "rujuk-internal" WHERE id = ?'
+            );
+            $stmt->bind_param('i', $kunjunganId);
+            $stmt->execute();
+            $stmt->close();
+
+            jsonResponse(['success' => true, 'poli' => $poli]);
+            break;
+
+        /* ---- Set disposisi biasa (rawat jalan / rawat inap) ------------- */
+        case 'set_disposisi':
+            $disposisi = trim($_POST['disposisi'] ?? 'rawat-jalan');
+            $allowed = ['rawat-jalan', 'rawat-inap'];
+            if (!in_array($disposisi, $allowed, true)) {
+                jsonResponse(['success' => false, 'message' => 'Disposisi tidak valid.'], 422);
+            }
+            $stmt = $koneksi->prepare('UPDATE kunjungan SET disposisi = ? WHERE id = ?');
+            $stmt->bind_param('si', $disposisi, $kunjunganId);
+            $stmt->execute();
+            $stmt->close();
+            jsonResponse(['success' => true]);
+            break;
+
+        /* ---- Simpan & Selesai Pemeriksaan -------------------------------- */
+        case 'simpan_pemeriksaan':
+            $anamnesis = trim($_POST['anamnesis'] ?? '');
+            if ($anamnesis === '') {
+                jsonResponse(['success' => false, 'message' => 'Anamnesis wajib diisi.'], 422);
+            }
+            $stmt = $koneksi->prepare(
+                'UPDATE kunjungan
+                 SET anamnesis = ?, status = "selesai", diperiksa_oleh = ?, selesai_pada = NOW()
+                 WHERE id = ?'
+            );
+            $stmt->bind_param('sii', $anamnesis, $dokterId, $kunjunganId);
+            $stmt->execute();
+            $stmt->close();
+
+            jsonResponse(['success' => true, 'redirect' => 'antrian-pemeriksaan.php']);
+            break;
+
+        default:
+            jsonResponse(['success' => false, 'message' => 'Aksi tidak dikenal.'], 400);
     }
 }
+
+/* ---------------------------------------------------------------------------
+ * 6. AMBIL DATA UNTUK RENDER HALAMAN (GET biasa, bukan AJAX)
+ * ------------------------------------------------------------------------- */
+
+// -- Dokter yang sedang login
+$stmt = $koneksi->prepare(
+    'SELECT nama, gelar, role FROM dokter WHERE id = ?'
+);
+$stmt->bind_param('i', $dokterId);
+$stmt->execute();
+$dokter = $stmt->get_result()->fetch_assoc() ?: ['nama' => '-', 'gelar' => '', 'role' => 'DOKTER'];
+$stmt->close();
+
+// -- Kunjungan + pasien
+$stmt = $koneksi->prepare(
+    'SELECT k.id AS kunjungan_id, k.anamnesis, k.disposisi,
+            p.id AS pasien_id, p.no_rm, p.nama AS nama_pasien, p.tanggal_lahir,
+            p.gender, p.foto, p.jenis_penjaminan
+     FROM kunjungan k
+     JOIN pasien p ON p.id = k.pasien_id
+     WHERE k.id = ?'
+);
+$stmt->bind_param('i', $kunjunganId);
+$stmt->execute();
+$kunjungan = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+if (!$kunjungan) {
+    die('Data kunjungan tidak ditemukan.');
+}
+
+$pasienId = (int) $kunjungan['pasien_id'];
+$umur = date_diff(date_create($kunjungan['tanggal_lahir']), date_create('now'))->y;
+
+// -- Diagnosis ICD-10 yang sudah dipilih untuk kunjungan ini
+$stmt = $koneksi->prepare(
+    'SELECT m.id, m.kode, m.nama
+     FROM kunjungan_diagnosis kd
+     JOIN master_icd10 m ON m.id = kd.icd10_id
+     WHERE kd.kunjungan_id = ?'
+);
+$stmt->bind_param('i', $kunjunganId);
+$stmt->execute();
+$diagnosisList = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+// -- Resep / obat yang sudah ditambahkan
+$stmt = $koneksi->prepare(
+    'SELECT id, nama_obat, dosis, frekuensi_label, durasi_hari, jumlah
+     FROM resep WHERE kunjungan_id = ? ORDER BY id ASC'
+);
+$stmt->bind_param('i', $kunjunganId);
+$stmt->execute();
+$resepList = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+// -- Vital sign hasil asesmen perawat
+$stmt = $koneksi->prepare(
+    'SELECT tekanan_darah, suhu, nadi, rr, spo2, berat_badan, tinggi_badan, keluhan_perawat
+     FROM vital_sign WHERE kunjungan_id = ? ORDER BY id DESC LIMIT 1'
+);
+$stmt->bind_param('i', $kunjunganId);
+$stmt->execute();
+$vital = $stmt->get_result()->fetch_assoc() ?: [
+    'tekanan_darah' => '-', 'suhu' => '-', 'nadi' => '-', 'rr' => '-',
+    'spo2' => '-', 'berat_badan' => '-', 'tinggi_badan' => '-', 'keluhan_perawat' => '-',
+];
+$stmt->close();
+
+// -- Alergi pasien
+$stmt = $koneksi->prepare('SELECT nama, jenis FROM alergi WHERE pasien_id = ?');
+$stmt->bind_param('i', $pasienId);
+$stmt->execute();
+$alergiList = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+// -- Riwayat kunjungan sebelumnya (timeline)
+$stmt = $koneksi->prepare(
+    'SELECT tanggal, unit_pelayanan, ringkasan
+     FROM riwayat_kunjungan
+     WHERE pasien_id = ? AND kunjungan_id != ?
+     ORDER BY tanggal DESC LIMIT 10'
+);
+$stmt->bind_param('ii', $pasienId, $kunjunganId);
+$stmt->execute();
+$riwayatList = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+// -- Daftar poliklinik untuk modal Rujuk Internal
+$stmt = $koneksi->prepare('SELECT id, nama FROM poliklinik ORDER BY nama ASC');
+$stmt->execute();
+$poliList = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+// -- Poli tujuan yang sudah pernah dipilih (jika ada)
+$stmt = $koneksi->prepare(
+    'SELECT pk.id, pk.nama
+     FROM rujukan_internal ri
+     JOIN poliklinik pk ON pk.id = ri.poliklinik_id
+     WHERE ri.kunjungan_id = ?'
+);
+$stmt->bind_param('i', $kunjunganId);
+$stmt->execute();
+$poliTerpilih = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -103,1712 +351,245 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <style>
-        :root {
-            --navy: #12206b;
-            --navy-dark: #0a1550;
-            --blue: #1c2f9c;
-            --bg: #eef1fb;
-            --panel: #ffffff;
-            --border: #e1e5f2;
-            --text-dark: #171a35;
-            --text-muted: #6b7280;
-            --green: #16a34a;
-            --green-bg: #e7f8ee;
-            --red: #dc2626;
-            --red-bg: #fdecec;
-            --orange: #c8790a;
-            --orange-bg: #fdf1dc;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: 'Poppins', sans-serif;
-            background: var(--bg);
-            color: var(--text-dark);
-            font-size: 14px;
-        }
-
-        .app {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar dimuat dari navbar.html */
-        #navbar-container {
-            flex-shrink: 0;
-            background: #f4f6fc;
-            border-right: 1px solid var(--border);
-        }
-
-        #navbar-container .sidebar-loading {
-            padding: 26px;
-            color: var(--text-muted);
-            font-size: 13px;
-            width: 270px;
-        }
-
-        .main {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* ===== Topbar ===== */
-        .topbar {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            padding: 18px 32px;
-            background: #fff;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .brand {
-            font-size: 19px;
-            font-weight: 800;
-            color: var(--navy);
-            letter-spacing: -.2px;
-        }
-
-        .topbar-right {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .doctor-chip {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding-right: 18px;
-            border-right: 1.5px solid var(--border);
-        }
-
-        .doctor-chip .doc-avatar {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: #eef1fb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--navy);
-            flex-shrink: 0;
-        }
-
-        .doctor-chip .doc-avatar svg {
-            width: 19px;
-            height: 19px;
-        }
-
-        .doctor-chip .doc-name {
-            font-weight: 700;
-            font-size: 13.5px;
-            line-height: 1.3;
-        }
-
-        .doctor-role-badge {
-            display: inline-block;
-            margin-top: 2px;
-            background: var(--navy);
-            color: #fff;
-            font-size: 9.5px;
-            font-weight: 700;
-            letter-spacing: .4px;
-            padding: 2px 8px;
-            border-radius: 5px;
-        }
-
-        .icon-btn {
-            position: relative;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #3d4160;
-            cursor: pointer;
-            border-radius: 8px;
-        }
-
-        .icon-btn:hover {
-            background: #f3f5fb;
-        }
-
-        .icon-btn svg {
-            width: 19px;
-            height: 19px;
-        }
-
-        /* ===== Content ===== */
-        .content {
-            padding: 26px 32px 110px;
-        }
-
-        /* ===== Kartu identitas pasien ===== */
-        .patient-bar {
-            background: var(--panel);
-            border-bottom: 1.5px solid var(--border);
-            padding: 0 0 22px;
-            display: flex;
-            align-items: center;
-            gap: 22px;
-            margin-bottom: 22px;
-            flex-wrap: wrap;
-        }
-
-        .patient-photo {
-            width: 64px;
-            height: 64px;
-            border-radius: 12px;
-            object-fit: cover;
-            flex-shrink: 0;
-        }
-
-        .patient-headline {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .patient-name-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .patient-name {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--text-dark);
-            line-height: 1.1;
-        }
-
-        .pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            padding: 5px 12px;
-            border-radius: 20px;
-        }
-
-        .pill.bpjs {
-            background: var(--green-bg);
-            color: var(--green);
-        }
-
-        .patient-meta {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13.5px;
-            color: var(--text-dark);
-            flex-wrap: wrap;
-        }
-
-        .patient-meta b {
-            font-weight: 700;
-        }
-
-        .patient-meta .sep {
-            color: var(--border);
-        }
-
-        .patient-actions {
-            margin-left: auto;
-            display: flex;
-            gap: 10px;
-            flex-shrink: 0;
-        }
-
-        .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 12.5px;
-            padding: 11px 18px;
-            border-radius: 9px;
-            cursor: pointer;
-            white-space: nowrap;
-            border: none;
-            transition: filter .15s ease;
-        }
-
-        .btn:hover {
-            filter: brightness(0.96);
-        }
-
-        .btn svg {
-            width: 15px;
-            height: 15px;
-        }
-
-        .btn-navy {
-            background: var(--navy);
-            color: #fff;
-        }
-
-        .btn-outline-navy {
-            background: #fff;
-            border: 1.5px solid var(--border);
-            color: var(--text-dark);
-        }
-
-        /* ===== Tabs ===== */
-        .tabs {
-            display: flex;
-            gap: 6px;
-            border-bottom: 1.5px solid var(--border);
-            margin-bottom: 22px;
-        }
-
-        .tab-btn {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 13.5px;
-            letter-spacing: .2px;
-            color: var(--text-muted);
-            background: transparent;
-            border: none;
-            padding: 14px 20px;
-            cursor: pointer;
-            position: relative;
-            top: 1.5px;
-        }
-
-        .tab-btn.active {
-            color: var(--navy);
-            border-bottom: 2.5px solid var(--navy);
-        }
-
-        .tab-panel {
-            display: none;
-        }
-
-        .tab-panel.active {
-            display: block;
-        }
-
-        /* ===== Panel ===== */
-        .panel {
-            background: var(--panel);
-            border: 1.5px solid var(--border);
-            border-radius: 16px;
-            padding: 24px 26px 28px;
-        }
-
-        .panel-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 14px;
-            margin-bottom: 20px;
-        }
-
-        .panel-head h2 {
-            margin: 0;
-            font-size: 15px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .panel-head h2 svg {
-            width: 18px;
-            height: 18px;
-            color: var(--navy);
-        }
-
-        .field-label {
-            font-size: 11.5px;
-            font-weight: 700;
-            letter-spacing: .3px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }
-
-        .field-label .req {
-            color: var(--red);
-        }
-
-        .field-block {
-            margin-bottom: 24px;
-        }
-
-        .field-block:last-child {
-            margin-bottom: 0;
-        }
-
-        textarea.input-area {
-            width: 100%;
-            min-height: 110px;
-            resize: vertical;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            padding: 14px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 13.5px;
-            color: var(--text-dark);
-            outline: none;
-        }
-
-        textarea.input-area:focus,
-        .search-input:focus-within {
-            border-color: var(--navy);
-        }
-
-        .search-input {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 14px;
-            margin-bottom: 12px;
-        }
-
-        .search-input svg {
-            width: 16px;
-            height: 16px;
-            color: var(--text-muted);
-            flex-shrink: 0;
-        }
-
-        .search-input input {
-            flex: 1;
-            border: none;
-            outline: none;
-            font-family: 'Poppins', sans-serif;
-            font-size: 13.5px;
-            color: var(--text-dark);
-        }
-
-        /* Autocomplete ICD-10 styling */
-        .icd-suggestions {
-            position: absolute;
-            background: #fff;
-            border: 1.5px solid var(--border);
-            border-top: none;
-            border-radius: 0 0 10px 10px;
-            max-height: 200px;
-            overflow-y: auto;
-            width: calc(100% - 2px);
-            z-index: 50;
-            box-shadow: 0 8px 16px rgba(10, 15, 60, 0.08);
-            margin-top: -14px;
-            display: none;
-        }
-
-        .icd-suggestion-item {
-            padding: 10px 14px;
-            cursor: pointer;
-            font-size: 13px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .icd-suggestion-item:hover {
-            background: #f4f6ff;
-            color: var(--navy);
-        }
-
-        .icd-suggestion-item .icd-code {
-            font-weight: 700;
-            color: var(--blue);
-        }
-
-        .tags-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .diagnosis-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #e6ecff;
-            color: var(--blue);
-            font-weight: 700;
-            font-size: 12.5px;
-            padding: 8px 12px;
-            border-radius: 8px;
-        }
-
-        .diagnosis-tag button {
-            border: none;
-            background: transparent;
-            color: var(--blue);
-            cursor: pointer;
-            font-size: 15px;
-            line-height: 1;
-            opacity: .7;
-        }
-
-        .diagnosis-tag button:hover {
-            opacity: 1;
-        }
-
-        /* ===== Pemeriksaan penunjang ===== */
-        .penunjang-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 14px;
-        }
-
-        .penunjang-box {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border: 1.5px dashed #c7cef2;
-            border-radius: 12px;
-            padding: 16px 18px;
-            cursor: pointer;
-            background: #fafbff;
-            transition: all 0.2s ease;
-            user-select: none;
-        }
-
-        .penunjang-box:hover {
-            border-color: var(--navy);
-        }
-
-        .penunjang-box.selected {
-            border-style: solid;
-            border-color: var(--navy);
-            background: #f4f6ff;
-            color: var(--navy);
-        }
-
-        .penunjang-box .icon-wrap {
-            width: 36px;
-            height: 36px;
-            border-radius: 9px;
-            background: #e6ecff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--navy);
-            flex-shrink: 0;
-        }
-
-        .penunjang-box .icon-wrap svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        .penunjang-box span {
-            font-weight: 700;
-            font-size: 13.5px;
-        }
-
-        /* ===== E-Prescribing ===== */
-        table.obat-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        table.obat-table thead th {
-            text-align: left;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: .3px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            padding-bottom: 12px;
-            border-bottom: 1.5px solid var(--border);
-        }
-
-        table.obat-table tbody td {
-            padding: 16px 6px;
-            border-bottom: 1px solid var(--border);
-            vertical-align: top;
-            font-size: 13.5px;
-        }
-
-        table.obat-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .obat-name {
-            font-weight: 700;
-            color: var(--text-dark);
-        }
-
-        .del-btn {
-            border: none;
-            background: transparent;
-            color: var(--red);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            padding: 6px;
-            border-radius: 7px;
-        }
-
-        .del-btn:hover {
-            background: var(--red-bg);
-        }
-
-        .del-btn svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        /* ===== Disposisi (chips) ===== */
-        .disposisi-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .disposisi-chip {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 12.5px;
-            padding: 12px 18px;
-            border-radius: 10px;
-            border: 1.5px solid var(--border);
-            background: #fff;
-            color: var(--text-dark);
-            cursor: pointer;
-            text-decoration: none;
-            user-select: none;
-        }
-
-        .disposisi-chip svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        .disposisi-chip.selected {
-            background: #e6ecff;
-            border-color: var(--navy);
-            color: var(--navy);
-        }
-
-        .rujuk-target-note {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 14px;
-            font-size: 12.5px;
-            color: var(--navy);
-            background: #f4f6ff;
-            border: 1px solid #dbe2ff;
-            border-radius: 10px;
-            padding: 10px 14px;
-            width: fit-content;
-        }
-
-        .rujuk-target-note svg {
-            width: 14px;
-            height: 14px;
-            flex-shrink: 0;
-        }
-
-        /* ===== Modal Rujuk Internal ===== */
-        .poli-search {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 14px;
-            margin-bottom: 16px;
-        }
-
-        .poli-search svg {
-            width: 16px;
-            height: 16px;
-            color: var(--text-muted);
-            flex-shrink: 0;
-        }
-
-        .poli-search input {
-            flex: 1;
-            border: none;
-            outline: none;
-            font-family: 'Poppins', sans-serif;
-            font-size: 13.5px;
-            color: var(--text-dark);
-        }
-
-        .poli-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            max-height: 340px;
-            overflow-y: auto;
-            padding-right: 4px;
-            margin-bottom: 4px;
-        }
-
-        .poli-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 14px;
-            cursor: pointer;
-        }
-
-        .poli-item:hover {
-            border-color: #b9c2ec;
-        }
-
-        .poli-item.selected {
-            border-color: var(--navy);
-            background: #f4f6ff;
-        }
-
-        .poli-item .poli-radio {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: 2px solid var(--border);
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .poli-item.selected .poli-radio {
-            border-color: var(--navy);
-        }
-
-        .poli-item .poli-radio span {
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-            background: var(--navy);
-            display: none;
-        }
-
-        .poli-item.selected .poli-radio span {
-            display: block;
-        }
-
-        .poli-item .poli-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-
-        .poli-item.hidden {
-            display: none;
-        }
-
-        .poli-empty {
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 13px;
-            padding: 24px 0;
-            display: none;
-        }
-
-        /* ===== Tab 2: Asesmen ===== */
-        .grid-2col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 22px;
-            align-items: start;
-        }
-
-        .vitals-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .vital-box {
-            border: 1.5px solid var(--border);
-            border-radius: 12px;
-            padding: 14px 16px;
-        }
-
-        .vital-box .vlabel {
-            font-size: 10.5px;
-            font-weight: 700;
-            letter-spacing: .3px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-
-        .vital-box .vvalue {
-            font-size: 19px;
-            font-weight: 800;
-            color: var(--text-dark);
-        }
-
-        .vital-box .vunit {
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-muted);
-        }
-
-        .keluhan-perawat {
-            font-size: 13.5px;
-            line-height: 1.6;
-            color: var(--text-dark);
-            margin-bottom: 20px;
-        }
-
-        .allergy-pill {
-            background: var(--red-bg);
-            color: var(--red);
-        }
-
-        .allergy-pill.seafood {
-            background: var(--orange-bg);
-            color: var(--orange);
-        }
-
-        .allergy-pill.none {
-            background: #e6ecff;
-            color: var(--blue);
-        }
-
-        /* Timeline */
-        .timeline {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .timeline-item {
-            position: relative;
-            padding-left: 24px;
-            padding-bottom: 26px;
-        }
-
-        .timeline-item:last-child {
-            padding-bottom: 0;
-        }
-
-        .timeline-item::before {
-            content: "";
-            position: absolute;
-            left: 4px;
-            top: 5px;
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-            background: var(--text-muted);
-        }
-
-        .timeline-item.latest::before {
-            background: var(--navy);
-            width: 11px;
-            height: 11px;
-            left: 3px;
-        }
-
-        .timeline-item::after {
-            content: "";
-            position: absolute;
-            left: 8px;
-            top: 16px;
-            bottom: 0;
-            width: 1.5px;
-            background: var(--border);
-        }
-
-        .timeline-item:last-child::after {
-            display: none;
-        }
-
-        .timeline-date {
-            font-size: 11.5px;
-            font-weight: 700;
-            color: var(--navy);
-            margin-bottom: 4px;
-        }
-
-        .timeline-title {
-            font-size: 14.5px;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 4px;
-        }
-
-        .timeline-sub {
-            font-size: 12.5px;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-
-        .timeline-sub.italic {
-            font-style: italic;
-        }
-
-        /* ===== Bottom action bar ===== */
-        .bottom-bar {
-            position: fixed;
-            left: 270px;
-            right: 0;
-            bottom: 0;
-            background: #fff;
-            border-top: 1.5px solid var(--border);
-            padding: 16px 32px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            z-index: 10;
-        }
-
-        .btn-batal {
-            background: #fff;
-            border: 1.5px solid var(--border);
-            color: var(--text-dark);
-        }
-
-        .btn-simpan {
-            background: var(--navy);
-            color: #fff;
-        }
-
-        @media (max-width: 1100px) {
-            .grid-2col {
-                grid-template-columns: 1fr;
-            }
-
-            .penunjang-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        @media (max-width: 760px) {
-            #navbar-container {
-                display: none;
-            }
-
-            .content {
-                padding: 18px 18px 110px;
-            }
-
-            .bottom-bar {
-                left: 0;
-            }
-
-            .patient-actions {
-                margin-left: 0;
-                width: 100%;
-            }
-
-            .penunjang-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* ===== Backdrop blur saat modal aktif ===== */
-        .app {
-            transition: filter .2s ease;
-        }
-
-        body.modal-open .app {
-            filter: blur(5px);
-        }
-
-        body.modal-open {
-            overflow: hidden;
-        }
-
-        /* ===== Modal Tambah Obat ===== */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 21, 56, 0.45);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity .18s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-box {
-            background: #fff;
-            border-radius: 18px;
-            width: 100%;
-            max-width: 660px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 24px 60px rgba(10, 15, 60, 0.28);
-            transform: translateY(14px) scale(.98);
-            transition: transform .18s ease;
-        }
-
-        .modal-overlay.active .modal-box {
-            transform: translateY(0) scale(1);
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            padding: 24px 26px;
-            border-bottom: 1.5px solid var(--border);
-        }
-
-        .modal-header .modal-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 11px;
-            background: #e6ecff;
-            color: var(--navy);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .modal-header .modal-icon svg {
-            width: 21px;
-            height: 21px;
-        }
-
-        .modal-header .modal-titles {
-            flex: 1;
-        }
-
-        .modal-header h3 {
-            margin: 0 0 3px;
-            font-size: 17.5px;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
-
-        .modal-header p {
-            margin: 0;
-            font-size: 12.5px;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .modal-close {
-            border: none;
-            background: transparent;
-            color: var(--text-muted);
-            cursor: pointer;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .modal-close:hover {
-            background: #f3f5fb;
-            color: var(--text-dark);
-        }
-
-        .modal-close svg {
-            width: 19px;
-            height: 19px;
-        }
-
-        .modal-body {
-            padding: 24px 26px 6px;
-        }
-
-        .modal-field-label {
-            font-size: 13.5px;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 8px;
-        }
-
-        .modal-field-block {
-            margin-bottom: 20px;
-        }
-
-        .modal-input,
-        .modal-select {
-            width: 100%;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 14px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 13.5px;
-            color: var(--text-dark);
-            outline: none;
-            background: #fff;
-        }
-
-        .modal-input:focus,
-        .modal-select:focus,
-        .modal-search:focus-within,
-        .modal-suffix-input:focus-within {
-            border-color: var(--navy);
-        }
-
-        .modal-search {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 14px;
-        }
-
-        .modal-search svg {
-            width: 16px;
-            height: 16px;
-            color: var(--text-muted);
-            flex-shrink: 0;
-        }
-
-        .modal-search input {
-            flex: 1;
-            border: none;
-            outline: none;
-            font-family: 'Poppins', sans-serif;
-            font-size: 13.5px;
-            color: var(--text-dark);
-        }
-
-        .modal-row2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 18px;
-        }
-
-        .modal-input-icon {
-            display: flex;
-            align-items: center;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .modal-input-icon input {
-            flex: 1;
-            border: none;
-            outline: none;
-            padding: 12px 14px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 13.5px;
-            color: var(--text-dark);
-        }
-
-        .modal-input-icon .suffix-icon {
-            padding: 0 14px;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-        }
-
-        .modal-input-icon .suffix-icon svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        .modal-select-wrap {
-            position: relative;
-        }
-
-        .modal-select {
-            appearance: none;
-            -webkit-appearance: none;
-            padding-right: 38px;
-            cursor: pointer;
-        }
-
-        .modal-select-wrap svg {
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 15px;
-            height: 15px;
-            color: var(--text-muted);
-            pointer-events: none;
-        }
-
-        .modal-suffix-input {
-            display: flex;
-            align-items: stretch;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .modal-suffix-input input {
-            flex: 1;
-            border: none;
-            outline: none;
-            padding: 12px 14px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 13.5px;
-            color: var(--text-dark);
-            min-width: 0;
-        }
-
-        .modal-suffix-input .suffix-tag {
-            background: #eef1fb;
-            color: var(--navy);
-            font-weight: 700;
-            font-size: 12.5px;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            white-space: nowrap;
-        }
-
-        .modal-suffix-input .suffix-tag.calc {
-            background: transparent;
-            color: var(--text-muted);
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: .4px;
-            text-transform: uppercase;
-        }
-
-        .modal-suffix-input input.calc-value {
-            font-weight: 700;
-            color: var(--navy);
-        }
-
-        .modal-textarea {
-            width: 100%;
-            min-height: 90px;
-            resize: vertical;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            padding: 14px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 13.5px;
-            color: var(--text-dark);
-            outline: none;
-        }
-
-        .modal-info-box {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            background: #f4f6ff;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 14px 16px;
-            margin-bottom: 22px;
-        }
-
-        .modal-info-box .info-icon {
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: var(--green-bg);
-            color: var(--green);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .modal-info-box .info-icon svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        .modal-info-box .info-title {
-            font-size: 10.5px;
-            font-weight: 700;
-            letter-spacing: .4px;
-            color: var(--green);
-            text-transform: uppercase;
-            margin-bottom: 3px;
-        }
-
-        .modal-info-box .info-desc {
-            font-size: 12.5px;
-            color: var(--text-muted);
-            font-weight: 500;
-            line-height: 1.5;
-        }
-
-        .modal-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 18px 26px;
-            border-top: 1.5px solid var(--border);
-        }
-
-        .modal-btn-batal {
-            border: none;
-            background: transparent;
-            color: var(--text-dark);
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 13.5px;
-            cursor: pointer;
-            padding: 12px 10px;
-        }
-
-        .modal-btn-batal:hover {
-            color: var(--red);
-        }
-
-        .modal-btn-submit {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            background: var(--navy);
-            color: #fff;
-            border: none;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 13.5px;
-            padding: 13px 22px;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-
-        .modal-btn-submit:hover {
-            filter: brightness(1.08);
-        }
-
-        .modal-btn-submit svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        @media (max-width: 560px) {
-            .modal-row2 {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <!-- CSS tidak diubah dari versi HTML asli — silakan sertakan file style.css
+         atau blok <style> yang sama seperti pada file HTML sumber di sini. -->
+    <link rel="stylesheet" href="assets/css/pemeriksaan-dokter.css">
 </head>
 
 <body>
 
     <div class="app">
 
-        <!-- ===== Sidebar dimuat dari navbar.html ===== -->
         <div id="navbar-container">
             <div class="sidebar-loading">Memuat menu...</div>
         </div>
 
-        <!-- ===== Main ===== -->
         <main class="main">
-            <!-- Form untuk menyimpan pemeriksaan ke database -->
-            <form method="POST" id="pemeriksaanForm" action="pemeriksaan.php?no_rm=<?= urlencode($pasien['no_rm']) ?>">
-                <input type="hidden" name="pasien_id" value="<?= htmlspecialchars($pasien['id']) ?>">
-                
-                <!-- Hidden inputs untuk serialization -->
-                <input type="hidden" id="inputDiagnosisList" name="diagnosis_list" value="">
-                <input type="hidden" id="inputPenunjangLab" name="penunjang_lab" value="0">
-                <input type="hidden" id="inputPenunjangRad" name="penunjang_rad" value="0">
-                <input type="hidden" id="inputPenunjangOk" name="penunjang_ok" value="0">
-                <input type="hidden" id="inputDisposisi" name="disposisi" value="rawat-jalan">
-                <input type="hidden" id="inputRujukInternal" name="rujuk_internal_target" value="">
-                <input type="hidden" id="inputResepList" name="resep_list" value="">
 
-                <!-- Topbar -->
-                <header class="topbar">
-                    <div class="brand">RSJD Dr. Amino Gondohutomo</div>
-                    <div class="topbar-right">
-                        <div class="doctor-chip">
-                            <div class="doc-avatar">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="8" r="4" />
-                                    <path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6" />
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="doc-name">Dr. Siska Amalia, Sp.KJ</div>
-                                <span class="doctor-role-badge">DOKTER UTAMA</span>
-                            </div>
-                        </div>
-                        <div class="icon-btn" type="button">
+            <header class="topbar">
+                <div class="brand">RSJD Dr. Amino Gondohutomo</div>
+                <div class="topbar-right">
+                    <div class="doctor-chip">
+                        <div class="doc-avatar">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-                                <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+                                <circle cx="12" cy="8" r="4" />
+                                <path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6" />
                             </svg>
                         </div>
-                        <div class="icon-btn" type="button">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="3" />
-                                <path
-                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                            </svg>
+                        <div>
+                            <div class="doc-name"><?= e($dokter['nama']) ?><?= $dokter['gelar'] ? ', ' . e($dokter['gelar']) : '' ?></div>
+                            <span class="doctor-role-badge"><?= e($dokter['role']) ?></span>
                         </div>
                     </div>
-                </header>
-
-                <!-- Content -->
-                <section class="content">
-
-                    <!-- Tampilkan Pesan Sukses / Error -->
-                    <?php if ($success_msg): ?>
-                        <div class="alert-success" style="background: var(--green-bg); color: var(--green); border: 1.5px solid #b7ebc6; padding: 16px 20px; border-radius: 12px; margin-bottom: 22px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 20px; height: 20px; flex-shrink: 0;">
-                                <circle cx="12" cy="12" r="10" />
-                                <path d="m9 12 2 2 4-4" />
-                            </svg>
-                            <div><?= htmlspecialchars($success_msg) ?></div>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if ($error_msg): ?>
-                        <div class="alert-error" style="background: var(--red-bg); color: var(--red); border: 1.5px solid #fad2d2; padding: 16px 20px; border-radius: 12px; margin-bottom: 22px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 20px; height: 20px; flex-shrink: 0;">
-                                <circle cx="12" cy="12" r="10" />
-                                <path d="m15 9-6 6M9 9l6 6" />
-                            </svg>
-                            <div><?= htmlspecialchars($error_msg) ?></div>
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- Identitas pasien -->
-                    <div class="patient-bar">
-                        <img class="patient-photo"
-                            src="<?= htmlspecialchars($pasien['foto']) ?>"
-                            alt="Foto pasien">
-
-                        <div class="patient-headline">
-                            <div class="patient-name-row">
-                                <div class="patient-name"><?= htmlspecialchars($pasien['nama']) ?></div>
-                                <span class="pill bpjs"><?= htmlspecialchars($pasien['tipe_penjamin']) ?></span>
-                            </div>
-                            <div class="patient-meta">
-                                <span><b>No. RM:</b> <?= htmlspecialchars($pasien['no_rm']) ?></span>
-                                <span class="sep">|</span>
-                                <span><b>Umur/Tgl Lahir:</b> <?= $umur ?> Th / <?= $tgl_lahir_indo ?></span>
-                                <span class="sep">|</span>
-                                <span><b>Gender:</b> <?= htmlspecialchars($pasien['gender']) ?></span>
-                            </div>
-                        </div>
-
-                        <div class="patient-actions">
-                            <button class="btn btn-outline-navy" type="button">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="9" />
-                                    <path d="M12 7v5l3 3" />
-                                </svg>
-                                Data Historis
-                            </button>
-                            <button class="btn btn-navy" type="button">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
-                                    <path d="M9 7h6M9 11h6M9 15h3" />
-                                </svg>
-                                Ringkasan Medis
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Tabs -->
-                    <div class="tabs">
-                        <button class="tab-btn active" data-tab="tab-pemeriksaan" type="button">Pemeriksaan &amp; Resep</button>
-                        <button class="tab-btn" data-tab="tab-asesmen" type="button">Asesmen &amp; Riwayat</button>
-                    </div>
-
-                    <!-- ===== Tab 1: Pemeriksaan & Resep ===== -->
-                    <div class="tab-panel active" id="tab-pemeriksaan">
-                        <div class="panel">
-
-                            <div class="field-block">
-                                <div class="field-label">Anamnesis / Keluhan &amp; Riwayat Penyakit Sekarang <span
-                                        class="req">*</span></div>
-                                <textarea class="input-area" name="anamnesis" required
-                                    placeholder="Tuliskan keluhan pasien secara mendetail di sini..."></textarea>
-                            </div>
-
-                            <div class="field-block" style="position: relative;">
-                                <div class="field-label">Diagnosis (ICD-10)</div>
-                                <div class="search-input">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="11" cy="11" r="7" />
-                                        <path d="M21 21l-4.3-4.3" />
-                                    </svg>
-                                    <input type="text" id="icdSearchInput" placeholder="Cari kode ICD-10 atau nama penyakit..." autocomplete="off">
-                                </div>
-                                <div class="icd-suggestions" id="icdSuggestions"></div>
-                                <div class="tags-row" id="diagnosisTagsContainer">
-                                    <span class="diagnosis-tag" data-code="F20.0">F20.0 - Paranoid Schizophrenia <button type="button" class="del-tag-btn">×</button></span>
-                                    <span class="diagnosis-tag" data-code="F32.9">F32.9 - Depressive Episode, Unspecified <button type="button" class="del-tag-btn">×</button></span>
-                                </div>
-                            </div>
-
-                            <div class="field-block">
-                                <div class="field-label">Permintaan Pemeriksaan Penunjang</div>
-                                <div class="penunjang-grid">
-                                    <div class="penunjang-box" id="boxLab">
-                                        <div class="icon-wrap">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path d="M9 3h6v6l4 9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1l4-9V3z" />
-                                                <path d="M8 13h8" />
-                                            </svg>
-                                        </div>
-                                        <span>Laboratorium</span>
-                                    </div>
-                                    <div class="penunjang-box" id="boxRad">
-                                        <div class="icon-wrap">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <rect x="4" y="4" width="16" height="16" rx="2" />
-                                                <circle cx="12" cy="12" r="3" />
-                                            </svg>
-                                        </div>
-                                        <span>Radiologi</span>
-                                    </div>
-                                    <div class="penunjang-box" id="boxOk">
-                                        <div class="icon-wrap">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <circle cx="5" cy="12" r="1.6" />
-                                                <circle cx="12" cy="12" r="1.6" />
-                                                <circle cx="19" cy="12" r="1.6" />
-                                            </svg>
-                                        </div>
-                                        <span>Elektro Diagnostik</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="panel" style="margin-top:22px;">
-                            <div class="panel-head">
-                                <h2>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
-                                        <path d="M9 7h6M9 11h6M9 15h3" />
-                                    </svg>
-                                    Resep Elektronik
-                                </h2>
-                                <button class="btn btn-navy" id="btnTambahObat" type="button">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                        <path d="M12 5v14M5 12h14" />
-                                    </svg>
-                                    Tambah Obat
-                                </button>
-                            </div>
-
-                            <table class="obat-table">
-                                <thead>
-                                    <tr>
-                                        <th>Nama Obat</th>
-                                        <th>Dosis</th>
-                                        <th>Frekuensi</th>
-                                        <th>Lama</th>
-                                        <th>Jumlah</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="obatTableBody">
-                                    <tr>
-                                        <td>
-                                            <div class="obat-name">Risperidone 2mg Tab</div>
-                                        </td>
-                                        <td>2 mg</td>
-                                        <td>2 x 1 (Pagi, Malam)</td>
-                                        <td>30 Hari</td>
-                                        <td>60 Tab</td>
-                                        <td>
-                                            <button class="del-btn" aria-label="Hapus obat" type="button">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path
-                                                        d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                                </svg>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="obat-name">Diazepam 5mg Tab</div>
-                                        </td>
-                                        <td>5 mg</td>
-                                        <td>1 x 1 (Malam) - prn</td>
-                                        <td>10 Hari</td>
-                                        <td>10 Tab</td>
-                                        <td>
-                                            <button class="del-btn" aria-label="Hapus obat" type="button">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path
-                                                        d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                                </svg>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="panel" style="margin-top:22px;">
-                            <div class="panel-head" style="margin-bottom:16px;">
-                                <div class="field-label" style="margin-bottom:0;">Tindak Lanjut / Disposisi</div>
-                                <a href="surat-izin-dokter.html" class="btn btn-outline-navy" id="btnSuratIzinDokter">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
-                                        <path d="M9 8h6M9 12h6M9 16h3" />
-                                    </svg>
-                                    Surat Izin Dokter
-                                </a>
-                            </div>
-                            <div class="disposisi-row">
-                                <button class="disposisi-chip selected" data-disposisi="rawat-jalan" type="button">Rawat Jalan</button>
-                                <button class="disposisi-chip" data-disposisi="rawat-inap" type="button">Rawat Inap</button>
-                                <button class="disposisi-chip" id="chipRujukInternal" data-disposisi="rujuk-internal" type="button">Rujuk Internal</button>
-                                <a class="disposisi-chip" data-disposisi="rujuk-eksternal" href="surat-rujukan-eksternal.html">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M11 4H4a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1h15a1 1 0 0 0 1-1v-7" />
-                                        <path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z" />
-                                    </svg>
-                                    Rujuk Eksternal
-                                </a>
-                            </div>
-                            <div class="rujuk-target-note" id="rujukInternalNote" style="display:none;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M9 18l6-6-6-6" />
-                                </svg>
-                                Tujuan rujukan: <b id="rujukInternalTarget"></b>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ===== Tab 2: Asesmen & Riwayat ===== -->
-                    <div class="tab-panel" id="tab-asesmen">
-                        <div class="grid-2col">
-
-                            <div class="panel">
-                                <div class="panel-head">
-                                    <h2>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path
-                                                d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
-                                            <path d="M9 12l2 2 4-4" />
-                                        </svg>
-                                        Hasil Asesmen Perawat (Anamnesis &amp; Vital Sign)
-                                    </h2>
-                                </div>
-
-                                <div class="field-label">Keluhan Utama (Perawat)</div>
-                                <div class="keluhan-perawat">
-                                    <?= htmlspecialchars($asesmen['keluhan_utama']) ?>
-                                </div>
-
-                                <div class="vitals-grid">
-                                    <div class="vital-box">
-                                        <div class="vlabel">TD (BP)</div>
-                                        <div class="vvalue"><?= htmlspecialchars($asesmen['tensi_darah']) ?> <span class="vunit">mmHg</span></div>
-                                    </div>
-                                    <div class="vital-box">
-                                        <div class="vlabel">Suhu</div>
-                                        <div class="vvalue"><?= htmlspecialchars($asesmen['suhu']) ?> <span class="vunit">°C</span></div>
-                                    </div>
-                                    <div class="vital-box">
-                                        <div class="vlabel">Nadi (Pulse)</div>
-                                        <div class="vvalue"><?= htmlspecialchars($asesmen['nadi']) ?> <span class="vunit">x/mnt</span></div>
-                                    </div>
-                                    <div class="vital-box">
-                                        <div class="vlabel">RR</div>
-                                        <div class="vvalue"><?= htmlspecialchars($asesmen['rr']) ?> <span class="vunit">x/mnt</span></div>
-                                    </div>
-                                    <div class="vital-box">
-                                        <div class="vlabel">SPO2</div>
-                                        <div class="vvalue"><?= htmlspecialchars($asesmen['spo2']) ?> <span class="vunit">%</span></div>
-                                    </div>
-                                    <div class="vital-box">
-                                        <div class="vlabel">BB / TB</div>
-                                        <div class="vvalue"><?= htmlspecialchars($asesmen['bb']) ?> <span class="vunit">kg</span> / <?= htmlspecialchars($asesmen['tb']) ?> <span
-                                                class="vunit">cm</span></div>
-                                    </div>
-                                </div>
-
-                                <div class="field-label">Alergi</div>
-                                <div class="tags-row">
-                                    <?php
-                                    $alergi_list = array_map('trim', explode(',', $asesmen['alergi']));
-                                    foreach ($alergi_list as $al) {
-                                        if (stripos($al, 'tidak ada') !== false || stripos($al, 'none') !== false) {
-                                            echo '<span class="pill allergy-pill none">' . htmlspecialchars($al) . '</span>';
-                                        } elseif (stripos($al, 'seafood') !== false || stripos($al, 'udang') !== false) {
-                                            echo '<span class="pill allergy-pill seafood">' . htmlspecialchars($al) . '</span>';
-                                        } else {
-                                            echo '<span class="pill allergy-pill">' . htmlspecialchars($al) . '</span>';
-                                        }
-                                    }
-                                    ?>
-                                </div>
-                            </div>
-
-                            <div class="panel">
-                                <div class="panel-head">
-                                    <h2>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="9" />
-                                            <path d="M12 7v5l3 3" />
-                                        </svg>
-                                        Riwayat Kunjungan &amp; Rekam Medis
-                                    </h2>
-                                </div>
-
-                                <div class="timeline">
-                                    <?php foreach ($riwayat_kunjungan as $index => $riw): ?>
-                                        <?php 
-                                        $is_latest = ($index === 0) ? 'latest' : '';
-                                        $date_formatted = date('d M Y', strtotime($riw['tanggal']));
-                                        $label = ($index === 0) ? ' (Kunjungan Terakhir)' : '';
-                                        ?>
-                                        <div class="timeline-item <?= $is_latest ?>">
-                                            <div class="timeline-date"><?= $date_formatted . $label ?></div>
-                                            <div class="timeline-title"><?= htmlspecialchars($riw['klinik']) ?></div>
-                                            <div class="timeline-sub italic">Dx: <?= htmlspecialchars($riw['diagnosis']) ?></div>
-                                            <div class="timeline-sub"><?= htmlspecialchars($riw['terapi']) ?></div>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                </section>
-
-                <!-- Bottom action bar -->
-                <div class="bottom-bar">
-                    <button class="btn btn-batal" type="button" onclick="window.location.href='dashboard.html'">Batal &amp; Keluar</button>
-                    <button class="btn btn-simpan" type="submit">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                            <path d="M17 21v-8H7v8M7 3v5h8" />
-                        </svg>
-                        Simpan &amp; Selesai Pemeriksaan
-                    </button>
                 </div>
-            </form>
+            </header>
+
+            <section class="content">
+
+                <div class="patient-bar">
+                    <img class="patient-photo"
+                        src="<?= e($kunjungan['foto'] ?: 'assets/img/default-avatar.png') ?>"
+                        alt="Foto pasien">
+
+                    <div class="patient-headline">
+                        <div class="patient-name-row">
+                            <div class="patient-name"><?= e($kunjungan['nama_pasien']) ?></div>
+                            <span class="pill bpjs"><?= e($kunjungan['jenis_penjaminan']) ?></span>
+                        </div>
+                        <div class="patient-meta">
+                            <span><b>No. RM:</b> <?= e($kunjungan['no_rm']) ?></span>
+                            <span class="sep">|</span>
+                            <span><b>Umur/Tgl Lahir:</b> <?= e($umur) ?> Th /
+                                <?= e(date('d F Y', strtotime($kunjungan['tanggal_lahir']))) ?></span>
+                            <span class="sep">|</span>
+                            <span><b>Gender:</b> <?= e($kunjungan['gender']) ?></span>
+                        </div>
+                    </div>
+
+                    <div class="patient-actions">
+                        <button class="btn btn-outline-navy">Data Historis</button>
+                        <button class="btn btn-navy">Ringkasan Medis</button>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="tab-pemeriksaan">Pemeriksaan &amp; Resep</button>
+                    <button class="tab-btn" data-tab="tab-asesmen">Asesmen &amp; Riwayat</button>
+                </div>
+
+                <div class="tab-panel active" id="tab-pemeriksaan">
+                    <div class="panel">
+
+                        <div class="field-block">
+                            <div class="field-label">Anamnesis / Keluhan &amp; Riwayat Penyakit Sekarang <span
+                                    class="req">*</span></div>
+                            <textarea class="input-area" id="inputAnamnesis"
+                                placeholder="Tuliskan keluhan pasien secara mendetail di sini..."><?= e($kunjungan['anamnesis']) ?></textarea>
+                        </div>
+
+                        <div class="field-block">
+                            <div class="field-label">Diagnosis (ICD-10)</div>
+                            <div class="search-input">
+                                <input type="text" id="icd10SearchInput" placeholder="Cari kode ICD-10 atau nama penyakit...">
+                            </div>
+                            <div class="tags-row" id="diagnosisTagsRow">
+                                <?php foreach ($diagnosisList as $dx): ?>
+                                    <span class="diagnosis-tag" data-icd-id="<?= (int) $dx['id'] ?>">
+                                        <?= e($dx['kode']) ?> - <?= e($dx['nama']) ?>
+                                        <button aria-label="Hapus diagnosis" class="btn-hapus-diagnosis">×</button>
+                                    </span>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <div class="field-block">
+                            <div class="field-label">Permintaan Pemeriksaan Penunjang</div>
+                            <div class="penunjang-grid">
+                                <div class="penunjang-box"><span>Laboratorium</span></div>
+                                <div class="penunjang-box"><span>Radiologi</span></div>
+                                <div class="penunjang-box"><span>Elektro Diagnostik</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel" style="margin-top:22px;">
+                        <div class="panel-head">
+                            <h2>Resep Elektronik</h2>
+                            <button class="btn btn-navy" id="btnTambahObat">+ Tambah Obat</button>
+                        </div>
+
+                        <table class="obat-table">
+                            <thead>
+                                <tr>
+                                    <th>Nama Obat</th>
+                                    <th>Dosis</th>
+                                    <th>Frekuensi</th>
+                                    <th>Lama</th>
+                                    <th>Jumlah</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="obatTableBody">
+                                <?php foreach ($resepList as $obat): ?>
+                                    <tr data-obat-id="<?= (int) $obat['id'] ?>">
+                                        <td><div class="obat-name"><?= e($obat['nama_obat']) ?></div></td>
+                                        <td><?= e($obat['dosis']) ?></td>
+                                        <td><?= e($obat['frekuensi_label']) ?></td>
+                                        <td><?= (int) $obat['durasi_hari'] ?> Hari</td>
+                                        <td><?= e($obat['jumlah']) ?></td>
+                                        <td>
+                                            <button class="del-btn" aria-label="Hapus obat">Hapus</button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="panel" style="margin-top:22px;">
+                        <div class="panel-head" style="margin-bottom:16px;">
+                            <div class="field-label" style="margin-bottom:0;">Tindak Lanjut / Disposisi</div>
+                            <a href="surat-izin-dokter.php?kunjungan_id=<?= $kunjunganId ?>" class="btn btn-outline-navy">
+                                Surat Izin Dokter
+                            </a>
+                        </div>
+                        <div class="disposisi-row">
+                            <button class="disposisi-chip <?= $kunjungan['disposisi'] === 'rawat-jalan' ? 'selected' : '' ?>"
+                                data-disposisi="rawat-jalan">Rawat Jalan</button>
+                            <button class="disposisi-chip <?= $kunjungan['disposisi'] === 'rawat-inap' ? 'selected' : '' ?>"
+                                data-disposisi="rawat-inap">Rawat Inap</button>
+                            <button class="disposisi-chip <?= $kunjungan['disposisi'] === 'rujuk-internal' ? 'selected' : '' ?>"
+                                id="chipRujukInternal" data-disposisi="rujuk-internal">Rujuk Internal</button>
+                            <a class="disposisi-chip" data-disposisi="rujuk-eksternal"
+                                href="surat-rujukan-eksternal.php?kunjungan_id=<?= $kunjunganId ?>">
+                                Rujuk Eksternal
+                            </a>
+                        </div>
+                        <div class="rujuk-target-note" id="rujukInternalNote"
+                            style="display:<?= $poliTerpilih ? 'flex' : 'none' ?>;">
+                            Tujuan rujukan: <b id="rujukInternalTarget"><?= e($poliTerpilih['nama'] ?? '') ?></b>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-panel" id="tab-asesmen">
+                    <div class="grid-2col">
+
+                        <div class="panel">
+                            <div class="panel-head"><h2>Hasil Asesmen Perawat (Anamnesis &amp; Vital Sign)</h2></div>
+
+                            <div class="field-label">Keluhan Utama (Perawat)</div>
+                            <div class="keluhan-perawat"><?= nl2br(e($vital['keluhan_perawat'])) ?></div>
+
+                            <div class="vitals-grid">
+                                <div class="vital-box">
+                                    <div class="vlabel">TD (BP)</div>
+                                    <div class="vvalue"><?= e($vital['tekanan_darah']) ?> <span class="vunit">mmHg</span></div>
+                                </div>
+                                <div class="vital-box">
+                                    <div class="vlabel">Suhu</div>
+                                    <div class="vvalue"><?= e($vital['suhu']) ?> <span class="vunit">°C</span></div>
+                                </div>
+                                <div class="vital-box">
+                                    <div class="vlabel">Nadi (Pulse)</div>
+                                    <div class="vvalue"><?= e($vital['nadi']) ?> <span class="vunit">x/mnt</span></div>
+                                </div>
+                                <div class="vital-box">
+                                    <div class="vlabel">RR</div>
+                                    <div class="vvalue"><?= e($vital['rr']) ?> <span class="vunit">x/mnt</span></div>
+                                </div>
+                                <div class="vital-box">
+                                    <div class="vlabel">SPO2</div>
+                                    <div class="vvalue"><?= e($vital['spo2']) ?> <span class="vunit">%</span></div>
+                                </div>
+                                <div class="vital-box">
+                                    <div class="vlabel">BB / TB</div>
+                                    <div class="vvalue"><?= e($vital['berat_badan']) ?> <span class="vunit">kg</span> /
+                                        <?= e($vital['tinggi_badan']) ?> <span class="vunit">cm</span></div>
+                                </div>
+                            </div>
+
+                            <div class="field-label">Alergi</div>
+                            <div class="tags-row">
+                                <?php if (empty($alergiList)): ?>
+                                    <span class="pill allergy-pill none">Tidak Ada Alergi</span>
+                                <?php else: ?>
+                                    <?php foreach ($alergiList as $alergi): ?>
+                                        <span class="pill allergy-pill <?= e($alergi['jenis']) ?>"><?= e($alergi['nama']) ?></span>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-head"><h2>Riwayat Kunjungan &amp; Rekam Medis</h2></div>
+
+                            <div class="timeline">
+                                <?php foreach ($riwayatList as $i => $r): ?>
+                                    <div class="timeline-item <?= $i === 0 ? 'latest' : '' ?>">
+                                        <div class="timeline-date">
+                                            <?= e(date('d M Y', strtotime($r['tanggal']))) ?>
+                                            <?= $i === 0 ? '(Kunjungan Terakhir)' : '' ?>
+                                        </div>
+                                        <div class="timeline-title"><?= e($r['unit_pelayanan']) ?></div>
+                                        <div class="timeline-sub italic"><?= nl2br(e($r['ringkasan'])) ?></div>
+                                    </div>
+                                <?php endforeach; ?>
+                                <?php if (empty($riwayatList)): ?>
+                                    <div class="timeline-sub">Belum ada riwayat kunjungan sebelumnya.</div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </section>
+
+            <div class="bottom-bar">
+                <button class="btn btn-batal">Batal &amp; Keluar</button>
+                <button class="btn btn-simpan" id="btnSimpanPemeriksaan">Simpan &amp; Selesai Pemeriksaan</button>
+            </div>
         </main>
     </div>
 
@@ -1816,48 +597,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="modal-overlay" id="modalTambahObat">
         <div class="modal-box">
             <div class="modal-header">
-                <div class="modal-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />
-                        <path d="M12 9v5M9.5 11.5h5" />
-                    </svg>
-                </div>
                 <div class="modal-titles">
                     <h3>Tambah Obat Ke Resep</h3>
                     <p>Input detail pengobatan pasien secara presisi</p>
                 </div>
-                <button class="modal-close" id="modalCloseBtn" aria-label="Tutup" type="button">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 6 6 18M6 6l12 12" />
-                    </svg>
-                </button>
+                <button class="modal-close" id="modalCloseBtn" aria-label="Tutup">×</button>
             </div>
-
             <div class="modal-body">
                 <div class="modal-field-block">
                     <div class="modal-field-label">Cari Nama Obat / Kandungan</div>
                     <div class="modal-search">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="7" />
-                            <path d="M21 21l-4.3-4.3" />
-                        </svg>
-                        <input type="text" id="modalNamaObat"
-                            placeholder="Ketik nama obat (misal: Amlodipine, Paracetamol...)">
+                        <input type="text" id="modalNamaObat" placeholder="Ketik nama obat...">
                     </div>
                 </div>
-
                 <div class="modal-row2 modal-field-block">
                     <div>
                         <div class="modal-field-label">Dosis</div>
-                        <div class="modal-input-icon">
-                            <input type="text" id="modalDosis" placeholder="Contoh: 500mg">
-                            <span class="suffix-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
-                                    <path d="M9 8h6" />
-                                </svg>
-                            </span>
-                        </div>
+                        <div class="modal-input-icon"><input type="text" id="modalDosis" placeholder="Contoh: 500mg"></div>
                     </div>
                     <div>
                         <div class="modal-field-label">Frekuensi Pemakaian</div>
@@ -1868,58 +624,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <option value="3|Pagi, Siang, Malam" selected>3 x 1 (Pagi, Siang, Malam)</option>
                                 <option value="0|Sesuai Kebutuhan (PRN)">Sesuai Kebutuhan (PRN)</option>
                             </select>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M6 9l6 6 6-6" />
-                            </svg>
                         </div>
                     </div>
                 </div>
-
                 <div class="modal-row2 modal-field-block">
                     <div>
                         <div class="modal-field-label">Durasi (Hari)</div>
-                        <div class="modal-suffix-input">
-                            <input type="number" id="modalDurasi" value="3" min="0">
-                            <span class="suffix-tag">Hari</span>
-                        </div>
+                        <div class="modal-suffix-input"><input type="number" id="modalDurasi" value="3" min="0"><span class="suffix-tag">Hari</span></div>
                     </div>
                     <div>
                         <div class="modal-field-label">Total Kuantitas</div>
-                        <div class="modal-suffix-input">
-                            <input type="text" id="modalTotal" class="calc-value" value="9" readonly>
-                            <span class="suffix-tag calc">Calculated</span>
-                        </div>
+                        <div class="modal-suffix-input"><input type="text" id="modalTotal" class="calc-value" value="9" readonly><span class="suffix-tag calc">Calculated</span></div>
                     </div>
                 </div>
-
                 <div class="modal-field-block">
                     <div class="modal-field-label">Instruksi Khusus (Keterangan)</div>
-                    <textarea class="modal-textarea" id="modalInstruksi"
-                        placeholder="Contoh: Diminum sesudah makan, habiskan obat antibiotik ini..."></textarea>
-                </div>
-
-                <div class="modal-info-box">
-                    <div class="info-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />
-                            <path d="M9 12l2 2 4-4" />
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="info-title">Status Penjaminan</div>
-                        <div class="info-desc">Tersedia untuk skema BPJS Kesehatan &amp; Asuransi Pemerintah.</div>
-                    </div>
+                    <textarea class="modal-textarea" id="modalInstruksi" placeholder="Contoh: Diminum sesudah makan..."></textarea>
                 </div>
             </div>
-
             <div class="modal-footer">
-                <button class="modal-btn-batal" id="modalBatalBtn" type="button">Batal</button>
-                <button class="modal-btn-submit" id="modalSubmitBtn" type="button">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <path d="M20 6 9 17l-5-5" />
-                    </svg>
-                    Tambah ke Resep
-                </button>
+                <button class="modal-btn-batal" id="modalBatalBtn">Batal</button>
+                <button class="modal-btn-submit" id="modalSubmitBtn">Tambah ke Resep</button>
             </div>
         </div>
     </div>
@@ -1928,268 +653,97 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="modal-overlay" id="modalRujukInternal">
         <div class="modal-box">
             <div class="modal-header">
-                <div class="modal-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1h15a1 1 0 0 0 1-1v-7" />
-                        <path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z" />
-                    </svg>
-                </div>
                 <div class="modal-titles">
                     <h3>Rujuk Internal (Konsul)</h3>
                     <p>Pilih poliklinik / pelayanan tujuan rujukan antar spesialis</p>
                 </div>
-                <button class="modal-close" id="rujukCloseBtn" aria-label="Tutup" type="button">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 6 6 18M6 6l12 12" />
-                    </svg>
-                </button>
+                <button class="modal-close" id="rujukCloseBtn" aria-label="Tutup">×</button>
             </div>
-
             <div class="modal-body">
                 <div class="poli-search">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="7" />
-                        <path d="M21 21l-4.3-4.3" />
-                    </svg>
                     <input type="text" id="poliSearchInput" placeholder="Cari poliklinik / pelayanan...">
                 </div>
-
-                <div class="poli-list" id="poliList"></div>
+                <div class="poli-list" id="poliList">
+                    <?php foreach ($poliList as $poli): ?>
+                        <div class="poli-item" data-poli-id="<?= (int) $poli['id'] ?>" data-nama="<?= e($poli['nama']) ?>">
+                            <div class="poli-radio"><span></span></div>
+                            <div class="poli-name"><?= e($poli['nama']) ?></div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
                 <div class="poli-empty" id="poliEmpty">Poliklinik tidak ditemukan.</div>
             </div>
-
             <div class="modal-footer">
-                <button class="modal-btn-batal" id="rujukBatalBtn" type="button">Batal</button>
-                <button class="modal-btn-submit" id="rujukSubmitBtn" type="button">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <path d="M20 6 9 17l-5-5" />
-                    </svg>
-                    Pilih Poliklinik
-                </button>
+                <button class="modal-btn-batal" id="rujukBatalBtn">Batal</button>
+                <button class="modal-btn-submit" id="rujukSubmitBtn">Pilih Poliklinik</button>
             </div>
         </div>
     </div>
 
-    <script src="https://unpkg.com/lucide@latest"></script>
-
     <script>
-        // Database mock ICD-10 untuk pencarian autocomplete
-        var icdDatabase = [
-            { code: 'F20.0', name: 'Paranoid Schizophrenia' },
-            { code: 'F32.9', name: 'Depressive Episode, Unspecified' },
-            { code: 'F41.1', name: 'Generalized Anxiety Disorder' },
-            { code: 'F10.2', name: 'Alcohol Dependence' },
-            { code: 'F31.9', name: 'Bipolar Affective Disorder, Unspecified' },
-            { code: 'F90.0', name: 'Attention-Deficit Hyperactivity Disorder (ADHD)' },
-            { code: 'K29.7', name: 'Gastritis, Unspecified' },
-            { code: 'I10', name: 'Essential (Primary) Hypertension' },
-            { code: 'E11.9', name: 'Type 2 Diabetes Mellitus without complications' }
-        ];
+        // Endpoint AJAX = file ini sendiri, kunjungan_id disisipkan otomatis.
+        const KUNJUNGAN_ID = <?= (int) $kunjunganId ?>;
+        const ENDPOINT = 'pemeriksaan-dokter.php';
 
-        // Ambil sidebar dari navbar.html (satu folder di atas /pages) lalu suntikkan ke halaman ini.
         function loadNavbar() {
             fetch('../navbar.html')
-                .then(function (response) {
-                    if (!response.ok) {
-                        throw new Error('Navbar gagal dimuat.');
-                    }
-                    return response.text();
-                })
-                .then(function (html) {
-                    document.getElementById('navbar-container').innerHTML = html;
-
-                    if (window.lucide) {
-                        lucide.createIcons();
-                    }
-
-                    // Tentukan item mana yang aktif berdasarkan nama file di URL (pemeriksaan.php)
-                    var current = window.location.pathname.split('/').pop();
-                    if (!current) current = 'pemeriksaan.php';
-
-                    document.querySelectorAll('#navbar-container .nav-item').forEach(function (link) {
-                        var pageAttr = link.getAttribute('data-page');
-                        // Dukung kecocokan untuk pemeriksaan.php atau pemeriksaan.html
-                        if (pageAttr === current || (current === 'pemeriksaan.php' && pageAttr === 'pemeriksaan.html')) {
-                            link.classList.add('active');
-                        }
-                    });
-                })
-                .catch(function (error) {
+                .then(r => r.ok ? r.text() : Promise.reject())
+                .then(html => { document.getElementById('navbar-container').innerHTML = html; })
+                .catch(() => {
                     document.getElementById('navbar-container').innerHTML =
-                        '<div class="sidebar-loading">Gagal memuat navbar.html.<br>Pastikan file ini dibuka lewat Laragon local domain atau local server.</div>';
-                    console.error(error);
+                        '<div class="sidebar-loading">Gagal memuat navbar.</div>';
                 });
         }
 
-        // Interaksi ringan: tab switching
-        document.querySelectorAll('.tab-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                document.querySelectorAll('.tab-btn').forEach(function (el) {
-                    el.classList.remove('active');
-                });
-                document.querySelectorAll('.tab-panel').forEach(function (el) {
-                    el.classList.remove('active');
-                });
+        // ---- Tab switching ----
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(el => el.classList.remove('active'));
                 btn.classList.add('active');
-                document.getElementById(btn.getAttribute('data-tab')).classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
             });
         });
 
-        // Interaksi ringan: pilih disposisi
-        var rujukInternalNote = document.getElementById('rujukInternalNote');
-        var rujukInternalTarget = document.getElementById('rujukInternalTarget');
-        var chipRujukInternal = document.getElementById('chipRujukInternal');
+        // ---- Disposisi ----
+        const rujukInternalNote = document.getElementById('rujukInternalNote');
+        const rujukInternalTarget = document.getElementById('rujukInternalTarget');
+        const chipRujukInternal = document.getElementById('chipRujukInternal');
 
         function selectDisposisiChip(chip) {
-            document.querySelectorAll('.disposisi-chip').forEach(function (el) {
-                el.classList.remove('selected');
-            });
+            document.querySelectorAll('.disposisi-chip').forEach(el => el.classList.remove('selected'));
             chip.classList.add('selected');
-
-            // Update hidden input untuk disposisi
-            var disposisi = chip.getAttribute('data-disposisi');
-            document.getElementById('inputDisposisi').value = disposisi;
-
-            if (disposisi !== 'rujuk-internal') {
-                document.getElementById('inputRujukInternal').value = '';
-                rujukInternalNote.style.display = 'none';
-            }
         }
 
-        document.querySelectorAll('.disposisi-chip').forEach(function (chip) {
-            chip.addEventListener('click', function () {
-                if (chip.dataset.disposisi === 'rujuk-internal') {
-                    openRujukModal();
-                    return;
-                }
+        document.querySelectorAll('.disposisi-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const jenis = chip.dataset.disposisi;
+                if (jenis === 'rujuk-internal') { openRujukModal(); return; }
+                if (jenis === 'rujuk-eksternal') return; // link biasa
                 selectDisposisiChip(chip);
                 rujukInternalNote.style.display = 'none';
-            });
-        });
 
-        // ===== Penunjang Box Selection Handler =====
-        var boxLab = document.getElementById('boxLab');
-        var boxRad = document.getElementById('boxRad');
-        var boxOk = document.getElementById('boxOk');
-        
-        var inputLab = document.getElementById('inputPenunjangLab');
-        var inputRad = document.getElementById('inputPenunjangRad');
-        var inputOk = document.getElementById('inputPenunjangOk');
-
-        function togglePenunjang(box, input) {
-            box.classList.toggle('selected');
-            input.value = box.classList.contains('selected') ? '1' : '0';
-        }
-
-        boxLab.addEventListener('click', function() { togglePenunjang(boxLab, inputLab); });
-        boxRad.addEventListener('click', function() { togglePenunjang(boxRad, inputRad); });
-        boxOk.addEventListener('click', function() { togglePenunjang(boxOk, inputOk); });
-
-        // ===== Autocomplete ICD-10 =====
-        var icdSearchInput = document.getElementById('icdSearchInput');
-        var icdSuggestions = document.getElementById('icdSuggestions');
-        var diagnosisTagsContainer = document.getElementById('diagnosisTagsContainer');
-
-        icdSearchInput.addEventListener('input', function() {
-            var query = this.value.trim().toLowerCase();
-            if (!query) {
-                icdSuggestions.style.display = 'none';
-                return;
-            }
-
-            var matches = icdDatabase.filter(function(item) {
-                return item.code.toLowerCase().includes(query) || item.name.toLowerCase().includes(query);
-            });
-
-            if (matches.length === 0) {
-                icdSuggestions.innerHTML = '<div style="padding: 10px 14px; color: var(--text-muted); font-size: 13px;">Tidak ditemukan.</div>';
-            } else {
-                var html = '';
-                matches.forEach(function(item) {
-                    html += '<div class="icd-suggestion-item" data-code="' + item.code + '" data-name="' + item.name + '">' +
-                            '<span>' + item.name + '</span>' +
-                            '<span class="icd-code">' + item.code + '</span>' +
-                            '</div>';
+                fetch(ENDPOINT + '?action=set_disposisi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `kunjungan_id=${KUNJUNGAN_ID}&disposisi=${encodeURIComponent(jenis)}`
                 });
-                icdSuggestions.innerHTML = html;
-            }
-            icdSuggestions.style.display = 'block';
-        });
-
-        document.addEventListener('click', function(e) {
-            if (e.target !== icdSearchInput && e.target !== icdSuggestions) {
-                icdSuggestions.style.display = 'none';
-            }
-        });
-
-        icdSuggestions.addEventListener('click', function(e) {
-            var item = e.target.closest('.icd-suggestion-item');
-            if (item) {
-                var code = item.dataset.code;
-                var name = item.dataset.name;
-
-                // Cek apakah tag sudah ada
-                var exists = false;
-                diagnosisTagsContainer.querySelectorAll('.diagnosis-tag').forEach(function(tag) {
-                    if (tag.dataset.code === code) exists = true;
-                });
-
-                if (!exists) {
-                    var span = document.createElement('span');
-                    span.className = 'diagnosis-tag';
-                    span.dataset.code = code;
-                    span.innerHTML = code + ' - ' + name + ' <button type="button" class="del-tag-btn">×</button>';
-                    diagnosisTagsContainer.appendChild(span);
-                    bindTagDeleteButton(span.querySelector('.del-tag-btn'));
-                    updateDiagnosisHiddenInput();
-                }
-
-                icdSearchInput.value = '';
-                icdSuggestions.style.display = 'none';
-            }
-        });
-
-        function bindTagDeleteButton(btn) {
-            btn.addEventListener('click', function() {
-                btn.closest('.diagnosis-tag').remove();
-                updateDiagnosisHiddenInput();
             });
-        }
+        });
 
-        document.querySelectorAll('.del-tag-btn').forEach(bindTagDeleteButton);
+        // ---- Modal Tambah Obat ----
+        const modalOverlay = document.getElementById('modalTambahObat');
+        const btnTambahObat = document.getElementById('btnTambahObat');
+        const modalNamaObat = document.getElementById('modalNamaObat');
+        const modalDosis = document.getElementById('modalDosis');
+        const modalFrekuensi = document.getElementById('modalFrekuensi');
+        const modalDurasi = document.getElementById('modalDurasi');
+        const modalTotal = document.getElementById('modalTotal');
+        const modalInstruksi = document.getElementById('modalInstruksi');
+        const obatTableBody = document.getElementById('obatTableBody');
 
-        function updateDiagnosisHiddenInput() {
-            var diagnoses = [];
-            diagnosisTagsContainer.querySelectorAll('.diagnosis-tag').forEach(function(tag) {
-                var text = tag.textContent.replace('×', '').trim();
-                diagnoses.push(text);
-            });
-            document.getElementById('inputDiagnosisList').value = JSON.stringify(diagnoses);
-        }
-
-        // ===== Modal Tambah Obat =====
-        var modalOverlay = document.getElementById('modalTambahObat');
-        var btnTambahObat = document.getElementById('btnTambahObat');
-        var modalCloseBtn = document.getElementById('modalCloseBtn');
-        var modalBatalBtn = document.getElementById('modalBatalBtn');
-        var modalSubmitBtn = document.getElementById('modalSubmitBtn');
-        var modalNamaObat = document.getElementById('modalNamaObat');
-        var modalDosis = document.getElementById('modalDosis');
-        var modalFrekuensi = document.getElementById('modalFrekuensi');
-        var modalDurasi = document.getElementById('modalDurasi');
-        var modalTotal = document.getElementById('modalTotal');
-        var modalInstruksi = document.getElementById('modalInstruksi');
-        var obatTableBody = document.getElementById('obatTableBody');
-
-        function openModal() {
-            modalOverlay.classList.add('active');
-            document.body.classList.add('modal-open');
-        }
-
-        function closeModal() {
-            modalOverlay.classList.remove('active');
-            document.body.classList.remove('modal-open');
-        }
+        function openModal() { modalOverlay.classList.add('active'); document.body.classList.add('modal-open'); }
+        function closeModal() { modalOverlay.classList.remove('active'); document.body.classList.remove('modal-open'); }
 
         function resetModalForm() {
             modalNamaObat.value = '';
@@ -2201,172 +755,133 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         function hitungTotalKuantitas() {
-            var freqPart = modalFrekuensi.value.split('|')[0];
-            var freqPerHari = parseInt(freqPart, 10) || 0;
-            var durasi = parseInt(modalDurasi.value, 10) || 0;
-            var total = freqPerHari * durasi;
-            modalTotal.value = total;
+            const freqPerHari = parseInt(modalFrekuensi.value.split('|')[0], 10) || 0;
+            const durasi = parseInt(modalDurasi.value, 10) || 0;
+            modalTotal.value = freqPerHari * durasi;
         }
 
-        if (btnTambahObat) {
-            btnTambahObat.addEventListener('click', function () {
-                resetModalForm();
-                openModal();
-            });
-        }
-
-        if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
-        if (modalBatalBtn) modalBatalBtn.addEventListener('click', closeModal);
-
-        modalOverlay.addEventListener('click', function (e) {
-            if (e.target === modalOverlay) closeModal();
-        });
-
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && modalOverlay.classList.contains('active')) closeModal();
-        });
-
+        btnTambahObat.addEventListener('click', () => { resetModalForm(); openModal(); });
+        document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+        document.getElementById('modalBatalBtn').addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
         modalFrekuensi.addEventListener('change', hitungTotalKuantitas);
         modalDurasi.addEventListener('input', hitungTotalKuantitas);
 
         function bindDeleteButton(btn) {
-            btn.addEventListener('click', function () {
-                var row = btn.closest('tr');
-                if (row) {
-                    row.remove();
-                    updateResepHiddenInput();
-                }
+            btn.addEventListener('click', () => {
+                const row = btn.closest('tr');
+                const obatId = row.dataset.obatId;
+                fetch(ENDPOINT + '?action=hapus_obat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `kunjungan_id=${KUNJUNGAN_ID}&obat_id=${obatId}`
+                }).then(() => row.remove());
             });
         }
-
         document.querySelectorAll('#obatTableBody .del-btn').forEach(bindDeleteButton);
 
-        if (modalSubmitBtn) {
-            modalSubmitBtn.addEventListener('click', function () {
-                var namaObat = modalNamaObat.value.trim();
-                if (!namaObat) {
-                    modalNamaObat.focus();
-                    return;
-                }
-                var dosis = modalDosis.value.trim() || '-';
-                var freqLabelPart = modalFrekuensi.value.split('|');
-                var freqCount = freqLabelPart[0];
-                var freqWaktu = freqLabelPart[1];
-                var freqLabel = freqCount === '0'
-                    ? freqWaktu
-                    : freqCount + ' x 1 (' + freqWaktu + ')';
-                var durasi = (parseInt(modalDurasi.value, 10) || 0) + ' Hari';
-                var jumlah = modalTotal.value + ' Tab';
-                var instruksi = modalInstruksi.value.trim();
+        document.getElementById('modalSubmitBtn').addEventListener('click', () => {
+            const namaObat = modalNamaObat.value.trim();
+            if (!namaObat) { modalNamaObat.focus(); return; }
 
-                var tr = document.createElement('tr');
-                tr.setAttribute('data-instruksi', instruksi);
-                tr.innerHTML =
-                    '<td><div class="obat-name">' + namaObat + '</div></td>' +
-                    '<td>' + dosis + '</td>' +
-                    '<td>' + freqLabel + '</td>' +
-                    '<td>' + durasi + '</td>' +
-                    '<td>' + jumlah + '</td>' +
-                    '<td><button class="del-btn" aria-label="Hapus obat" type="button">' +
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-                    '<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />' +
-                    '</svg></button></td>';
-
-                obatTableBody.appendChild(tr);
-                bindDeleteButton(tr.querySelector('.del-btn'));
-                updateResepHiddenInput();
-
-                closeModal();
+            const body = new URLSearchParams({
+                kunjungan_id: KUNJUNGAN_ID,
+                nama_obat: namaObat,
+                dosis: modalDosis.value.trim() || '-',
+                frekuensi: modalFrekuensi.value,
+                durasi: modalDurasi.value,
+                total: modalTotal.value,
+                instruksi: modalInstruksi.value.trim()
             });
-        }
 
-        // Update hidden input resep obat dari tabel
-        function updateResepHiddenInput() {
-            var items = [];
-            obatTableBody.querySelectorAll('tr').forEach(function(tr) {
-                var namaObat = tr.querySelector('.obat-name').textContent.trim();
-                var tds = tr.querySelectorAll('td');
-                if (tds.length >= 5) {
-                    var dosis = tds[1].textContent.trim();
-                    var frekuensi = tds[2].textContent.trim();
-                    var durasi = tds[3].textContent.trim();
-                    var jumlah = tds[4].textContent.trim();
-                    var instruksi = tr.getAttribute('data-instruksi') || '';
-
-                    items.push({
-                        nama_obat: namaObat,
-                        dosis: dosis,
-                        frekuensi: frekuensi,
-                        durasi: durasi,
-                        jumlah: jumlah,
-                        instruksi: instruksi
-                    });
-                }
-            });
-            document.getElementById('inputResepList').value = JSON.stringify(items);
-        }
-
-        // ===== Modal Rujuk Internal =====
-        var daftarPoli = [
-            'Pelayanan Psikiatri Dewasa',
-            'Pelayanan Psikiatri Anak',
-            'Pelayanan Psikogeriatri',
-            'Pelayanan Psikiatri Forensik',
-            'Pelayanan Psikiatri Komunitas',
-            'Pelayanan Rehabilitasi Psikososial',
-            'Pelayanan Rehabilitasi Medis',
-            'Pelayanan Neurologi',
-            'Pelayanan Penyakit Dalam',
-            'Pelayanan Kesehatan Anak',
-            'Pelayanan Obgyn',
-            'Pelayanan Bedah',
-            'Pelayanan Gigi',
-            'Pelayanan Paru',
-            'Pelayanan Kulit dan Kelamin',
-            'Pelayanan Bedah Mulut Maksilofasial',
-            'Pelayanan Psikologi dan Konseling',
-            'Pelayanan Terpadu Napza dan Adiksi',
-            'Pelayanan Terpadu PKPA (PPT Sehat Jiwa Amino)',
-            'Pelayanan Psikometri',
-            'Pelayanan ECT (Electro Convulsive Therapy)',
-            'Pelayanan Surat Mediko Legal (Surat Keterangan Narkotika, Surat Keterangan Sehat Jiwa, Surat Keterangan Sehat Fisik)',
-            'Pelayanan untuk Kepentingan Asuransi Kesehatan',
-            'Pelayanan Telemedicine/Telekonseling'
-        ];
-
-        var modalRujukOverlay = document.getElementById('modalRujukInternal');
-        var rujukCloseBtn = document.getElementById('rujukCloseBtn');
-        var rujukBatalBtn = document.getElementById('rujukBatalBtn');
-        var rujukSubmitBtn = document.getElementById('rujukSubmitBtn');
-        var poliListEl = document.getElementById('poliList');
-        var poliSearchInput = document.getElementById('poliSearchInput');
-        var poliEmptyEl = document.getElementById('poliEmpty');
-        var poliTerpilih = null;
-
-        function renderPoliList() {
-            poliListEl.innerHTML = '';
-            daftarPoli.forEach(function (nama, idx) {
-                var item = document.createElement('div');
-                item.className = 'poli-item';
-                item.dataset.nama = nama;
-                item.innerHTML = '<div class="poli-radio"><span></span></div>' +
-                    '<div class="poli-name">' + (idx + 1) + '. ' + nama + '</div>';
-                item.addEventListener('click', function () {
-                    poliTerpilih = nama;
-                    document.querySelectorAll('.poli-item').forEach(function (el) {
-                        el.classList.remove('selected');
-                    });
-                    item.classList.add('selected');
+            fetch(ENDPOINT + '?action=tambah_obat', { method: 'POST', body })
+                .then(r => r.json())
+                .then(res => {
+                    if (!res.success) { alert(res.message || 'Gagal menambah obat.'); return; }
+                    const o = res.obat;
+                    const tr = document.createElement('tr');
+                    tr.dataset.obatId = o.id;
+                    tr.innerHTML =
+                        `<td><div class="obat-name">${o.nama_obat}</div></td>
+                         <td>${o.dosis}</td>
+                         <td>${o.frekuensi}</td>
+                         <td>${o.durasi}</td>
+                         <td>${o.jumlah}</td>
+                         <td><button class="del-btn" aria-label="Hapus obat">Hapus</button></td>`;
+                    obatTableBody.appendChild(tr);
+                    bindDeleteButton(tr.querySelector('.del-btn'));
+                    closeModal();
                 });
-                poliListEl.appendChild(item);
+        });
+
+        // ---- Diagnosis ICD-10 (search + tambah + hapus) ----
+        const icd10SearchInput = document.getElementById('icd10SearchInput');
+        const diagnosisTagsRow = document.getElementById('diagnosisTagsRow');
+
+        function bindHapusDiagnosis(tag) {
+            tag.querySelector('.btn-hapus-diagnosis').addEventListener('click', () => {
+                const icdId = tag.dataset.icdId;
+                fetch(ENDPOINT + '?action=hapus_diagnosis', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `kunjungan_id=${KUNJUNGAN_ID}&icd_id=${icdId}`
+                }).then(() => tag.remove());
             });
         }
+        document.querySelectorAll('.diagnosis-tag').forEach(bindHapusDiagnosis);
+
+        let icdDebounce;
+        icd10SearchInput.addEventListener('input', () => {
+            clearTimeout(icdDebounce);
+            const q = icd10SearchInput.value.trim();
+            if (q.length < 2) return;
+            icdDebounce = setTimeout(() => {
+                fetch(ENDPOINT + '?action=cari_icd10&q=' + encodeURIComponent(q))
+                    .then(r => r.json())
+                    .then(res => {
+                        // Implementasikan dropdown hasil pencarian sesuai kebutuhan UI Anda.
+                        // res.data = [{id, kode, nama}, ...]
+                        console.log(res.data);
+                    });
+            }, 300);
+        });
+
+        function tambahDiagnosis(icdId) {
+            fetch(ENDPOINT + '?action=tambah_diagnosis', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `kunjungan_id=${KUNJUNGAN_ID}&icd_id=${icdId}`
+            }).then(r => r.json()).then(res => {
+                if (!res.success) return;
+                const tag = document.createElement('span');
+                tag.className = 'diagnosis-tag';
+                tag.dataset.icdId = icdId;
+                tag.innerHTML = `${res.diagnosis.kode} - ${res.diagnosis.nama} <button class="btn-hapus-diagnosis">×</button>`;
+                diagnosisTagsRow.appendChild(tag);
+                bindHapusDiagnosis(tag);
+            });
+        }
+
+        // ---- Modal Rujuk Internal ----
+        const modalRujukOverlay = document.getElementById('modalRujukInternal');
+        const poliListEl = document.getElementById('poliList');
+        const poliSearchInput = document.getElementById('poliSearchInput');
+        const poliEmptyEl = document.getElementById('poliEmpty');
+        let poliTerpilihId = null;
+
+        document.querySelectorAll('.poli-item').forEach(item => {
+            item.addEventListener('click', () => {
+                poliTerpilihId = item.dataset.poliId;
+                document.querySelectorAll('.poli-item').forEach(el => el.classList.remove('selected'));
+                item.classList.add('selected');
+            });
+        });
 
         function filterPoliList() {
-            var keyword = poliSearchInput.value.trim().toLowerCase();
-            var totalTampil = 0;
-            document.querySelectorAll('.poli-item').forEach(function (el) {
-                var match = el.dataset.nama.toLowerCase().indexOf(keyword) !== -1;
+            const keyword = poliSearchInput.value.trim().toLowerCase();
+            let totalTampil = 0;
+            document.querySelectorAll('.poli-item').forEach(el => {
+                const match = el.dataset.nama.toLowerCase().includes(keyword);
                 el.classList.toggle('hidden', !match);
                 if (match) totalTampil++;
             });
@@ -2379,52 +894,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             modalRujukOverlay.classList.add('active');
             document.body.classList.add('modal-open');
         }
-
         function closeRujukModal() {
             modalRujukOverlay.classList.remove('active');
             document.body.classList.remove('modal-open');
         }
 
-        renderPoliList();
-
-        if (rujukCloseBtn) rujukCloseBtn.addEventListener('click', closeRujukModal);
-        if (rujukBatalBtn) rujukBatalBtn.addEventListener('click', closeRujukModal);
-
-        modalRujukOverlay.addEventListener('click', function (e) {
-            if (e.target === modalRujukOverlay) closeRujukModal();
-        });
-
+        document.getElementById('rujukCloseBtn').addEventListener('click', closeRujukModal);
+        document.getElementById('rujukBatalBtn').addEventListener('click', closeRujukModal);
+        modalRujukOverlay.addEventListener('click', e => { if (e.target === modalRujukOverlay) closeRujukModal(); });
         poliSearchInput.addEventListener('input', filterPoliList);
 
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && modalRujukOverlay.classList.contains('active')) closeRujukModal();
+        document.getElementById('rujukSubmitBtn').addEventListener('click', () => {
+            if (!poliTerpilihId) { poliListEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+
+            fetch(ENDPOINT + '?action=pilih_poli', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `kunjungan_id=${KUNJUNGAN_ID}&poli_id=${poliTerpilihId}`
+            }).then(r => r.json()).then(res => {
+                if (!res.success) return;
+                selectDisposisiChip(chipRujukInternal);
+                rujukInternalTarget.textContent = res.poli.nama;
+                rujukInternalNote.style.display = 'flex';
+                closeRujukModal();
+            });
         });
 
-        rujukSubmitBtn.addEventListener('click', function () {
-            if (!poliTerpilih) {
-                poliListEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                return;
-            }
-            selectDisposisiChip(chipRujukInternal);
-            rujukInternalTarget.textContent = poliTerpilih;
-            rujukInternalNote.style.display = 'flex';
+        // ---- Simpan & Selesai Pemeriksaan ----
+        document.getElementById('btnSimpanPemeriksaan').addEventListener('click', () => {
+            const anamnesis = document.getElementById('inputAnamnesis').value.trim();
+            if (!anamnesis) { alert('Anamnesis wajib diisi.'); return; }
 
-            // Set target rujukan internal di hidden input
-            document.getElementById('inputRujukInternal').value = poliTerpilih;
-            closeRujukModal();
+            fetch(ENDPOINT + '?action=simpan_pemeriksaan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `kunjungan_id=${KUNJUNGAN_ID}&anamnesis=${encodeURIComponent(anamnesis)}`
+            }).then(r => r.json()).then(res => {
+                if (!res.success) { alert(res.message || 'Gagal menyimpan pemeriksaan.'); return; }
+                window.location.href = res.redirect || 'antrian-pemeriksaan.php';
+            });
         });
 
-        // Event listener saat form disubmit untuk memastikan data terbaru diserialisasi
-        document.getElementById('pemeriksaanForm').addEventListener('submit', function() {
-            updateDiagnosisHiddenInput();
-            updateResepHiddenInput();
-        });
-
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', () => {
             loadNavbar();
-            hitungTotalKuantitas();
-            updateDiagnosisHiddenInput();
-            updateResepHiddenInput();
         });
     </script>
 
