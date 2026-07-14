@@ -1,3 +1,98 @@
+<?php
+/**
+ * Halaman Pemeriksaan Dokter - SIMRS Amino
+ * Terhubung ke database MySQL lewat Laragon secara dinamis.
+ */
+require_once 'db_connect.php';
+
+// Ambil data pasien (bisa dilewati No. RM melalui parameter GET, default: '102-44-89')
+$no_rm = isset($_GET['no_rm']) ? trim($_GET['no_rm']) : '102-44-89';
+$stmt = $pdo->prepare("SELECT * FROM pasien WHERE no_rm = ?");
+$stmt->execute([$no_rm]);
+$pasien = $stmt->fetch();
+
+if (!$pasien) {
+    // Fallback jika tidak ditemukan, ambil pasien pertama dari database
+    $pasien = $pdo->query("SELECT * FROM pasien LIMIT 1")->fetch();
+}
+
+// Ambil asesmen perawat untuk pasien ini
+$stmtAsesmen = $pdo->prepare("SELECT * FROM asesmen_perawat WHERE pasien_id = ?");
+$stmtAsesmen->execute([$pasien['id']]);
+$asesmen = $stmtAsesmen->fetch();
+
+// Ambil riwayat kunjungan medis pasien
+$stmtKunjungan = $pdo->prepare("SELECT * FROM riwayat_kunjungan WHERE pasien_id = ? ORDER BY tanggal DESC");
+$stmtKunjungan->execute([$pasien['id']]);
+$riwayat_kunjungan = $stmtKunjungan->fetchAll();
+
+// Hitung Umur Pasien dari Tanggal Lahir
+$birthDate = new DateTime($pasien['tgl_lahir']);
+$today = new DateTime();
+$umur = $today->diff($birthDate)->y;
+$tgl_lahir_indo = date('d M Y', strtotime($pasien['tgl_lahir']));
+
+// Pesan Sukses / Error saat Menyimpan
+$success_msg = null;
+$error_msg = null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $pasien_id = intval($_POST['pasien_id']);
+    $anamnesis = isset($_POST['anamnesis']) ? trim($_POST['anamnesis']) : '';
+    $diagnosis_json = isset($_POST['diagnosis_list']) ? trim($_POST['diagnosis_list']) : '[]';
+    $penunjang_lab = isset($_POST['penunjang_lab']) ? intval($_POST['penunjang_lab']) : 0;
+    $penunjang_rad = isset($_POST['penunjang_rad']) ? intval($_POST['penunjang_rad']) : 0;
+    $penunjang_ok = isset($_POST['penunjang_ok']) ? intval($_POST['penunjang_ok']) : 0;
+    $disposisi = isset($_POST['disposisi']) ? trim($_POST['disposisi']) : 'rawat-jalan';
+    $rujuk_internal_target = isset($_POST['rujuk_internal_target']) ? trim($_POST['rujuk_internal_target']) : null;
+    $resep_list_json = isset($_POST['resep_list']) ? trim($_POST['resep_list']) : '[]';
+
+    // Bersihkan isi rujukan internal jika disposisi bukan rujuk-internal
+    if ($disposisi !== 'rujuk-internal') {
+        $rujuk_internal_target = null;
+    }
+
+    $pdo->beginTransaction();
+    try {
+        // 1. Simpan pemeriksaan utama dokter
+        $stmtInsertPem = $pdo->prepare("INSERT INTO pemeriksaan_dokter (pasien_id, anamnesis, diagnosis, penunjang_lab, penunjang_rad, penunjang_ok, disposisi, rujuk_internal_target) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmtInsertPem->execute([
+            $pasien_id,
+            $anamnesis,
+            $diagnosis_json,
+            $penunjang_lab,
+            $penunjang_rad,
+            $penunjang_ok,
+            $disposisi,
+            $rujuk_internal_target
+        ]);
+        $pemeriksaan_id = $pdo->lastInsertId();
+
+        // 2. Simpan resep obat jika ada
+        $resep_obat_array = json_decode($resep_list_json, true);
+        if (is_array($resep_obat_array) && !empty($resep_obat_array)) {
+            $stmtInsertResep = $pdo->prepare("INSERT INTO resep_obat (pemeriksaan_id, nama_obat, dosis, frekuensi, durasi, jumlah, instruksi) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            foreach ($resep_obat_array as $obat) {
+                $stmtInsertResep->execute([
+                    $pemeriksaan_id,
+                    trim($obat['nama_obat']),
+                    trim($obat['dosis']),
+                    trim($obat['frekuensi']),
+                    trim($obat['durasi']),
+                    trim($obat['jumlah']),
+                    isset($obat['instruksi']) ? trim($obat['instruksi']) : ''
+                ]);
+            }
+        }
+
+        $pdo->commit();
+        $success_msg = "Pemeriksaan dan resep obat untuk pasien " . htmlspecialchars($pasien['nama']) . " (No. RM: " . htmlspecialchars($pasien['no_rm']) . ") berhasil disimpan ke database MySQL!";
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        $error_msg = "Gagal menyimpan data ke database: " . $e->getMessage();
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 
@@ -403,6 +498,40 @@
             color: var(--text-dark);
         }
 
+        /* Autocomplete ICD-10 styling */
+        .icd-suggestions {
+            position: absolute;
+            background: #fff;
+            border: 1.5px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: calc(100% - 2px);
+            z-index: 50;
+            box-shadow: 0 8px 16px rgba(10, 15, 60, 0.08);
+            margin-top: -14px;
+            display: none;
+        }
+
+        .icd-suggestion-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .icd-suggestion-item:hover {
+            background: #f4f6ff;
+            color: var(--navy);
+        }
+
+        .icd-suggestion-item .icd-code {
+            font-weight: 700;
+            color: var(--blue);
+        }
+
         .tags-row {
             display: flex;
             align-items: center;
@@ -452,10 +581,19 @@
             padding: 16px 18px;
             cursor: pointer;
             background: #fafbff;
+            transition: all 0.2s ease;
+            user-select: none;
         }
 
         .penunjang-box:hover {
             border-color: var(--navy);
+        }
+
+        .penunjang-box.selected {
+            border-style: solid;
+            border-color: var(--navy);
+            background: #f4f6ff;
+            color: var(--navy);
         }
 
         .penunjang-box .icon-wrap {
@@ -554,6 +692,7 @@
             color: var(--text-dark);
             cursor: pointer;
             text-decoration: none;
+            user-select: none;
         }
 
         .disposisi-chip svg {
@@ -1285,356 +1424,391 @@
 
         <!-- ===== Main ===== -->
         <main class="main">
+            <!-- Form untuk menyimpan pemeriksaan ke database -->
+            <form method="POST" id="pemeriksaanForm" action="pemeriksaan.php?no_rm=<?= urlencode($pasien['no_rm']) ?>">
+                <input type="hidden" name="pasien_id" value="<?= htmlspecialchars($pasien['id']) ?>">
+                
+                <!-- Hidden inputs untuk serialization -->
+                <input type="hidden" id="inputDiagnosisList" name="diagnosis_list" value="">
+                <input type="hidden" id="inputPenunjangLab" name="penunjang_lab" value="0">
+                <input type="hidden" id="inputPenunjangRad" name="penunjang_rad" value="0">
+                <input type="hidden" id="inputPenunjangOk" name="penunjang_ok" value="0">
+                <input type="hidden" id="inputDisposisi" name="disposisi" value="rawat-jalan">
+                <input type="hidden" id="inputRujukInternal" name="rujuk_internal_target" value="">
+                <input type="hidden" id="inputResepList" name="resep_list" value="">
 
-            <!-- Topbar -->
-            <header class="topbar">
-                <div class="brand">RSJD Dr. Amino Gondohutomo</div>
-                <div class="topbar-right">
-                    <div class="doctor-chip">
-                        <div class="doc-avatar">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="8" r="4" />
-                                <path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6" />
-                            </svg>
-                        </div>
-                        <div>
-                            <div class="doc-name">Dr. Siska Amalia, Sp.KJ</div>
-                            <span class="doctor-role-badge">DOKTER UTAMA</span>
-                        </div>
-                    </div>
-                    <div class="icon-btn">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-                            <path d="M13.7 21a2 2 0 0 1-3.4 0" />
-                        </svg>
-                    </div>
-                    <div class="icon-btn">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="3" />
-                            <path
-                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                        </svg>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Content -->
-            <section class="content">
-
-                <!-- Identitas pasien -->
-                <div class="patient-bar">
-                    <img class="patient-photo"
-                        src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&h=200&fit=crop&crop=faces"
-                        alt="Foto pasien">
-
-                    <div class="patient-headline">
-                        <div class="patient-name-row">
-                            <div class="patient-name">Budi Santoso</div>
-                            <span class="pill bpjs">BPJS Kesehatan</span>
-                        </div>
-                        <div class="patient-meta">
-                            <span><b>No. RM:</b> 102-44-89</span>
-                            <span class="sep">|</span>
-                            <span><b>Umur/Tgl Lahir:</b> 45 Th / 12 Mei 1979</span>
-                            <span class="sep">|</span>
-                            <span><b>Gender:</b> Laki-laki</span>
-                        </div>
-                    </div>
-
-                    <div class="patient-actions">
-                        <button class="btn btn-outline-navy">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="9" />
-                                <path d="M12 7v5l3 3" />
-                            </svg>
-                            Data Historis
-                        </button>
-                        <button class="btn btn-navy">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
-                                <path d="M9 7h6M9 11h6M9 15h3" />
-                            </svg>
-                            Ringkasan Medis
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Tabs -->
-                <div class="tabs">
-                    <button class="tab-btn active" data-tab="tab-pemeriksaan">Pemeriksaan &amp; Resep</button>
-                    <button class="tab-btn" data-tab="tab-asesmen">Asesmen &amp; Riwayat</button>
-                </div>
-
-                <!-- ===== Tab 1: Pemeriksaan & Resep ===== -->
-                <div class="tab-panel active" id="tab-pemeriksaan">
-                    <div class="panel">
-
-                        <div class="field-block">
-                            <div class="field-label">Anamnesis / Keluhan &amp; Riwayat Penyakit Sekarang <span
-                                    class="req">*</span></div>
-                            <textarea class="input-area"
-                                placeholder="Tuliskan keluhan pasien secara mendetail di sini..."></textarea>
-                        </div>
-
-                        <div class="field-block">
-                            <div class="field-label">Diagnosis (ICD-10)</div>
-                            <div class="search-input">
+                <!-- Topbar -->
+                <header class="topbar">
+                    <div class="brand">RSJD Dr. Amino Gondohutomo</div>
+                    <div class="topbar-right">
+                        <div class="doctor-chip">
+                            <div class="doc-avatar">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="11" cy="11" r="7" />
-                                    <path d="M21 21l-4.3-4.3" />
+                                    <circle cx="12" cy="8" r="4" />
+                                    <path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6" />
                                 </svg>
-                                <input type="text" placeholder="Cari kode ICD-10 atau nama penyakit...">
                             </div>
-                            <div class="tags-row">
-                                <span class="diagnosis-tag">F20.0 - Paranoid Schizophrenia <button
-                                        aria-label="Hapus diagnosis">×</button></span>
-                                <span class="diagnosis-tag">F32.9 - Depressive Episode, Unspecified <button
-                                        aria-label="Hapus diagnosis">×</button></span>
+                            <div>
+                                <div class="doc-name">Dr. Siska Amalia, Sp.KJ</div>
+                                <span class="doctor-role-badge">DOKTER UTAMA</span>
                             </div>
                         </div>
-
-                        <div class="field-block">
-                            <div class="field-label">Permintaan Pemeriksaan Penunjang</div>
-                            <div class="penunjang-grid">
-                                <div class="penunjang-box">
-                                    <div class="icon-wrap">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M9 3h6v6l4 9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1l4-9V3z" />
-                                            <path d="M8 13h8" />
-                                        </svg>
-                                    </div>
-                                    <span>Laboratorium</span>
-                                </div>
-                                <div class="penunjang-box">
-                                    <div class="icon-wrap">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <rect x="4" y="4" width="16" height="16" rx="2" />
-                                            <circle cx="12" cy="12" r="3" />
-                                        </svg>
-                                    </div>
-                                    <span>Radiologi</span>
-                                </div>
-                                <div class="penunjang-box">
-                                    <div class="icon-wrap">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="5" cy="12" r="1.6" />
-                                            <circle cx="12" cy="12" r="1.6" />
-                                            <circle cx="19" cy="12" r="1.6" />
-                                        </svg>
-                                    </div>
-                                    <span>Elektro Diagnostik</span>
-                                </div>
-                            </div>
+                        <div class="icon-btn" type="button">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                                <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+                            </svg>
+                        </div>
+                        <div class="icon-btn" type="button">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3" />
+                                <path
+                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                            </svg>
                         </div>
                     </div>
+                </header>
 
-                    <div class="panel" style="margin-top:22px;">
-                        <div class="panel-head">
-                            <h2>
+                <!-- Content -->
+                <section class="content">
+
+                    <!-- Tampilkan Pesan Sukses / Error -->
+                    <?php if ($success_msg): ?>
+                        <div class="alert-success" style="background: var(--green-bg); color: var(--green); border: 1.5px solid #b7ebc6; padding: 16px 20px; border-radius: 12px; margin-bottom: 22px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 20px; height: 20px; flex-shrink: 0;">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="m9 12 2 2 4-4" />
+                            </svg>
+                            <div><?= htmlspecialchars($success_msg) ?></div>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($error_msg): ?>
+                        <div class="alert-error" style="background: var(--red-bg); color: var(--red); border: 1.5px solid #fad2d2; padding: 16px 20px; border-radius: 12px; margin-bottom: 22px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 20px; height: 20px; flex-shrink: 0;">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="m15 9-6 6M9 9l6 6" />
+                            </svg>
+                            <div><?= htmlspecialchars($error_msg) ?></div>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Identitas pasien -->
+                    <div class="patient-bar">
+                        <img class="patient-photo"
+                            src="<?= htmlspecialchars($pasien['foto']) ?>"
+                            alt="Foto pasien">
+
+                        <div class="patient-headline">
+                            <div class="patient-name-row">
+                                <div class="patient-name"><?= htmlspecialchars($pasien['nama']) ?></div>
+                                <span class="pill bpjs"><?= htmlspecialchars($pasien['tipe_penjamin']) ?></span>
+                            </div>
+                            <div class="patient-meta">
+                                <span><b>No. RM:</b> <?= htmlspecialchars($pasien['no_rm']) ?></span>
+                                <span class="sep">|</span>
+                                <span><b>Umur/Tgl Lahir:</b> <?= $umur ?> Th / <?= $tgl_lahir_indo ?></span>
+                                <span class="sep">|</span>
+                                <span><b>Gender:</b> <?= htmlspecialchars($pasien['gender']) ?></span>
+                            </div>
+                        </div>
+
+                        <div class="patient-actions">
+                            <button class="btn btn-outline-navy" type="button">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="9" />
+                                    <path d="M12 7v5l3 3" />
+                                </svg>
+                                Data Historis
+                            </button>
+                            <button class="btn btn-navy" type="button">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
                                     <path d="M9 7h6M9 11h6M9 15h3" />
                                 </svg>
-                                Resep Elektronik
-                            </h2>
-                            <button class="btn btn-navy" id="btnTambahObat">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                    <path d="M12 5v14M5 12h14" />
-                                </svg>
-                                Tambah Obat
+                                Ringkasan Medis
                             </button>
                         </div>
-
-                        <table class="obat-table">
-                            <thead>
-                                <tr>
-                                    <th>Nama Obat</th>
-                                    <th>Dosis</th>
-                                    <th>Frekuensi</th>
-                                    <th>Lama</th>
-                                    <th>Jumlah</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody id="obatTableBody">
-                                <tr>
-                                    <td>
-                                        <div class="obat-name">Risperidone 2mg Tab</div>
-                                    </td>
-                                    <td>2 mg</td>
-                                    <td>2 x 1 (Pagi, Malam)</td>
-                                    <td>30 Hari</td>
-                                    <td>60 Tab</td>
-                                    <td>
-                                        <button class="del-btn" aria-label="Hapus obat">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path
-                                                    d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                            </svg>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="obat-name">Diazepam 5mg Tab</div>
-                                    </td>
-                                    <td>5 mg</td>
-                                    <td>1 x 1 (Malam) - prn</td>
-                                    <td>10 Hari</td>
-                                    <td>10 Tab</td>
-                                    <td>
-                                        <button class="del-btn" aria-label="Hapus obat">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path
-                                                    d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                            </svg>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
 
-                    <div class="panel" style="margin-top:22px;">
-                        <div class="panel-head" style="margin-bottom:16px;">
-                            <div class="field-label" style="margin-bottom:0;">Tindak Lanjut / Disposisi</div>
-                            <a href="surat-izin-dokter.html" class="btn btn-outline-navy" id="btnSuratIzinDokter">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
-                                    <path d="M9 8h6M9 12h6M9 16h3" />
-                                </svg>
-                                Surat Izin Dokter
-                            </a>
-                        </div>
-                        <div class="disposisi-row">
-                            <button class="disposisi-chip selected" data-disposisi="rawat-jalan">Rawat Jalan</button>
-                            <button class="disposisi-chip" data-disposisi="rawat-inap">Rawat Inap</button>
-                            <button class="disposisi-chip" id="chipRujukInternal" data-disposisi="rujuk-internal">Rujuk
-                                Internal</button>
-                            <a class="disposisi-chip" data-disposisi="rujuk-eksternal"
-                                href="surat-rujukan-eksternal.html">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M11 4H4a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1h15a1 1 0 0 0 1-1v-7" />
-                                    <path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z" />
-                                </svg>
-                                Rujuk Eksternal
-                            </a>
-                        </div>
-                        <div class="rujuk-target-note" id="rujukInternalNote" style="display:none;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 18l6-6-6-6" />
-                            </svg>
-                            Tujuan rujukan: <b id="rujukInternalTarget"></b>
-                        </div>
+                    <!-- Tabs -->
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="tab-pemeriksaan" type="button">Pemeriksaan &amp; Resep</button>
+                        <button class="tab-btn" data-tab="tab-asesmen" type="button">Asesmen &amp; Riwayat</button>
                     </div>
-                </div>
 
-                <!-- ===== Tab 2: Asesmen & Riwayat ===== -->
-                <div class="tab-panel" id="tab-asesmen">
-                    <div class="grid-2col">
-
+                    <!-- ===== Tab 1: Pemeriksaan & Resep ===== -->
+                    <div class="tab-panel active" id="tab-pemeriksaan">
                         <div class="panel">
-                            <div class="panel-head">
-                                <h2>
+
+                            <div class="field-block">
+                                <div class="field-label">Anamnesis / Keluhan &amp; Riwayat Penyakit Sekarang <span
+                                        class="req">*</span></div>
+                                <textarea class="input-area" name="anamnesis" required
+                                    placeholder="Tuliskan keluhan pasien secara mendetail di sini..."></textarea>
+                            </div>
+
+                            <div class="field-block" style="position: relative;">
+                                <div class="field-label">Diagnosis (ICD-10)</div>
+                                <div class="search-input">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path
-                                            d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
-                                        <path d="M9 12l2 2 4-4" />
+                                        <circle cx="11" cy="11" r="7" />
+                                        <path d="M21 21l-4.3-4.3" />
                                     </svg>
-                                    Hasil Asesmen Perawat (Anamnesis &amp; Vital Sign)
-                                </h2>
-                            </div>
-
-                            <div class="field-label">Keluhan Utama (Perawat)</div>
-                            <div class="keluhan-perawat">
-                                Pasien datang dengan keluhan sering mendengar suara-suara bisikan dan merasa
-                                ketakutan tanpa alasan jelas sejak 3 hari terakhir.
-                            </div>
-
-                            <div class="vitals-grid">
-                                <div class="vital-box">
-                                    <div class="vlabel">TD (BP)</div>
-                                    <div class="vvalue">120/80 <span class="vunit">mmHg</span></div>
+                                    <input type="text" id="icdSearchInput" placeholder="Cari kode ICD-10 atau nama penyakit..." autocomplete="off">
                                 </div>
-                                <div class="vital-box">
-                                    <div class="vlabel">Suhu</div>
-                                    <div class="vvalue">36.8 <span class="vunit">°C</span></div>
-                                </div>
-                                <div class="vital-box">
-                                    <div class="vlabel">Nadi (Pulse)</div>
-                                    <div class="vvalue">88 <span class="vunit">x/mnt</span></div>
-                                </div>
-                                <div class="vital-box">
-                                    <div class="vlabel">RR</div>
-                                    <div class="vvalue">18 <span class="vunit">x/mnt</span></div>
-                                </div>
-                                <div class="vital-box">
-                                    <div class="vlabel">SPO2</div>
-                                    <div class="vvalue">99 <span class="vunit">%</span></div>
-                                </div>
-                                <div class="vital-box">
-                                    <div class="vlabel">BB / TB</div>
-                                    <div class="vvalue">70 <span class="vunit">kg</span> / 170 <span
-                                            class="vunit">cm</span></div>
+                                <div class="icd-suggestions" id="icdSuggestions"></div>
+                                <div class="tags-row" id="diagnosisTagsContainer">
+                                    <span class="diagnosis-tag" data-code="F20.0">F20.0 - Paranoid Schizophrenia <button type="button" class="del-tag-btn">×</button></span>
+                                    <span class="diagnosis-tag" data-code="F32.9">F32.9 - Depressive Episode, Unspecified <button type="button" class="del-tag-btn">×</button></span>
                                 </div>
                             </div>
 
-                            <div class="field-label">Alergi</div>
-                            <div class="tags-row">
-                                <span class="pill allergy-pill">Amoxicillin</span>
-                                <span class="pill allergy-pill seafood">Seafood</span>
-                                <span class="pill allergy-pill none">Tidak Ada Alergi Dingin</span>
-                            </div>
-                        </div>
-
-                        <div class="panel">
-                            <div class="panel-head">
-                                <h2>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="9" />
-                                        <path d="M12 7v5l3 3" />
-                                    </svg>
-                                    Riwayat Kunjungan &amp; Rekam Medis
-                                </h2>
-                            </div>
-
-                            <div class="timeline">
-                                <div class="timeline-item latest">
-                                    <div class="timeline-date">20 Mar 2024 (Kunjungan Terakhir)</div>
-                                    <div class="timeline-title">Poliklinik Psikiatri Dewasa</div>
-                                    <div class="timeline-sub italic">Dx: F20.0 (Paranoid Schizophrenia)</div>
-                                    <div class="timeline-sub italic">Th/: Risperidone 2mg, Clozapine 25mg.</div>
-                                </div>
-                                <div class="timeline-item">
-                                    <div class="timeline-date">12 Jan 2024</div>
-                                    <div class="timeline-title">Instalasi Gawat Darurat (IGD)</div>
-                                    <div class="timeline-sub">Keluarga melaporkan pasien gaduh gelisah di rumah.
+                            <div class="field-block">
+                                <div class="field-label">Permintaan Pemeriksaan Penunjang</div>
+                                <div class="penunjang-grid">
+                                    <div class="penunjang-box" id="boxLab">
+                                        <div class="icon-wrap">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M9 3h6v6l4 9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1l4-9V3z" />
+                                                <path d="M8 13h8" />
+                                            </svg>
+                                        </div>
+                                        <span>Laboratorium</span>
+                                    </div>
+                                    <div class="penunjang-box" id="boxRad">
+                                        <div class="icon-wrap">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <rect x="4" y="4" width="16" height="16" rx="2" />
+                                                <circle cx="12" cy="12" r="3" />
+                                            </svg>
+                                        </div>
+                                        <span>Radiologi</span>
+                                    </div>
+                                    <div class="penunjang-box" id="boxOk">
+                                        <div class="icon-wrap">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="5" cy="12" r="1.6" />
+                                                <circle cx="12" cy="12" r="1.6" />
+                                                <circle cx="19" cy="12" r="1.6" />
+                                            </svg>
+                                        </div>
+                                        <span>Elektro Diagnostik</span>
                                     </div>
                                 </div>
-                                <div class="timeline-item">
-                                    <div class="timeline-date">05 Nov 2023</div>
-                                    <div class="timeline-title">Poliklinik Penyakit Dalam</div>
-                                    <div class="timeline-sub">Keluhan: Lambung terasa perih (Gastritis).</div>
-                                </div>
                             </div>
                         </div>
 
+                        <div class="panel" style="margin-top:22px;">
+                            <div class="panel-head">
+                                <h2>
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
+                                        <path d="M9 7h6M9 11h6M9 15h3" />
+                                    </svg>
+                                    Resep Elektronik
+                                </h2>
+                                <button class="btn btn-navy" id="btnTambahObat" type="button">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <path d="M12 5v14M5 12h14" />
+                                    </svg>
+                                    Tambah Obat
+                                </button>
+                            </div>
+
+                            <table class="obat-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nama Obat</th>
+                                        <th>Dosis</th>
+                                        <th>Frekuensi</th>
+                                        <th>Lama</th>
+                                        <th>Jumlah</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="obatTableBody">
+                                    <tr>
+                                        <td>
+                                            <div class="obat-name">Risperidone 2mg Tab</div>
+                                        </td>
+                                        <td>2 mg</td>
+                                        <td>2 x 1 (Pagi, Malam)</td>
+                                        <td>30 Hari</td>
+                                        <td>60 Tab</td>
+                                        <td>
+                                            <button class="del-btn" aria-label="Hapus obat" type="button">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path
+                                                        d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="obat-name">Diazepam 5mg Tab</div>
+                                        </td>
+                                        <td>5 mg</td>
+                                        <td>1 x 1 (Malam) - prn</td>
+                                        <td>10 Hari</td>
+                                        <td>10 Tab</td>
+                                        <td>
+                                            <button class="del-btn" aria-label="Hapus obat" type="button">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path
+                                                        d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="panel" style="margin-top:22px;">
+                            <div class="panel-head" style="margin-bottom:16px;">
+                                <div class="field-label" style="margin-bottom:0;">Tindak Lanjut / Disposisi</div>
+                                <a href="surat-izin-dokter.html" class="btn btn-outline-navy" id="btnSuratIzinDokter">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
+                                        <path d="M9 8h6M9 12h6M9 16h3" />
+                                    </svg>
+                                    Surat Izin Dokter
+                                </a>
+                            </div>
+                            <div class="disposisi-row">
+                                <button class="disposisi-chip selected" data-disposisi="rawat-jalan" type="button">Rawat Jalan</button>
+                                <button class="disposisi-chip" data-disposisi="rawat-inap" type="button">Rawat Inap</button>
+                                <button class="disposisi-chip" id="chipRujukInternal" data-disposisi="rujuk-internal" type="button">Rujuk Internal</button>
+                                <a class="disposisi-chip" data-disposisi="rujuk-eksternal" href="surat-rujukan-eksternal.html">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1h15a1 1 0 0 0 1-1v-7" />
+                                        <path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z" />
+                                    </svg>
+                                    Rujuk Eksternal
+                                </a>
+                            </div>
+                            <div class="rujuk-target-note" id="rujukInternalNote" style="display:none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 18l6-6-6-6" />
+                                </svg>
+                                Tujuan rujukan: <b id="rujukInternalTarget"></b>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- ===== Tab 2: Asesmen & Riwayat ===== -->
+                    <div class="tab-panel" id="tab-asesmen">
+                        <div class="grid-2col">
+
+                            <div class="panel">
+                                <div class="panel-head">
+                                    <h2>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path
+                                                d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
+                                            <path d="M9 12l2 2 4-4" />
+                                        </svg>
+                                        Hasil Asesmen Perawat (Anamnesis &amp; Vital Sign)
+                                    </h2>
+                                </div>
+
+                                <div class="field-label">Keluhan Utama (Perawat)</div>
+                                <div class="keluhan-perawat">
+                                    <?= htmlspecialchars($asesmen['keluhan_utama']) ?>
+                                </div>
+
+                                <div class="vitals-grid">
+                                    <div class="vital-box">
+                                        <div class="vlabel">TD (BP)</div>
+                                        <div class="vvalue"><?= htmlspecialchars($asesmen['tensi_darah']) ?> <span class="vunit">mmHg</span></div>
+                                    </div>
+                                    <div class="vital-box">
+                                        <div class="vlabel">Suhu</div>
+                                        <div class="vvalue"><?= htmlspecialchars($asesmen['suhu']) ?> <span class="vunit">°C</span></div>
+                                    </div>
+                                    <div class="vital-box">
+                                        <div class="vlabel">Nadi (Pulse)</div>
+                                        <div class="vvalue"><?= htmlspecialchars($asesmen['nadi']) ?> <span class="vunit">x/mnt</span></div>
+                                    </div>
+                                    <div class="vital-box">
+                                        <div class="vlabel">RR</div>
+                                        <div class="vvalue"><?= htmlspecialchars($asesmen['rr']) ?> <span class="vunit">x/mnt</span></div>
+                                    </div>
+                                    <div class="vital-box">
+                                        <div class="vlabel">SPO2</div>
+                                        <div class="vvalue"><?= htmlspecialchars($asesmen['spo2']) ?> <span class="vunit">%</span></div>
+                                    </div>
+                                    <div class="vital-box">
+                                        <div class="vlabel">BB / TB</div>
+                                        <div class="vvalue"><?= htmlspecialchars($asesmen['bb']) ?> <span class="vunit">kg</span> / <?= htmlspecialchars($asesmen['tb']) ?> <span
+                                                class="vunit">cm</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="field-label">Alergi</div>
+                                <div class="tags-row">
+                                    <?php
+                                    $alergi_list = array_map('trim', explode(',', $asesmen['alergi']));
+                                    foreach ($alergi_list as $al) {
+                                        if (stripos($al, 'tidak ada') !== false || stripos($al, 'none') !== false) {
+                                            echo '<span class="pill allergy-pill none">' . htmlspecialchars($al) . '</span>';
+                                        } elseif (stripos($al, 'seafood') !== false || stripos($al, 'udang') !== false) {
+                                            echo '<span class="pill allergy-pill seafood">' . htmlspecialchars($al) . '</span>';
+                                        } else {
+                                            echo '<span class="pill allergy-pill">' . htmlspecialchars($al) . '</span>';
+                                        }
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+
+                            <div class="panel">
+                                <div class="panel-head">
+                                    <h2>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="9" />
+                                            <path d="M12 7v5l3 3" />
+                                        </svg>
+                                        Riwayat Kunjungan &amp; Rekam Medis
+                                    </h2>
+                                </div>
+
+                                <div class="timeline">
+                                    <?php foreach ($riwayat_kunjungan as $index => $riw): ?>
+                                        <?php 
+                                        $is_latest = ($index === 0) ? 'latest' : '';
+                                        $date_formatted = date('d M Y', strtotime($riw['tanggal']));
+                                        $label = ($index === 0) ? ' (Kunjungan Terakhir)' : '';
+                                        ?>
+                                        <div class="timeline-item <?= $is_latest ?>">
+                                            <div class="timeline-date"><?= $date_formatted . $label ?></div>
+                                            <div class="timeline-title"><?= htmlspecialchars($riw['klinik']) ?></div>
+                                            <div class="timeline-sub italic">Dx: <?= htmlspecialchars($riw['diagnosis']) ?></div>
+                                            <div class="timeline-sub"><?= htmlspecialchars($riw['terapi']) ?></div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- Bottom action bar -->
+                <div class="bottom-bar">
+                    <button class="btn btn-batal" type="button" onclick="window.location.href='dashboard.html'">Batal &amp; Keluar</button>
+                    <button class="btn btn-simpan" type="submit">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                            <path d="M17 21v-8H7v8M7 3v5h8" />
+                        </svg>
+                        Simpan &amp; Selesai Pemeriksaan
+                    </button>
                 </div>
-
-            </section>
-
-            <!-- Bottom action bar -->
-            <div class="bottom-bar">
-                <button class="btn btn-batal">Batal &amp; Keluar</button>
-                <button class="btn btn-simpan">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                        <path d="M17 21v-8H7v8M7 3v5h8" />
-                    </svg>
-                    Simpan &amp; Selesai Pemeriksaan
-                </button>
-            </div>
+            </form>
         </main>
     </div>
 
@@ -1652,7 +1826,7 @@
                     <h3>Tambah Obat Ke Resep</h3>
                     <p>Input detail pengobatan pasien secara presisi</p>
                 </div>
-                <button class="modal-close" id="modalCloseBtn" aria-label="Tutup">
+                <button class="modal-close" id="modalCloseBtn" aria-label="Tutup" type="button">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 6 6 18M6 6l12 12" />
                     </svg>
@@ -1739,8 +1913,8 @@
             </div>
 
             <div class="modal-footer">
-                <button class="modal-btn-batal" id="modalBatalBtn">Batal</button>
-                <button class="modal-btn-submit" id="modalSubmitBtn">
+                <button class="modal-btn-batal" id="modalBatalBtn" type="button">Batal</button>
+                <button class="modal-btn-submit" id="modalSubmitBtn" type="button">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <path d="M20 6 9 17l-5-5" />
                     </svg>
@@ -1764,7 +1938,7 @@
                     <h3>Rujuk Internal (Konsul)</h3>
                     <p>Pilih poliklinik / pelayanan tujuan rujukan antar spesialis</p>
                 </div>
-                <button class="modal-close" id="rujukCloseBtn" aria-label="Tutup">
+                <button class="modal-close" id="rujukCloseBtn" aria-label="Tutup" type="button">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 6 6 18M6 6l12 12" />
                     </svg>
@@ -1785,8 +1959,8 @@
             </div>
 
             <div class="modal-footer">
-                <button class="modal-btn-batal" id="rujukBatalBtn">Batal</button>
-                <button class="modal-btn-submit" id="rujukSubmitBtn">
+                <button class="modal-btn-batal" id="rujukBatalBtn" type="button">Batal</button>
+                <button class="modal-btn-submit" id="rujukSubmitBtn" type="button">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                         <path d="M20 6 9 17l-5-5" />
                     </svg>
@@ -1799,9 +1973,20 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <script>
+        // Database mock ICD-10 untuk pencarian autocomplete
+        var icdDatabase = [
+            { code: 'F20.0', name: 'Paranoid Schizophrenia' },
+            { code: 'F32.9', name: 'Depressive Episode, Unspecified' },
+            { code: 'F41.1', name: 'Generalized Anxiety Disorder' },
+            { code: 'F10.2', name: 'Alcohol Dependence' },
+            { code: 'F31.9', name: 'Bipolar Affective Disorder, Unspecified' },
+            { code: 'F90.0', name: 'Attention-Deficit Hyperactivity Disorder (ADHD)' },
+            { code: 'K29.7', name: 'Gastritis, Unspecified' },
+            { code: 'I10', name: 'Essential (Primary) Hypertension' },
+            { code: 'E11.9', name: 'Type 2 Diabetes Mellitus without complications' }
+        ];
+
         // Ambil sidebar dari navbar.html (satu folder di atas /pages) lalu suntikkan ke halaman ini.
-        // CATATAN: fetch() butuh server lokal (mis. VS Code "Live Server"),
-        // tidak bisa jalan kalau file dibuka langsung dari file explorer.
         function loadNavbar() {
             fetch('../navbar.html')
                 .then(function (response) {
@@ -1817,17 +2002,21 @@
                         lucide.createIcons();
                     }
 
+                    // Tentukan item mana yang aktif berdasarkan nama file di URL (pemeriksaan.php)
                     var current = window.location.pathname.split('/').pop();
+                    if (!current) current = 'pemeriksaan.php';
 
                     document.querySelectorAll('#navbar-container .nav-item').forEach(function (link) {
-                        if (link.getAttribute('data-page') === current) {
+                        var pageAttr = link.getAttribute('data-page');
+                        // Dukung kecocokan untuk pemeriksaan.php atau pemeriksaan.html
+                        if (pageAttr === current || (current === 'pemeriksaan.php' && pageAttr === 'pemeriksaan.html')) {
                             link.classList.add('active');
                         }
                     });
                 })
                 .catch(function (error) {
                     document.getElementById('navbar-container').innerHTML =
-                        '<div class="sidebar-loading">Gagal memuat navbar.html.<br>Pastikan file ini dibuka lewat Live Server, bukan dibuka langsung.</div>';
+                        '<div class="sidebar-loading">Gagal memuat navbar.html.<br>Pastikan file ini dibuka lewat Laragon local domain atau local server.</div>';
                     console.error(error);
                 });
         }
@@ -1856,6 +2045,15 @@
                 el.classList.remove('selected');
             });
             chip.classList.add('selected');
+
+            // Update hidden input untuk disposisi
+            var disposisi = chip.getAttribute('data-disposisi');
+            document.getElementById('inputDisposisi').value = disposisi;
+
+            if (disposisi !== 'rujuk-internal') {
+                document.getElementById('inputRujukInternal').value = '';
+                rujukInternalNote.style.display = 'none';
+            }
         }
 
         document.querySelectorAll('.disposisi-chip').forEach(function (chip) {
@@ -1868,6 +2066,106 @@
                 rujukInternalNote.style.display = 'none';
             });
         });
+
+        // ===== Penunjang Box Selection Handler =====
+        var boxLab = document.getElementById('boxLab');
+        var boxRad = document.getElementById('boxRad');
+        var boxOk = document.getElementById('boxOk');
+        
+        var inputLab = document.getElementById('inputPenunjangLab');
+        var inputRad = document.getElementById('inputPenunjangRad');
+        var inputOk = document.getElementById('inputPenunjangOk');
+
+        function togglePenunjang(box, input) {
+            box.classList.toggle('selected');
+            input.value = box.classList.contains('selected') ? '1' : '0';
+        }
+
+        boxLab.addEventListener('click', function() { togglePenunjang(boxLab, inputLab); });
+        boxRad.addEventListener('click', function() { togglePenunjang(boxRad, inputRad); });
+        boxOk.addEventListener('click', function() { togglePenunjang(boxOk, inputOk); });
+
+        // ===== Autocomplete ICD-10 =====
+        var icdSearchInput = document.getElementById('icdSearchInput');
+        var icdSuggestions = document.getElementById('icdSuggestions');
+        var diagnosisTagsContainer = document.getElementById('diagnosisTagsContainer');
+
+        icdSearchInput.addEventListener('input', function() {
+            var query = this.value.trim().toLowerCase();
+            if (!query) {
+                icdSuggestions.style.display = 'none';
+                return;
+            }
+
+            var matches = icdDatabase.filter(function(item) {
+                return item.code.toLowerCase().includes(query) || item.name.toLowerCase().includes(query);
+            });
+
+            if (matches.length === 0) {
+                icdSuggestions.innerHTML = '<div style="padding: 10px 14px; color: var(--text-muted); font-size: 13px;">Tidak ditemukan.</div>';
+            } else {
+                var html = '';
+                matches.forEach(function(item) {
+                    html += '<div class="icd-suggestion-item" data-code="' + item.code + '" data-name="' + item.name + '">' +
+                            '<span>' + item.name + '</span>' +
+                            '<span class="icd-code">' + item.code + '</span>' +
+                            '</div>';
+                });
+                icdSuggestions.innerHTML = html;
+            }
+            icdSuggestions.style.display = 'block';
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target !== icdSearchInput && e.target !== icdSuggestions) {
+                icdSuggestions.style.display = 'none';
+            }
+        });
+
+        icdSuggestions.addEventListener('click', function(e) {
+            var item = e.target.closest('.icd-suggestion-item');
+            if (item) {
+                var code = item.dataset.code;
+                var name = item.dataset.name;
+
+                // Cek apakah tag sudah ada
+                var exists = false;
+                diagnosisTagsContainer.querySelectorAll('.diagnosis-tag').forEach(function(tag) {
+                    if (tag.dataset.code === code) exists = true;
+                });
+
+                if (!exists) {
+                    var span = document.createElement('span');
+                    span.className = 'diagnosis-tag';
+                    span.dataset.code = code;
+                    span.innerHTML = code + ' - ' + name + ' <button type="button" class="del-tag-btn">×</button>';
+                    diagnosisTagsContainer.appendChild(span);
+                    bindTagDeleteButton(span.querySelector('.del-tag-btn'));
+                    updateDiagnosisHiddenInput();
+                }
+
+                icdSearchInput.value = '';
+                icdSuggestions.style.display = 'none';
+            }
+        });
+
+        function bindTagDeleteButton(btn) {
+            btn.addEventListener('click', function() {
+                btn.closest('.diagnosis-tag').remove();
+                updateDiagnosisHiddenInput();
+            });
+        }
+
+        document.querySelectorAll('.del-tag-btn').forEach(bindTagDeleteButton);
+
+        function updateDiagnosisHiddenInput() {
+            var diagnoses = [];
+            diagnosisTagsContainer.querySelectorAll('.diagnosis-tag').forEach(function(tag) {
+                var text = tag.textContent.replace('×', '').trim();
+                diagnoses.push(text);
+            });
+            document.getElementById('inputDiagnosisList').value = JSON.stringify(diagnoses);
+        }
 
         // ===== Modal Tambah Obat =====
         var modalOverlay = document.getElementById('modalTambahObat');
@@ -1934,7 +2232,10 @@
         function bindDeleteButton(btn) {
             btn.addEventListener('click', function () {
                 var row = btn.closest('tr');
-                if (row) row.remove();
+                if (row) {
+                    row.remove();
+                    updateResepHiddenInput();
+                }
             });
         }
 
@@ -1956,24 +2257,53 @@
                     : freqCount + ' x 1 (' + freqWaktu + ')';
                 var durasi = (parseInt(modalDurasi.value, 10) || 0) + ' Hari';
                 var jumlah = modalTotal.value + ' Tab';
+                var instruksi = modalInstruksi.value.trim();
 
                 var tr = document.createElement('tr');
+                tr.setAttribute('data-instruksi', instruksi);
                 tr.innerHTML =
                     '<td><div class="obat-name">' + namaObat + '</div></td>' +
                     '<td>' + dosis + '</td>' +
                     '<td>' + freqLabel + '</td>' +
                     '<td>' + durasi + '</td>' +
                     '<td>' + jumlah + '</td>' +
-                    '<td><button class="del-btn" aria-label="Hapus obat">' +
+                    '<td><button class="del-btn" aria-label="Hapus obat" type="button">' +
                     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
                     '<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />' +
                     '</svg></button></td>';
 
                 obatTableBody.appendChild(tr);
                 bindDeleteButton(tr.querySelector('.del-btn'));
+                updateResepHiddenInput();
 
                 closeModal();
             });
+        }
+
+        // Update hidden input resep obat dari tabel
+        function updateResepHiddenInput() {
+            var items = [];
+            obatTableBody.querySelectorAll('tr').forEach(function(tr) {
+                var namaObat = tr.querySelector('.obat-name').textContent.trim();
+                var tds = tr.querySelectorAll('td');
+                if (tds.length >= 5) {
+                    var dosis = tds[1].textContent.trim();
+                    var frekuensi = tds[2].textContent.trim();
+                    var durasi = tds[3].textContent.trim();
+                    var jumlah = tds[4].textContent.trim();
+                    var instruksi = tr.getAttribute('data-instruksi') || '';
+
+                    items.push({
+                        nama_obat: namaObat,
+                        dosis: dosis,
+                        frekuensi: frekuensi,
+                        durasi: durasi,
+                        jumlah: jumlah,
+                        instruksi: instruksi
+                    });
+                }
+            });
+            document.getElementById('inputResepList').value = JSON.stringify(items);
         }
 
         // ===== Modal Rujuk Internal =====
@@ -2078,12 +2408,23 @@
             selectDisposisiChip(chipRujukInternal);
             rujukInternalTarget.textContent = poliTerpilih;
             rujukInternalNote.style.display = 'flex';
+
+            // Set target rujukan internal di hidden input
+            document.getElementById('inputRujukInternal').value = poliTerpilih;
             closeRujukModal();
+        });
+
+        // Event listener saat form disubmit untuk memastikan data terbaru diserialisasi
+        document.getElementById('pemeriksaanForm').addEventListener('submit', function() {
+            updateDiagnosisHiddenInput();
+            updateResepHiddenInput();
         });
 
         document.addEventListener('DOMContentLoaded', function () {
             loadNavbar();
             hitungTotalKuantitas();
+            updateDiagnosisHiddenInput();
+            updateResepHiddenInput();
         });
     </script>
 

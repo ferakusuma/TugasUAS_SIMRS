@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surat Rujukan Eksternal - SIMRS Amino</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --navy: #12206b;
+            --navy-dark: #0a1550;
+            --blue: #1c2f9c;
+            --bg: #eef1fb;
+            --panel: #ffffff;
+            --border: #e1e5f2;
+            --text-dark: #171a35;
+            --text-muted: #6b7280;
+            --green: #16a34a;
+            --green-bg: #e7f8ee;
+            --red: #dc2626;
+            --red-bg: #fdecec;
+            --orange: #c8790a;
+            --orange-bg: #fdf1dc;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text-dark);
+            font-size: 14px;
+        }
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        #navbar-container {
+            flex-shrink: 0;
+            background: #f4f6fc;
+            border-right: 1px solid var(--border);
+        }
+
+        #navbar-container .sidebar-loading {
+            padding: 26px;
+            color: var(--text-muted);
+            font-size: 13px;
+            width: 270px;
+        }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 18px 32px;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            font-size: 19px;
+            font-weight: 800;
+            color: var(--navy);
+            letter-spacing: -.2px;
+        }
+
+        .topbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .doctor-chip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .doctor-chip .doc-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #eef1fb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--navy);
+            flex-shrink: 0;
+        }
+
+        .doctor-chip .doc-avatar svg {
+            width: 19px;
+            height: 19px;
+        }
+
+        .doctor-chip .doc-name {
+            font-weight: 700;
+            font-size: 13.5px;
+            line-height: 1.3;
+        }
+
+        .doctor-role-badge {
+            display: inline-block;
+            margin-top: 2px;
+            background: var(--navy);
+            color: #fff;
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: .4px;
+            padding: 2px 8px;
+            border-radius: 5px;
+        }
+
+        .content {
+            padding: 22px 32px 110px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-bottom: 16px;
+        }
+
+        .back-link:hover {
+            color: var(--navy);
+        }
+
+        .back-link svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .page-title {
+            font-size: 21px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .page-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 22px;
+        }
+
+        .patient-bar {
+            background: var(--panel);
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .patient-photo {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .patient-name {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .patient-meta {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 4px 11px;
+            border-radius: 20px;
+            background: var(--green-bg);
+            color: var(--green);
+            margin-left: 10px;
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+            align-items: start;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 24px 26px 28px;
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .panel-head h2 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-head h2 svg {
+            width: 18px;
+            height: 18px;
+            color: var(--navy);
+        }
+
+        .field-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            letter-spacing: .3px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .field-block {
+            margin-bottom: 20px;
+        }
+
+        .field-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .row2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .input,
+        .select,
+        textarea.textarea {
+            width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13.5px;
+            color: var(--text-dark);
+            outline: none;
+            background: #fff;
+        }
+
+        .input:focus,
+        .select:focus,
+        textarea.textarea:focus {
+            border-color: var(--navy);
+        }
+
+        .input[readonly] {
+            background: #f6f7fb;
+            color: var(--text-muted);
+        }
+
+        textarea.textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .diagnosis-chip-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .diagnosis-static-tag {
+            background: #e6ecff;
+            color: var(--blue);
+            font-weight: 700;
+            font-size: 12px;
+            padding: 7px 12px;
+            border-radius: 8px;
+        }
+
+        /* ===== Tingkat kegawatan ===== */
+        .kegawatan-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .kegawatan-chip {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 12.5px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            background: #fff;
+            color: var(--text-dark);
+            cursor: pointer;
+        }
+
+        .kegawatan-chip svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .kegawatan-chip.elektif.selected {
+            background: var(--green-bg);
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .kegawatan-chip.gawat.selected {
+            background: var(--red-bg);
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        /* ===== Surat preview ===== */
+        .surat-preview {
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 30px 34px;
+            background: #fff;
+            min-height: 460px;
+        }
+
+        .surat-kop {
+            text-align: center;
+            border-bottom: 2.5px solid var(--navy);
+            padding-bottom: 14px;
+            margin-bottom: 20px;
+        }
+
+        .surat-kop .kop-title {
+            font-size: 15.5px;
+            font-weight: 800;
+            color: var(--navy);
+            letter-spacing: .2px;
+        }
+
+        .surat-kop .kop-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .surat-judul {
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .surat-judul .jt {
+            font-size: 13.5px;
+            font-weight: 800;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .surat-judul .jn {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .surat-judul .jk {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: .3px;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .surat-judul .jk.elektif {
+            background: var(--green-bg);
+            color: var(--green);
+        }
+
+        .surat-judul .jk.gawat {
+            background: var(--red-bg);
+            color: var(--red);
+        }
+
+        .surat-body {
+            font-size: 12.5px;
+            line-height: 1.85;
+            color: var(--text-dark);
+            margin-top: 22px;
+        }
+
+        .surat-body table {
+            border-collapse: collapse;
+            margin: 10px 0 10px 14px;
+        }
+
+        .surat-body table td {
+            padding: 2px 8px 2px 0;
+            font-size: 12.5px;
+            vertical-align: top;
+        }
+
+        .surat-body .tujuan-box {
+            border: 1.5px dashed #c7cef2;
+            background: #f9fafe;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin: 12px 0;
+        }
+
+        .surat-signature {
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .surat-signature .sign-block {
+            text-align: center;
+            font-size: 12.5px;
+        }
+
+        .sign-block .sign-place {
+            margin-bottom: 60px;
+        }
+
+        .sign-block .sign-name {
+            font-weight: 800;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .sign-block .sign-nip {
+            color: var(--text-muted);
+            font-size: 11.5px;
+        }
+
+        /* ===== Bottom action bar ===== */
+        .bottom-bar {
+            position: fixed;
+            left: 270px;
+            right: 0;
+            bottom: 0;
+            background: #fff;
+            border-top: 1.5px solid var(--border);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 12.5px;
+            padding: 11px 18px;
+            border-radius: 9px;
+            cursor: pointer;
+            white-space: nowrap;
+            border: none;
+            text-decoration: none;
+        }
+
+        .btn svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .btn-navy {
+            background: var(--navy);
+            color: #fff;
+        }
+
+        .btn-outline-navy {
+            background: #fff;
+            border: 1.5px solid var(--border);
+            color: var(--text-dark);
+        }
+
+        .btn-batal {
+            background: #fff;
+            border: 1.5px solid var(--border);
+            color: var(--text-dark);
+        }
+
+        @media (max-width: 1100px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            #navbar-container {
+                display: none;
+            }
+
+            .content {
+                padding: 18px 18px 110px;
+            }
+
+            .bottom-bar {
+                left: 0;
+            }
+
+            .row2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media print {
+
+            #navbar-container,
+            .topbar,
+            .back-link,
+            .bottom-bar,
+            .patient-bar,
+            .panel:first-child,
+            .page-title,
+            .page-sub {
+                display: none !important;
+            }
+
+            .content {
+                padding: 0;
+            }
+
+            .surat-preview {
+                border: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- ===== Sidebar dimuat dari navbar.html ===== -->
+        <div id="navbar-container">
+            <div class="sidebar-loading">Memuat menu...</div>
+        </div>
+
+        <!-- ===== Main ===== -->
+        <main class="main">
+
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="brand">RSJD Dr. Amino Gondohutomo</div>
+                <div class="topbar-right">
+                    <div class="doctor-chip">
+                        <div class="doc-avatar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="8" r="4" />
+                                <path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="doc-name">Dr. Siska Amalia, Sp.KJ</div>
+                            <span class="doctor-role-badge">DOKTER UTAMA</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <section class="content">
+
+                <a href="pemeriksaan.php" class="back-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 18l-6-6 6-6" />
+                    </svg>
+                    Kembali ke Pemeriksaan
+                </a>
+
+                <div class="page-title">Surat Rujukan Eksternal</div>
+                <div class="page-sub">Buat surat rujukan pasien ke Rumah Sakit / Fasilitas Kesehatan lain.</div>
+
+                <div class="patient-bar">
+                    <img class="patient-photo"
+                        src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&h=200&fit=crop&crop=faces"
+                        alt="Foto pasien">
+                    <div>
+                        <span class="patient-name">Budi Santoso</span>
+                        <span class="pill">BPJS Kesehatan</span>
+                        <div class="patient-meta">No. RM: 102-44-89 &nbsp;|&nbsp; 45 Th / 12 Mei 1979 &nbsp;|&nbsp;
+                            Laki-laki</div>
+                    </div>
+                </div>
+
+                <div class="grid-2col">
+
+                    <!-- Form -->
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h2>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1h15a1 1 0 0 0 1-1v-7" />
+                                    <path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z" />
+                                </svg>
+                                Detail Rujukan
+                            </h2>
+                        </div>
+
+                        <div class="row2 field-block">
+                            <div>
+                                <div class="field-label">Jenis Rujukan</div>
+                                <select class="select" id="jenisRujukan">
+                                    <option value="Rujukan Rawat Jalan">Rujukan Rawat Jalan</option>
+                                    <option value="Rujukan Rawat Inap">Rujukan Rawat Inap</option>
+                                    <option value="Rujukan Gawat Darurat">Rujukan Gawat Darurat</option>
+                                    <option value="Rujukan Pemeriksaan Penunjang">Rujukan Pemeriksaan Penunjang</option>
+                                </select>
+                            </div>
+                            <div>
+                                <div class="field-label">No. Surat Rujukan</div>
+                                <input class="input" id="noSurat" value="087/RJK-EKS/VII/2026" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row2 field-block">
+                            <div>
+                                <div class="field-label">Faskes / RS Tujuan</div>
+                                <input class="input" id="rsTujuan" placeholder="Contoh: RSUP Dr. Kariadi Semarang"
+                                    value="RSUP Dr. Kariadi Semarang">
+                            </div>
+                            <div>
+                                <div class="field-label">Poli / Bagian Tujuan</div>
+                                <input class="input" id="poliTujuan" placeholder="Contoh: Poliklinik Jiwa"
+                                    value="Poliklinik Jiwa (Psikiatri)">
+                            </div>
+                        </div>
+
+                        <div class="row2 field-block">
+                            <div>
+                                <div class="field-label">Tanggal Rujukan</div>
+                                <input class="input" type="date" id="tanggalRujukan">
+                            </div>
+                            <div>
+                                <div class="field-label">Diagnosis Kerja</div>
+                                <div class="diagnosis-chip-row" style="padding-top:11px;">
+                                    <span class="diagnosis-static-tag">F20.0 - Paranoid Schizophrenia</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field-block">
+                            <div class="field-label">Kondisi Klinis Saat Ini</div>
+                            <textarea class="textarea" id="kondisiKlinis"
+                                placeholder="Tuliskan kondisi umum, kesadaran, dan keluhan pasien saat ini...">Kondisi umum cukup, kesadaran compos mentis, masih terdapat gejala halusinasi auditorik dengan intensitas menurun dibanding kunjungan sebelumnya.</textarea>
+                        </div>
+
+                        <div class="field-block">
+                            <div class="field-label">Terapi yang Sudah Diberikan</div>
+                            <textarea class="textarea" id="terapiDiberikan"
+                                placeholder="Tuliskan obat dan tindakan yang sudah diberikan...">Risperidone 2mg 2x1, Trihexyphenidyl 2mg 2x0.5, edukasi kepatuhan minum obat.</textarea>
+                        </div>
+
+                        <div class="row2 field-block">
+                            <div>
+                                <div class="field-label">Alasan Rujukan</div>
+                                <select class="select" id="alasanRujukan">
+                                    <option value="Fasilitas/alat tidak tersedia di RS ini">Fasilitas/Alat Tidak
+                                        Tersedia di RS Ini</option>
+                                    <option value="Untuk pemeriksaan penunjang lanjutan">Untuk Pemeriksaan Penunjang
+                                        Lanjutan</option>
+                                    <option value="Untuk tindakan/terapi lanjutan">Untuk Tindakan/Terapi Lanjutan
+                                    </option>
+                                    <option value="Atas permintaan pasien/keluarga">Atas Permintaan Pasien/Keluarga
+                                    </option>
+                                    <option value="Program rujuk balik">Program Rujuk Balik</option>
+                                </select>
+                            </div>
+                            <div>
+                                <div class="field-label">Tingkat Kegawatan</div>
+                                <div class="kegawatan-row">
+                                    <button type="button" class="kegawatan-chip elektif selected" id="chipElektif">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="9" />
+                                            <path d="M12 7v5l3 3" />
+                                        </svg>
+                                        Elektif
+                                    </button>
+                                    <button type="button" class="kegawatan-chip gawat" id="chipGawat">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path
+                                                d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z" />
+                                            <path d="M12 9v4M12 17h.01" />
+                                        </svg>
+                                        Gawat Darurat
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field-block">
+                            <div class="field-label">Catatan Tambahan</div>
+                            <textarea class="textarea" id="catatanTambahan"
+                                placeholder="Contoh: Mohon dilakukan pemeriksaan lanjutan dan tata laksana sesuai indikasi.">Mohon kesediaan Sejawat untuk melanjutkan pemeriksaan dan tata laksana pasien sesuai indikasi.</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Preview -->
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h2>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                                Pratinjau Surat
+                            </h2>
+                        </div>
+
+                        <div class="surat-preview" id="suratPreview">
+                            <div class="surat-kop">
+                                <div class="kop-title">RSJD Dr. Amino Gondohutomo</div>
+                                <div class="kop-sub">Jl. Brigjen Sudiarto No. 347, Semarang, Jawa Tengah</div>
+                            </div>
+
+                            <div class="surat-judul">
+                                <div class="jt">SURAT RUJUKAN EKSTERNAL</div>
+                                <div class="jn">Nomor: <span id="previewNoSurat">087/RJK-EKS/VII/2026</span></div>
+                                <span class="jk elektif" id="previewKegawatan">ELEKTIF</span>
+                            </div>
+
+                            <div class="surat-body">
+                                Yang bertanda tangan di bawah ini, dokter yang bertugas di RSJD Dr. Amino
+                                Gondohutomo, dengan ini merujuk pasien:
+                                <table>
+                                    <tr>
+                                        <td>Nama</td>
+                                        <td>: Budi Santoso</td>
+                                    </tr>
+                                    <tr>
+                                        <td>No. RM</td>
+                                        <td>: 102-44-89</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Umur / Tgl Lahir</td>
+                                        <td>: 45 Tahun / 12 Mei 1979</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Diagnosis Kerja</td>
+                                        <td>: F20.0 - Paranoid Schizophrenia</td>
+                                    </tr>
+                                </table>
+
+                                Untuk mendapatkan penanganan lebih lanjut sebagai <b id="previewJenis">Rujukan Rawat
+                                    Jalan</b> ke:
+                                <div class="tujuan-box">
+                                    <b id="previewRsTujuan">RSUP Dr. Kariadi Semarang</b><br>
+                                    <span id="previewPoliTujuan">Poliklinik Jiwa (Psikiatri)</span>
+                                </div>
+
+                                <b>Kondisi klinis saat ini:</b> <span id="previewKondisi">Kondisi umum cukup,
+                                    kesadaran compos mentis, masih terdapat gejala halusinasi auditorik dengan
+                                    intensitas menurun dibanding kunjungan sebelumnya.</span>
+                                <br><br>
+                                <b>Terapi yang sudah diberikan:</b> <span id="previewTerapi">Risperidone 2mg 2x1,
+                                    Trihexyphenidyl 2mg 2x0.5, edukasi kepatuhan minum obat.</span>
+                                <br><br>
+                                <b>Alasan rujukan:</b> <span id="previewAlasan">Fasilitas/alat tidak tersedia di RS
+                                    ini</span>
+                                <br><br>
+                                <span id="previewCatatan">Mohon kesediaan Sejawat untuk melanjutkan pemeriksaan dan
+                                    tata laksana pasien sesuai indikasi.</span>
+                                <br><br>
+                                Demikian surat rujukan ini dibuat untuk dapat dipergunakan sebagaimana mestinya. Atas
+                                perhatian dan kerja samanya, kami ucapkan terima kasih.
+                            </div>
+
+                            <div class="surat-signature">
+                                <div class="sign-block">
+                                    <div class="sign-place">Semarang, <span id="previewTanggal">14 Juli 2026</span>
+                                        <br>Dokter Perujuk,
+                                    </div>
+                                    <div class="sign-name">dr. Siska Amalia, Sp.KJ</div>
+                                    <div class="sign-nip">NIP. 19860214 201203 2 006</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- Bottom action bar -->
+            <div class="bottom-bar">
+                <a href="pemeriksaan.html" class="btn btn-batal">Batal</a>
+                <button class="btn btn-outline-navy" id="btnCetak">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 9V3h12v6" />
+                        <path d="M6 18H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2" />
+                        <rect x="6" y="14" width="12" height="7" />
+                    </svg>
+                    Cetak Surat
+                </button>
+                <button class="btn btn-navy" id="btnSimpan">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                        <path d="M17 21v-8H7v8M7 3v5h8" />
+                    </svg>
+                    Simpan Surat
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        function loadNavbar() {
+            fetch('../navbar.html')
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Navbar gagal dimuat.');
+                    }
+                    return response.text();
+                })
+                .then(function (html) {
+                    document.getElementById('navbar-container').innerHTML = html;
+                    if (window.lucide) {
+                        lucide.createIcons();
+                    }
+                    var current = window.location.pathname.split('/').pop();
+                    document.querySelectorAll('#navbar-container .nav-item').forEach(function (link) {
+                        if (link.getAttribute('data-page') === current) {
+                            link.classList.add('active');
+                        }
+                    });
+                })
+                .catch(function (error) {
+                    document.getElementById('navbar-container').innerHTML =
+                        '<div class="sidebar-loading">Gagal memuat navbar.html.<br>Pastikan file ini dibuka lewat Live Server, bukan dibuka langsung.</div>';
+                    console.error(error);
+                });
+        }
+
+        var bulanID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September',
+            'Oktober', 'November', 'Desember'
+        ];
+
+        function formatTanggalID(dateStr) {
+            if (!dateStr) return '-';
+            var parts = dateStr.split('-');
+            var d = new Date(parts[0], parseInt(parts[1], 10) - 1, parts[2]);
+            return d.getDate() + ' ' + bulanID[d.getMonth()] + ' ' + d.getFullYear();
+        }
+
+        var jenisRujukan = document.getElementById('jenisRujukan');
+        var noSurat = document.getElementById('noSurat');
+        var rsTujuan = document.getElementById('rsTujuan');
+        var poliTujuan = document.getElementById('poliTujuan');
+        var tanggalRujukan = document.getElementById('tanggalRujukan');
+        var kondisiKlinis = document.getElementById('kondisiKlinis');
+        var terapiDiberikan = document.getElementById('terapiDiberikan');
+        var alasanRujukan = document.getElementById('alasanRujukan');
+        var catatanTambahan = document.getElementById('catatanTambahan');
+        var chipElektif = document.getElementById('chipElektif');
+        var chipGawat = document.getElementById('chipGawat');
+
+        var previewNoSurat = document.getElementById('previewNoSurat');
+        var previewJenis = document.getElementById('previewJenis');
+        var previewRsTujuan = document.getElementById('previewRsTujuan');
+        var previewPoliTujuan = document.getElementById('previewPoliTujuan');
+        var previewKondisi = document.getElementById('previewKondisi');
+        var previewTerapi = document.getElementById('previewTerapi');
+        var previewAlasan = document.getElementById('previewAlasan');
+        var previewCatatan = document.getElementById('previewCatatan');
+        var previewTanggal = document.getElementById('previewTanggal');
+        var previewKegawatan = document.getElementById('previewKegawatan');
+
+        var kegawatanAktif = 'elektif';
+
+        function pilihKegawatan(jenis) {
+            kegawatanAktif = jenis;
+            chipElektif.classList.toggle('selected', jenis === 'elektif');
+            chipGawat.classList.toggle('selected', jenis === 'gawat');
+            previewKegawatan.textContent = jenis === 'elektif' ? 'ELEKTIF' : 'GAWAT DARURAT';
+            previewKegawatan.className = 'jk ' + (jenis === 'elektif' ? 'elektif' : 'gawat');
+        }
+
+        chipElektif.addEventListener('click', function () { pilihKegawatan('elektif'); });
+        chipGawat.addEventListener('click', function () { pilihKegawatan('gawat'); });
+
+        function updatePreview() {
+            previewNoSurat.textContent = noSurat.value;
+            previewJenis.textContent = jenisRujukan.value;
+            previewRsTujuan.textContent = rsTujuan.value || '-';
+            previewPoliTujuan.textContent = poliTujuan.value || '-';
+            previewKondisi.textContent = kondisiKlinis.value || '-';
+            previewTerapi.textContent = terapiDiberikan.value || '-';
+            previewAlasan.textContent = alasanRujukan.options[alasanRujukan.selectedIndex].text;
+            previewCatatan.textContent = catatanTambahan.value || '-';
+            previewTanggal.textContent = formatTanggalID(tanggalRujukan.value);
+        }
+
+        [jenisRujukan, rsTujuan, poliTujuan, tanggalRujukan, kondisiKlinis, terapiDiberikan, alasanRujukan,
+            catatanTambahan
+        ].forEach(function (el) {
+            el.addEventListener('input', updatePreview);
+            el.addEventListener('change', updatePreview);
+        });
+
+        document.getElementById('btnCetak').addEventListener('click', function () {
+            window.print();
+        });
+
+        document.getElementById('btnSimpan').addEventListener('click', function () {
+            alert('Surat rujukan berhasil disimpan ke rekam medis pasien.');
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadNavbar();
+            var today = new Date().toISOString().slice(0, 10);
+            tanggalRujukan.value = today;
+            updatePreview();
+        });
+    </script>
+
+</body>
+
+</html>
