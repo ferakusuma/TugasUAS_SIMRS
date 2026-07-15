@@ -2,958 +2,850 @@
 <html lang="id">
 
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Antrean Pasien - SIMRS Amino</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <style>
-        :root {
-            --navy: #12206b;
-            --navy-dark: #0a1550;
-            --blue: #1c2f9c;
-            --bg: #f3f5fb;
-            --panel: #ffffff;
-            --border: #e4e7f2;
-            --text-dark: #171a35;
-            --text-muted: #75798f;
-            --green: #16a34a;
-            --green-bg: #d5f5e3;
-            --orange-bg: #fbdfae;
-            --orange: #a8630a;
-            --blue-bg: #dde3fb;
-            --red: #dc2626;
-        }
 
+
+    <style>
         * {
             box-sizing: border-box;
         }
 
+
         body {
+
             margin: 0;
+
             font-family: 'Poppins', sans-serif;
-            background: var(--bg);
-            color: var(--text-dark);
-            font-size: 14px;
+
+            background: #f4f6fc;
+
+            color: #171a35;
+
         }
+
+
 
         .app {
+
             display: flex;
+
             min-height: 100vh;
+
         }
 
-        /* Sidebar dimuat dari navbar.html */
+
+        /* NAVBAR */
+
         #navbar-container {
+
             flex-shrink: 0;
-            background: #f4f6fc;
-            border-right: 1px solid var(--border);
+
         }
 
-        #navbar-container .sidebar-loading {
-            padding: 26px;
-            color: var(--text-muted);
-            font-size: 13px;
-            width: 270px;
-        }
 
-        /* ===== Main ===== */
+
+
+
+        /* MAIN */
+
         .main {
+
             flex: 1;
+
             min-width: 0;
-            display: flex;
-            flex-direction: column;
+
         }
+
+
+
+
+        /* TOPBAR */
 
         .topbar {
+
+            height: 72px;
+
+            background: white;
+
+            border-bottom: 1px solid #e2e6f2;
+
             display: flex;
+
             align-items: center;
-            gap: 20px;
-            padding: 16px 32px;
-            background: #fff;
-            border-bottom: 1px solid var(--border);
+
+            justify-content: flex-end;
+
+            padding: 0 30px;
+
         }
 
-        .search-box {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: #f3f5fb;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 10px 16px;
-            width: 320px;
-            color: var(--text-muted);
+
+
+        .hospital-name {
+
+            color: #12206b;
+
+            font-size: 15px;
+
+            font-weight: 700;
+
         }
 
-        .search-box input {
-            border: none;
-            outline: none;
-            background: transparent;
-            font-family: 'Poppins', sans-serif;
-            font-size: 13px;
-            width: 100%;
-            color: var(--text-dark);
-        }
 
-        .search-box svg {
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-        }
 
-        .topbar-right {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
 
-        .icon-btn {
-            position: relative;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #3d4160;
-            cursor: pointer;
-        }
-
-        .icon-btn svg {
-            width: 19px;
-            height: 19px;
-        }
-
-        .icon-btn .dot {
-            position: absolute;
-            top: 4px;
-            right: 5px;
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--red);
-            border: 1.5px solid #fff;
-        }
-
-        .topbar-hospital {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 600;
-            font-size: 13.5px;
-            color: var(--text-dark);
-            padding-left: 16px;
-            border-left: 1px solid var(--border);
-        }
-
-        .mini-avatar {
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: #e4e7f2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #75798f;
-        }
-
-        .mini-avatar svg {
-            width: 14px;
-            height: 14px;
-        }
+        /* CONTENT */
 
         .content {
-            padding: 28px 32px 40px;
+
+            padding: 30px;
+
         }
 
-        .page-head {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 24px;
-            margin-bottom: 26px;
-            flex-wrap: wrap;
-        }
+
+
 
         .page-title h2 {
+
             margin: 0;
-            font-size: 32px;
+
+            color: #12206b;
+
+            font-size: 28px;
+
             font-weight: 800;
-            color: var(--navy);
-            line-height: 1.2;
+
         }
+
+
 
         .page-title p {
-            margin: 10px 0 0 0;
-            color: var(--text-muted);
+
+            margin-top: 8px;
+
+            color: #777;
+
             font-size: 14px;
-            max-width: 420px;
-            line-height: 1.5;
+
         }
 
-        .head-controls {
+
+
+
+
+        /* PASIEN DIPANGGIL */
+
+
+        .call-box {
+
+            margin-top: 25px;
+
+            background: white;
+
+            border-radius: 18px;
+
+            padding: 30px;
+
+            border: 1px solid #e3e7f2;
+
+        }
+
+
+
+        .call-header {
+
             display: flex;
-            align-items: flex-end;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
 
-        .control {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .control label {
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: .6px;
-            color: var(--text-muted);
-        }
-
-        .control select {
-            font-family: 'Poppins', sans-serif;
-            font-size: 13.5px;
-            padding: 11px 36px 11px 14px;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2375798f' stroke-width='1.6' fill='none' fill-rule='evenodd'/%3E%3C/svg%3E") no-repeat right 14px center;
-            appearance: none;
-            min-width: 190px;
-            cursor: pointer;
-            outline: none;
-            color: var(--text-dark);
-        }
-
-        .btn-update {
-            display: flex;
             align-items: center;
-            gap: 8px;
-            background: var(--navy);
-            color: #fff;
-            border: none;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 14px;
-            padding: 12px 22px;
-            border-radius: 10px;
-            cursor: pointer;
-            height: 44px;
-        }
 
-        .btn-update svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        /* ===== Sedang Memanggil + Statistik ===== */
-        .top-row {
-            display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 22px;
-            margin-bottom: 26px;
-            align-items: stretch;
-        }
-
-        .now-calling {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-left: 5px solid var(--navy);
-            border-radius: 16px;
-            padding: 26px 30px;
-        }
-
-        .nc-head {
-            display: flex;
-            align-items: flex-start;
             justify-content: space-between;
-            margin-bottom: 20px;
+
         }
 
-        .nc-head h3 {
-            margin: 0 0 4px 0;
-            font-size: 19px;
-            font-weight: 700;
-        }
 
-        .nc-head p {
+
+        .call-header h3 {
+
             margin: 0;
-            font-size: 13px;
-            color: var(--text-muted);
+
+            font-size: 20px;
+
         }
 
-        .live-pill {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--navy);
-            color: #fff;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: .4px;
-            padding: 6px 12px;
-            border-radius: 999px;
-            white-space: nowrap;
+
+
+        .live {
+
+            background: #12206b;
+
+            color: white;
+
+            padding: 7px 15px;
+
+            border-radius: 20px;
+
+            font-size: 12px;
+
+            font-weight: 600;
+
         }
 
-        .live-pill .pulse {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #7ee0a8;
-        }
 
-        .nc-body {
-            display: flex;
-            align-items: center;
-            gap: 26px;
-            flex-wrap: wrap;
-        }
 
-        .queue-box {
-            background: #e9edfd;
-            border-radius: 14px;
-            padding: 26px 40px;
+
+        .patient-box {
+
+            margin-top: 25px;
+
+            background: #eef1ff;
+
+            padding: 25px;
+
+            border-radius: 15px;
+
             text-align: center;
-            flex: 1;
-            min-width: 260px;
+
         }
 
-        .queue-label {
-            font-size: 11.5px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: var(--blue);
-            margin-bottom: 8px;
-        }
 
-        .queue-num {
-            font-size: 52px;
+
+        .queue-number {
+
+            font-size: 55px;
+
+            color: #12206b;
+
             font-weight: 800;
-            color: var(--navy);
-            letter-spacing: 1px;
-            margin-bottom: 8px;
+
         }
 
-        .queue-name {
-            font-size: 17px;
+
+
+        .patient-name {
+
+            font-size: 20px;
+
             font-weight: 700;
-            color: var(--text-dark);
+
         }
 
-        .nc-actions {
+
+
+
+
+        .buttons {
+
             display: flex;
-            flex-direction: column;
+
             gap: 12px;
-            min-width: 220px;
+
+            margin-top: 20px;
+
         }
 
-        .btn-call {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            background: var(--navy);
-            color: #fff;
+
+
+        button {
+
             border: none;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 14.5px;
-            padding: 16px;
-            border-radius: 12px;
-            cursor: pointer;
-        }
 
-        .btn-call svg {
-            width: 17px;
-            height: 17px;
-        }
+            padding: 13px 20px;
 
-        .row-2btn {
-            display: flex;
-            gap: 12px;
-        }
-
-        .btn-secondary {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: #fff;
-            border: 1.5px solid var(--border);
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            font-size: 13.5px;
-            padding: 12px;
             border-radius: 10px;
-            cursor: pointer;
-            color: var(--text-dark);
-        }
 
-        .btn-secondary svg {
-            width: 15px;
-            height: 15px;
-        }
+            font-family: Poppins;
 
-        .btn-secondary.skip {
-            color: var(--red);
-        }
-
-        .btn-secondary.skip svg {
-            color: var(--red);
-        }
-
-        .stats-col {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .stat-card {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 22px 24px;
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            flex: 1;
-        }
-
-        .stat-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .stat-icon.orange {
-            background: var(--orange-bg);
-            color: var(--orange);
-        }
-
-        .stat-icon.green {
-            background: var(--green-bg);
-            color: var(--green);
-        }
-
-        .stat-icon svg {
-            width: 24px;
-            height: 24px;
-        }
-
-        .stat-text p {
-            margin: 0 0 4px 0;
-            font-size: 13.5px;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .stat-text .num {
-            font-size: 30px;
-            font-weight: 800;
-            color: var(--text-dark);
-        }
-
-        /* ===== Daftar Antrean ===== */
-        .list-panel {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-
-        .list-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 22px 26px;
-            flex-wrap: wrap;
-            gap: 14px;
-        }
-
-        .list-head h3 {
-            margin: 0;
-            font-size: 19px;
-            font-weight: 700;
-        }
-
-        .legend {
-            display: flex;
-            gap: 10px;
-        }
-
-        .legend-pill {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 8px 14px;
-            font-size: 12.5px;
             font-weight: 600;
-            color: var(--text-dark);
+
+            cursor: pointer;
+
         }
 
-        .legend-pill .dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
+
+
+        .primary {
+
+            flex: 1;
+
+            background: #12206b;
+
+            color: white;
+
         }
 
-        .legend-pill.waiting .dot {
-            background: #8c93b8;
+
+
+        .secondary {
+
+            background: white;
+
+            border: 1px solid #ddd;
+
         }
 
-        .legend-pill.calling .dot {
-            background: var(--navy);
+
+
+
+
+        /* TABLE */
+
+
+        .table-card {
+
+            margin-top: 30px;
+
+            background: white;
+
+            border-radius: 18px;
+
+            overflow: hidden;
+
+            border: 1px solid #e3e7f2;
+
         }
 
-        .legend-pill.completed .dot {
-            background: var(--green);
+
+
+        .table-title {
+
+            padding: 20px;
+
+            font-size: 18px;
+
+            font-weight: 700;
+
         }
+
+
 
         table {
+
             width: 100%;
+
             border-collapse: collapse;
+
         }
 
-        thead th {
-            text-align: left;
-            font-size: 11.5px;
-            font-weight: 700;
-            letter-spacing: .5px;
-            color: var(--text-muted);
+
+
+        thead {
+
             background: #f7f8fc;
-            padding: 14px 26px;
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
+
         }
 
-        tbody td {
-            padding: 20px 26px;
-            border-bottom: 1px solid var(--border);
-            font-size: 14px;
-            vertical-align: middle;
+
+
+        th {
+
+            text-align: left;
+
+            padding: 15px 22px;
+
+            font-size: 12px;
+
+            color: #777;
+
         }
 
-        tbody tr:last-child td {
-            border-bottom: none;
+
+
+        td {
+
+            padding: 18px 22px;
+
+            border-top: 1px solid #edf0f6;
+
         }
 
-        tbody tr.row-calling {
-            background: #f5f7fe;
-        }
 
-        .queue-no-cell {
-            font-weight: 700;
-            color: var(--blue);
-        }
 
-        .name-cell {
+        .badge {
+
+            padding: 6px 14px;
+
+            border-radius: 20px;
+
+            font-size: 12px;
+
             font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+
         }
 
-        .bpjs-tag {
-            background: var(--green-bg);
-            color: var(--green);
-            font-size: 10.5px;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 6px;
+
+
+        .called {
+
+            background: #12206b;
+
+            color: white;
+
         }
 
-        .id-cell {
-            color: var(--text-dark);
+
+
+        .waiting {
+
+            background: #e8edff;
+
+            color: #273493;
+
         }
 
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11.5px;
-            font-weight: 700;
-            padding: 7px 14px;
-            border-radius: 999px;
-        }
 
-        .status-badge.calling {
-            background: var(--navy);
-            color: #fff;
-        }
 
-        .status-badge.calling .dot {
-            background: #7ee0a8;
-        }
 
-        .status-badge.waiting {
-            background: var(--blue-bg);
-            color: #3140a0;
-        }
 
-        .status-badge .dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-        }
+        @media(max-width:800px) {
 
-        .actions-cell {
-            text-align: right;
-        }
 
-        .action-icons {
-            display: flex;
-            gap: 14px;
-            justify-content: flex-end;
-            align-items: center;
-        }
-
-        .action-icons svg {
-            width: 17px;
-            height: 17px;
-            color: #8c93b8;
-            cursor: pointer;
-        }
-
-        .fab {
-            position: fixed;
-            right: 36px;
-            bottom: 36px;
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
-            background: var(--navy);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 22px rgba(18, 32, 107, .35);
-            cursor: pointer;
-            border: none;
-        }
-
-        .fab svg {
-            width: 24px;
-            height: 24px;
-        }
-
-        @media (max-width: 760px) {
             #navbar-container {
+
                 display: none;
+
             }
+
 
             .content {
-                padding: 18px;
+
+                padding: 15px;
+
             }
 
-            .top-row {
-                grid-template-columns: 1fr;
+
+            .buttons {
+
+                flex-direction: column;
+
             }
+
+
         }
     </style>
+
 </head>
+
+
 
 <body>
 
+
+
     <div class="app">
 
-        <!-- ===== Sidebar dimuat dari navbar.html ===== -->
+
+
+        <!-- NAVBAR DARI navbar.html -->
+
         <div id="navbar-container">
-            <div class="sidebar-loading">Memuat menu...</div>
+
+            Memuat menu...
+
         </div>
 
-        <!-- ===== Main ===== -->
+
+
+
+
         <main class="main">
 
-            <!-- Topbar -->
+
+
             <header class="topbar">
-                <div class="search-box">
-                    <input type="text" placeholder="Cari ID Pasien...">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="7" />
-                        <path d="M21 21l-4.3-4.3" />
-                    </svg>
+
+
+                <div class="hospital-name">
+
+                    RSJD Amino Gondohutomo
+
                 </div>
-                <div class="topbar-right">
-                    <div class="icon-btn">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-                            <path d="M13.7 21a2 2 0 0 1-3.4 0" />
-                        </svg>
-                        <span class="dot"></span>
-                    </div>
-                    <div class="icon-btn">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10" />
-                            <path d="M9.1 9a3 3 0 1 1 5.8 1c0 2-3 2-3 4M12 17h.01" />
-                        </svg>
-                    </div>
-                    <div class="topbar-hospital">
-                        RSJD Amino Gondohutomo
-                        <div class="mini-avatar">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                                <circle cx="9" cy="7" r="4" />
-                            </svg>
-                        </div>
-                    </div>
-                </div>
+
+
             </header>
 
-            <!-- Content -->
+
+
+
+
             <section class="content">
 
-                <div class="page-head">
-                    <div class="page-title">
-                        <h2>Dasbor Antrean<br>Pasien</h2>
-                        <p>Pemantauan real-time dan manajemen alur pasien untuk Poliklinik.</p>
+
+
+                <div class="page-title">
+
+                    <h2>
+                        Antrean Pasien
+                    </h2>
+
+
+                    <p>
+                        Pemantauan dan pemanggilan antrean pasien
+                    </p>
+
+
+                </div>
+
+
+
+
+
+
+
+                <div class="call-box">
+
+
+                    <div class="call-header">
+
+
+                        <h3>
+                            Sedang Dipanggil
+                        </h3>
+
+
+                        <span class="live">
+                            LIVE
+                        </span>
+
+
                     </div>
 
-                    <div class="head-controls">
-                        <div class="control">
-                            <label>PILIH KLINIK</label>
-                            <select>
-                                <option>Klinik Psikiatri A</option>
-                                <option>Klinik Psikiatri B</option>
-                                <option>Klinik Psikologi</option>
-                                <option>Klinik NAPZA</option>
-                            </select>
+
+
+
+
+                    <div class="patient-box">
+
+
+                        <div class="queue-number">
+
+                            A-024
+
                         </div>
-                        <div class="control">
-                            <label>DOKTER BERTUGAS</label>
-                            <select>
-                                <option>Dr. Handoko, Sp.KJ</option>
-                                <option>Dr. Ratna, Sp.KJ</option>
-                                <option>Dr. Wibowo, Sp.KJ</option>
-                            </select>
+
+
+                        <div class="patient-name">
+
+                            Budi Santoso
+
                         </div>
-                        <button class="btn-update">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M23 4v6h-6M1 20v-6h6" />
-                                <path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0 0 20.5 15" />
-                            </svg>
-                            Perbarui
+
+
+                    </div>
+
+
+
+
+
+
+                    <div class="buttons">
+
+
+                        <button class="primary">
+
+                            🔊 Panggil Pasien Berikutnya
+
                         </button>
+
+
+                        <button class="secondary">
+
+                            Ulangi
+
+                        </button>
+
+
+                        <button class="secondary">
+
+                            Lewati
+
+                        </button>
+
+
                     </div>
+
+
                 </div>
 
-                <!-- Sedang memanggil + statistik -->
-                <div class="top-row">
-                    <div class="now-calling">
-                        <div class="nc-head">
-                            <div>
-                                <h3>Sedang Memanggil</h3>
-                                <p>Status antrean untuk Klinik Psikiatri A</p>
-                            </div>
-                            <span class="live-pill"><span class="pulse"></span>SISTEM LANGSUNG</span>
-                        </div>
 
-                        <div class="nc-body">
-                            <div class="queue-box">
-                                <div class="queue-label">NOMOR ANTREAN</div>
-                                <div class="queue-num">A-024</div>
-                                <div class="queue-name">Budi Santoso</div>
-                            </div>
 
-                            <div class="nc-actions">
-                                <button class="btn-call">
-                                    <svg viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M3 10v4h4l5 5V5l-5 5H3z" />
-                                        <path d="M16 8a5 5 0 0 1 0 8" stroke="currentColor" stroke-width="2" fill="none"
-                                            stroke-linecap="round" />
-                                    </svg>
-                                    Panggil Pasien Berikutnya
-                                </button>
-                                <div class="row-2btn">
-                                    <button class="btn-secondary">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M23 4v6h-6M3.5 9a9 9 0 0 1 14.85-3.36L23 10" />
-                                        </svg>
-                                        Panggil Ulang
-                                    </button>
-                                    <button class="btn-secondary skip">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="10" />
-                                            <path d="M4.9 4.9l14.2 14.2" />
-                                        </svg>
-                                        Lewati
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+
+
+
+
+                <div class="table-card">
+
+
+                    <div class="table-title">
+
+                        Daftar Antrean Pasien
+
                     </div>
 
-                    <div class="stats-col">
-                        <div class="stat-card">
-                            <div class="stat-icon orange">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                    <circle cx="9" cy="7" r="4" />
-                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                                </svg>
-                            </div>
-                            <div class="stat-text">
-                                <p>Pasien Menunggu</p>
-                                <div class="num">12</div>
-                            </div>
-                        </div>
 
-                        <div class="stat-card">
-                            <div class="stat-icon green">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <path d="M8 12l3 3 5-6" />
-                                </svg>
-                            </div>
-                            <div class="stat-text">
-                                <p>Selesai Hari Ini</p>
-                                <div class="num">48</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Daftar antrean -->
-                <div class="list-panel">
-                    <div class="list-head">
-                        <h3>Daftar Antrean Pasien</h3>
-                        <div class="legend">
-                            <span class="legend-pill waiting"><span class="dot"></span>Menunggu</span>
-                            <span class="legend-pill calling"><span class="dot"></span>Dipanggil</span>
-                            <span class="legend-pill completed"><span class="dot"></span>Selesai</span>
-                        </div>
-                    </div>
+
 
                     <table>
+
+
                         <thead>
+
                             <tr>
-                                <th>NO. ANTREAN</th>
-                                <th>NAMA PASIEN</th>
-                                <th>NOMOR ID</th>
-                                <th>KLINIK / UNIT</th>
-                                <th>STATUS</th>
-                                <th style="text-align:right;">AKSI</th>
+
+                                <th>No Antrean</th>
+
+                                <th>Nama Pasien</th>
+
+                                <th>Status</th>
+
                             </tr>
+
+
                         </thead>
+
+
+
+
                         <tbody>
-                            <tr class="row-calling">
-                                <td class="queue-no-cell">A-024</td>
-                                <td class="name-cell">Budi Santoso</td>
-                                <td class="id-cell">3374090100223</td>
-                                <td>Klinik Psikiatri A</td>
-                                <td><span class="status-badge calling"><span class="dot"></span>DIPANGGIL</span></td>
-                                <td class="actions-cell">
-                                    <div class="action-icons">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <rect x="3" y="4" width="18" height="16" rx="2" />
-                                            <path d="M3 10h18M8 14h.01M12 14h.01M16 14h.01" />
-                                        </svg>
-                                    </div>
-                                </td>
-                            </tr>
+
+
                             <tr>
-                                <td class="queue-no-cell">A-025</td>
-                                <td class="name-cell">Siti Rahayu</td>
-                                <td class="id-cell">3374012304880</td>
-                                <td>Klinik Psikiatri A</td>
-                                <td><span class="status-badge waiting"><span class="dot"></span>MENUNGGU</span></td>
-                                <td class="actions-cell">
-                                    <div class="action-icons">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M5 3l14 9-14 9V3z" />
-                                        </svg>
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M5 4l10 8-10 8V4z" />
-                                            <path d="M19 5v14" />
-                                        </svg>
-                                    </div>
+
+                                <td>A-024</td>
+
+                                <td>Budi Santoso</td>
+
+                                <td>
+
+                                    <span class="badge called">
+
+                                        Dipanggil
+
+                                    </span>
+
                                 </td>
+
+
                             </tr>
+
+
+
+
                             <tr>
-                                <td class="queue-no-cell">A-026</td>
-                                <td class="name-cell">Andi Wijaya <span class="bpjs-tag">BPJS</span></td>
-                                <td class="id-cell">3301050510950</td>
-                                <td>Klinik Psikiatri A</td>
-                                <td><span class="status-badge waiting"><span class="dot"></span>MENUNGGU</span></td>
-                                <td class="actions-cell">
-                                    <div class="action-icons">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M5 3l14 9-14 9V3z" />
-                                        </svg>
-                                    </div>
+
+                                <td>A-025</td>
+
+                                <td>Siti Rahayu</td>
+
+                                <td>
+
+                                    <span class="badge waiting">
+
+                                        Menunggu
+
+                                    </span>
+
                                 </td>
+
+
                             </tr>
+
+
+
+
+
                             <tr>
-                                <td class="queue-no-cell">A-027</td>
-                                <td class="name-cell">Dewi Lestari</td>
-                                <td class="id-cell">3374020301772</td>
-                                <td>Klinik Psikiatri A</td>
-                                <td><span class="status-badge waiting"><span class="dot"></span>MENUNGGU</span></td>
-                                <td class="actions-cell"></td>
+
+                                <td>A-026</td>
+
+                                <td>Andi Wijaya</td>
+
+                                <td>
+
+                                    <span class="badge waiting">
+
+                                        Menunggu
+
+                                    </span>
+
+                                </td>
+
+
                             </tr>
+
+
+
+
+
+                            <tr>
+
+                                <td>A-027</td>
+
+                                <td>Dewi Lestari</td>
+
+                                <td>
+
+                                    <span class="badge waiting">
+
+                                        Menunggu
+
+                                    </span>
+
+                                </td>
+
+
+                            </tr>
+
+
+
+
                         </tbody>
+
+
                     </table>
+
+
+
                 </div>
+
+
+
+
 
             </section>
 
-            <button class="fab" title="Tambah Antrean">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
-                    <path d="M12 5v14M5 12h14" />
-                </svg>
-            </button>
+
+
+
         </main>
+
+
+
     </div>
+
+
+
+
+
+
+    <!-- ICON NAVBAR -->
 
     <script src="https://unpkg.com/lucide@latest"></script>
 
+
+
+
     <script>
-        // Ambil sidebar dari navbar.html (satu folder di atas /pages) lalu suntikkan ke halaman ini.
-        // CATATAN: fetch() butuh server lokal (mis. VS Code "Live Server"),
-        // tidak bisa jalan kalau file dibuka langsung dari file explorer.
+
+
         function loadNavbar() {
+
+
             fetch('../navbar.html')
-                .then(function (response) {
+
+
+                .then(response => {
+
+
                     if (!response.ok) {
-                        throw new Error('Navbar gagal dimuat.');
+
+                        throw new Error("Navbar gagal dimuat");
+
                     }
+
+
                     return response.text();
+
+
                 })
-                .then(function (html) {
-                    document.getElementById('navbar-container').innerHTML = html;
+
+
+                .then(html => {
+
+
+                    document.getElementById(
+                        "navbar-container"
+                    ).innerHTML = html;
+
+
 
                     if (window.lucide) {
+
                         lucide.createIcons();
+
                     }
 
-                    var current = window.location.pathname.split('/').pop();
 
-                    document.querySelectorAll('#navbar-container .nav-item').forEach(function (link) {
-                        if (link.getAttribute('data-page') === current) {
-                            link.classList.add('active');
-                        }
-                    });
+
+
+
+                    let currentPage =
+                        window.location.pathname.split('/').pop();
+
+
+
+
+                    document.querySelectorAll(
+                        "#navbar-container .nav-item"
+                    )
+
+                        .forEach(item => {
+
+
+                            if (item.dataset.page === currentPage) {
+
+                                item.classList.add("active");
+
+                            }
+
+
+                        });
+
+
+
                 })
-                .catch(function (error) {
-                    document.getElementById('navbar-container').innerHTML =
-                        '<div class="sidebar-loading">Gagal memuat navbar.html.<br>Pastikan file ini dibuka lewat Live Server, bukan dibuka langsung.</div>';
-                    console.error(error);
+
+
+
+                .catch(error => {
+
+
+                    document.getElementById(
+                        "navbar-container"
+                    ).innerHTML =
+
+                        "Navbar tidak ditemukan";
+
+
+                    console.log(error);
+
+
                 });
+
+
+
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            loadNavbar();
-        });
+
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            loadNavbar
+        );
+
+
+
     </script>
+
+
 
 </body>
 
