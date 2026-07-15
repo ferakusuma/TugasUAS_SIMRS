@@ -41,6 +41,7 @@ WHERE antrean.status_antrean='Selesai'
 
 
 ORDER BY antrean.id_antrean ASC
+LIMIT 1
 
 "
 

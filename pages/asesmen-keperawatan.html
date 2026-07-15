@@ -595,21 +595,21 @@
                     </div>
 
                     <div class="patient-main">
-                        <h2>BUDI SANTOSO</h2>
-                        <p>RM: 01-44-89-22</p>
-                    </div>
+                        <h2 id="nama-pasien">-
+                        </h2>
+                        <p id="no-rm">
+                            -</p>
+                        </div>
 
                     <div>
                         <div class="patient-info-label">Usia / Tgl Lahir</div>
-                        <div class="patient-info-value">45 Thn / 12 Mei 1979</div>
+                        <div class="patient-info-value" id="tgl-lahir"> - </div>
                     </div>
 
                     <div>
                         <div class="patient-info-label">Jenis Kelamin</div>
-                        <div class="patient-info-value">Laki-laki</div>
+                        <div class="patient-info-value" id="jenis-kelamin"> -</div>
                     </div>
-
-                
 
                     <div class="patient-actions">
                         <button class="square-btn">
@@ -627,7 +627,7 @@
                         Keluhan Utama
                     </h2>
 
-                    <textarea placeholder="Tuliskan keluhan utama pasien secara detail..."></textarea>
+                   <textarea id="keluhan-awal" placeholder="Tuliskan keluhan utama pasien secara detail..."></textarea>
                 </section>
 
                 <section class="section-card">
@@ -640,7 +640,9 @@
                         <div class="field">
                             <label>Tekanan Darah</label>
                             <div class="input-unit">
-                                <input type="text" value="120/80">
+                                <input id="tekanan-darah" 
+                                type="text"
+                                value="120/80">
                                 <span>mmHg</span>
                             </div>
                         </div>
@@ -648,7 +650,7 @@
                         <div class="field">
                             <label>Suhu Tubuh</label>
                             <div class="input-unit">
-                                <input type="text" value="36.5">
+                                <input id="suhu-tubuh" type="text" value="36.5">
                                 <span>°C</span>
                             </div>
                         </div>
@@ -656,7 +658,7 @@
                         <div class="field">
                             <label>Denyut Nadi</label>
                             <div class="input-unit">
-                                <input type="text" value="80">
+                                <input id="denyut-nadi" type="text" value="80">
                                 <span>x/mnt</span>
                             </div>
                         </div>
@@ -664,7 +666,7 @@
                         <div class="field">
                             <label>Frekuensi Napas</label>
                             <div class="input-unit">
-                                <input type="text" value="20">
+                                <input id="frekuensi-napas" type="text" value="20">
                                 <span>x/mnt</span>
                             </div>
                         </div>
@@ -672,7 +674,7 @@
                         <div class="field">
                             <label>Saturasi Oksigen (SpO2)</label>
                             <div class="input-unit">
-                                <input type="text" value="98">
+                                <input id="saturasi-oksigen" type="text" value="98">
                                 <span>%</span>
                             </div>
                         </div>
@@ -680,7 +682,7 @@
                         <div class="field">
                             <label>Berat Badan</label>
                             <div class="input-unit">
-                                <input type="text" value="70">
+                                <input id="berat-badan" type="text" value="70">
                                 <span>kg</span>
                             </div>
                         </div>
@@ -688,7 +690,7 @@
                         <div class="field">
                             <label>Tinggi Badan</label>
                             <div class="input-unit">
-                                <input type="text" value="170">
+                                <input id="tinggi-badan"  type="text" value="170">
                                 <span>cm</span>
                             </div>
                         </div>
@@ -706,7 +708,7 @@
                     </div>
 
                     <div class="allergy-input">
-                        <input type="text" placeholder="Ketik nama obat/makanan lalu tekan Enter...">
+                        <input id="nama-obat" type="text" placeholder="Ketik nama obat/makanan lalu tekan Enter...">
                         <button class="plus-btn">
                             <i data-lucide="circle-plus"></i>
                         </button>
@@ -717,6 +719,11 @@
                         <div class="allergy-tag">Seafood <span>×</span></div>
                     </div>
                 </section>
+
+
+                    <input 
+                    type="hidden"
+                    id="id-pendaftaran">
 
                 <div class="footer-actions">
                     <button class="btn btn-outline">Batal</button>
@@ -732,44 +739,343 @@
     </div>
 
     <script src="https://unpkg.com/lucide@latest"></script>
-
     <script>
-        function loadNavbar() {
-            fetch('../navbar.html')
-                .then(function (response) {
-                    if (!response.ok) {
-                        throw new Error('Navbar gagal dimuat.');
-                    }
-                    return response.text();
-                })
-                .then(function (html) {
-                    document.getElementById('navbar-container').innerHTML = html;
 
-                    if (window.lucide) {
-                        lucide.createIcons();
-                    }
 
-                    var current = window.location.pathname.split('/').pop();
+// =============================
+// LOAD NAVBAR
+// =============================
 
-                    document.querySelectorAll('#navbar-container .nav-item').forEach(function (link) {
-                        if (link.getAttribute('data-page') === current) {
-                            link.classList.add('active');
-                        }
-                    });
-                })
-                .catch(function (error) {
-                    console.error(error);
-                });
-        }
+function loadNavbar(){
 
-        document.addEventListener('DOMContentLoaded', function () {
-            loadNavbar();
 
-            if (window.lucide) {
-                lucide.createIcons();
-            }
-        });
-    </script>
+fetch('../navbar.html')
+
+
+.then(response=>{
+
+
+return response.text();
+
+
+})
+
+
+.then(html=>{
+
+
+document.getElementById(
+"navbar-container"
+).innerHTML=html;
+
+
+
+if(window.lucide){
+
+lucide.createIcons();
+
+}
+
+
+
+let current =
+window.location.pathname
+.split('/')
+.pop();
+
+
+
+document.querySelectorAll(
+"#navbar-container .nav-item"
+)
+.forEach(item=>{
+
+
+if(item.dataset.page==current){
+
+item.classList.add("active");
+
+}
+
+
+});
+
+
+
+});
+
+
+}
+
+// =============================
+// AMBIL PASIEN DARI ANTREAN
+// =============================
+
+function loadPasienAsesmen(){
+
+
+
+fetch("../api/get_pasien_assesmen.php")
+
+
+.then(response=>response.json())
+
+
+.then(data=>{
+
+
+console.log(data);
+
+
+
+if(data.length===0){
+
+
+alert(
+"Belum ada pasien dari antrean"
+);
+
+
+return;
+
+
+}
+
+
+
+let pasien=data[0];
+
+
+
+// nama
+
+document.getElementById(
+"nama-pasien"
+).innerHTML =
+pasien.nama_pasien;
+
+
+
+// RM
+
+document.getElementById(
+"no-rm"
+).innerHTML =
+"RM : "+pasien.no_rm;
+
+
+
+// tanggal lahir
+
+document.getElementById(
+"tgl-lahir"
+).innerHTML =
+pasien.tanggal_lahir;
+
+
+
+// jenis kelamin
+
+document.getElementById(
+"jenis-kelamin"
+).innerHTML =
+pasien.jenis_kelamin;
+
+
+
+// simpan id pendaftaran
+
+document.getElementById(
+"id-pendaftaran"
+).value =
+pasien.id_pendaftaran;
+
+
+
+});
+
+
+}
+
+// =============================
+// SIMPAN ASESMEN
+// =============================
+
+
+function simpanAsesmen(){
+
+
+let formData=new FormData();
+
+
+
+formData.append(
+
+"id_pendaftaran",
+
+document.getElementById(
+"id-pendaftaran"
+).value
+
+);
+
+
+
+formData.append(
+
+"tekanan_darah",
+
+document.getElementById(
+"tekanan-darah"
+).value
+
+);
+
+
+
+formData.append(
+
+"suhu",
+
+document.getElementById(
+"suhu"
+).value
+
+);
+
+
+
+formData.append(
+
+"nadi",
+
+document.getElementById(
+"nadi"
+).value
+
+);
+
+
+
+formData.append(
+
+"pernapasan",
+
+document.getElementById(
+"pernapasan"
+).value
+
+);
+
+
+
+formData.append(
+
+"keluhan_awal",
+
+document.getElementById(
+"keluhan-awal"
+).value
+
+);
+
+
+
+formData.append(
+
+"riwayat_penyakit",
+
+""
+
+);
+
+
+
+formData.append(
+
+"alergi",
+
+document.getElementById(
+"alergi"
+).value
+
+);
+
+
+
+formData.append(
+
+"nama_perawat",
+
+"Perawat"
+
+);
+
+
+
+
+fetch("../api/simpan_asesmen.php",
+{
+
+method:"POST",
+
+body:formData
+
+
+})
+
+
+.then(response=>response.json())
+
+
+.then(data=>{
+
+
+alert(data.message);
+
+
+
+});
+
+
+
+}
+
+
+
+
+
+
+
+// =============================
+// START
+// =============================
+
+
+document.addEventListener(
+"DOMContentLoaded",
+function(){
+
+
+loadNavbar();
+
+
+loadPasienAsesmen();
+
+
+
+if(window.lucide){
+
+lucide.createIcons();
+
+}
+
+
+});
+
+
+</script>
+        
 </body>
 
 </html>
