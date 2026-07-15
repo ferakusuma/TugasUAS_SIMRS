@@ -494,11 +494,6 @@
                 </div>
 
 
-
-
-
-
-
                 <div class="call-box">
 
 
@@ -522,38 +517,20 @@
 
 
                     <div class="patient-box">
-
-
-                        <div class="queue-number">
-
-                            A-024
-
+                        <div class="queue-number" id="nomor-panggil">
+                            - </div>
+                            <div class="patient-name" id="nama-panggil">
+                                Belum ada pasien
+                            </div>
                         </div>
-
-
-                        <div class="patient-name">
-
-                            Budi Santoso
-
-                        </div>
-
-
-                    </div>
-
-
-
-
-
 
                     <div class="buttons">
 
 
-                        <button class="primary">
-
-                            🔊 Panggil Pasien Berikutnya
-
+                        <button class="primary"
+                        onclick="panggilPasien()">
+                         Panggil Pasien Berikutnya
                         </button>
-
 
                         <button class="secondary">
 
@@ -562,11 +539,11 @@
                         </button>
 
 
-                        <button class="secondary">
-
-                            Lewati
-
-                        </button>
+                        <button 
+                        class="secondary"
+                        onclick="lewatiPasien()">
+                        Lewati
+                    </button>
 
 
                     </div>
@@ -615,100 +592,9 @@
 
 
                         <tbody>
-
-
-                            <tr>
-
-                                <td>A-024</td>
-
-                                <td>Budi Santoso</td>
-
-                                <td>
-
-                                    <span class="badge called">
-
-                                        Dipanggil
-
-                                    </span>
-
-                                </td>
-
-
-                            </tr>
-
-
-
-
-                            <tr>
-
-                                <td>A-025</td>
-
-                                <td>Siti Rahayu</td>
-
-                                <td>
-
-                                    <span class="badge waiting">
-
-                                        Menunggu
-
-                                    </span>
-
-                                </td>
-
-
-                            </tr>
-
-
-
-
-
-                            <tr>
-
-                                <td>A-026</td>
-
-                                <td>Andi Wijaya</td>
-
-                                <td>
-
-                                    <span class="badge waiting">
-
-                                        Menunggu
-
-                                    </span>
-
-                                </td>
-
-
-                            </tr>
-
-
-
-
-
-                            <tr>
-
-                                <td>A-027</td>
-
-                                <td>Dewi Lestari</td>
-
-                                <td>
-
-                                    <span class="badge waiting">
-
-                                        Menunggu
-
-                                    </span>
-
-                                </td>
-
-
-                            </tr>
-
-
-
+                            
 
                         </tbody>
-
 
                     </table>
 
@@ -736,114 +622,203 @@
 
 
 
-    <!-- ICON NAVBAR -->
-
-    <script src="https://unpkg.com/lucide@latest"></script>
+   
 
 
+// ===============================
+// LOAD NAVBAR
+// ===============================
+
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<script>
 
 
-    <script>
+// ===============================
+// LOAD NAVBAR
+// ===============================
+
+function loadNavbar(){
+
+    fetch('../navbar.html')
+
+    .then(response=>response.text())
+
+    .then(html=>{
+
+        document.getElementById(
+            "navbar-container"
+        ).innerHTML = html;
 
 
-        function loadNavbar() {
-
-
-            fetch('../navbar.html')
-
-
-                .then(response => {
-
-
-                    if (!response.ok) {
-
-                        throw new Error("Navbar gagal dimuat");
-
-                    }
-
-
-                    return response.text();
-
-
-                })
-
-
-                .then(html => {
-
-
-                    document.getElementById(
-                        "navbar-container"
-                    ).innerHTML = html;
-
-
-
-                    if (window.lucide) {
-
-                        lucide.createIcons();
-
-                    }
-
-
-
-
-
-                    let currentPage =
-                        window.location.pathname.split('/').pop();
-
-
-
-
-                    document.querySelectorAll(
-                        "#navbar-container .nav-item"
-                    )
-
-                        .forEach(item => {
-
-
-                            if (item.dataset.page === currentPage) {
-
-                                item.classList.add("active");
-
-                            }
-
-
-                        });
-
-
-
-                })
-
-
-
-                .catch(error => {
-
-
-                    document.getElementById(
-                        "navbar-container"
-                    ).innerHTML =
-
-                        "Navbar tidak ditemukan";
-
-
-                    console.log(error);
-
-
-                });
-
-
-
+        if(window.lucide){
+            lucide.createIcons();
         }
 
+    });
+
+}
 
 
-        document.addEventListener(
-            "DOMContentLoaded",
-            loadNavbar
+
+// ===============================
+// AMBIL DATA ANTREAN MYSQL
+// ===============================
+
+function loadAntrean(){
+
+    fetch("../api/get_antrean.php")
+
+    .then(res=>res.json())
+
+    .then(data=>{
+
+        let tbody =
+        document.querySelector("tbody");
+
+
+        tbody.innerHTML="";
+
+
+        data.forEach(item=>{
+
+
+            tbody.innerHTML += `
+
+            <tr>
+
+                <td>${item.nomor_antrean}</td>
+
+                <td>${item.nama_pasien}</td>
+
+                <td>
+                    <span class="badge waiting">
+                    ${item.status_antrean}
+                    </span>
+                </td>
+
+            </tr>
+
+            `;
+
+
+        });
+
+
+    });
+
+
+}
+
+
+
+// ===============================
+// TOMBOL PANGGIL PASIEN
+// ===============================
+
+function panggilPasien(){
+
+
+fetch("../api/panggil_pasien.php")
+
+
+.then(res=>res.json())
+
+
+.then(data=>{
+
+
+    if(data.status=="success"){
+
+
+        alert(
+        "Pasien masuk asesmen"
         );
 
 
+        loadAntrean();
 
-    </script>
+
+    }
+
+
+});
+
+
+}
+
+
+
+
+// ===============================
+// TOMBOL LEWATI PASIEN
+// ===============================
+
+function lewatiPasien(){
+
+
+fetch("../api/lewati_pasien.php")
+
+
+.then(res=>res.json())
+
+
+.then(()=>{
+
+
+    loadAntrean();
+
+
+});
+
+
+}
+
+
+
+
+
+// ===============================
+// TOMBOL ULANGI
+// ===============================
+
+function ulangiPasien(){
+
+
+alert(
+"Memanggil ulang pasien"
+);
+
+
+}
+
+
+
+
+
+// ===============================
+// JALANKAN SAAT HALAMAN DIBUKA
+// ===============================
+
+document.addEventListener(
+"DOMContentLoaded",
+function(){
+
+
+    loadNavbar();
+
+    loadAntrean();
+
+
+}
+
+);
+
+
+
+</script>
+
+
 
 
 
