@@ -714,9 +714,7 @@
                         </button>
                     </div>
 
-                    <div class="allergy-tags">
-                        <div class="allergy-tag">Paracetamol <span>×</span></div>
-                        <div class="allergy-tag">Seafood <span>×</span></div>
+                    <div class="allergy-tags" id="allergy-container">
                     </div>
                 </section>
 
@@ -935,92 +933,60 @@ alert(
 function tambahAlergi(){
 
 
-let input =
-document.getElementById(
+let input = document.getElementById(
 "nama-obat"
 );
 
 
-
-if(!input){
-
-console.error(
-"Input alergi tidak ditemukan"
-);
-
-return;
-
-}
-
-
-
-let nama =
-input.value.trim();
+let nama = input.value.trim();
 
 
 
 if(nama===""){
-
-return;
-
+    return;
 }
 
 
 
-
-let container =
-document.querySelector(
-".allergy-tags"
+let container = document.getElementById(
+"allergy-container"
 );
 
 
 
-let div =
-document.createElement(
-"div"
-);
-
+let div = document.createElement("div");
 
 
 div.className =
 "allergy-tag";
-
-
-
 div.innerHTML =
-
-nama +
-
-' <span style="cursor:pointer">×</span>';
-
-
-
-
-
-div.querySelector("span")
-.onclick=function(){
+`
+${nama}
+<span class="hapus-alergi">
+×
+</span>
+`;
 
 
+
+
+// tombol silang
+div.querySelector(
+".hapus-alergi"
+)
+
+.addEventListener(
+"click",
+function(){
 div.remove();
-
-
-};
-
-
-
-
-container.appendChild(div);
-
-
-
-input.value="";
-
-
 
 }
 
+);
+container.appendChild(div);
+input.value="";
 
-
+}
 
 
 // =============================
@@ -1067,13 +1033,9 @@ document.querySelectorAll(
 
 
 alergiArray.push(
-
-tag.innerText
-.replace("×","")
-.trim()
-
+tag.querySelector(".hapus-alergi")
+.previousSibling.textContent.trim()
 );
-
 
 });
 

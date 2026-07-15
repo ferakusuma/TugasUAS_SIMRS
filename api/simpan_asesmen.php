@@ -80,11 +80,23 @@ WHERE id_pendaftaran='$id_pendaftaran'
 
 
 
+mysqli_query($conn,
+
+"
+UPDATE antrean
+
+SET status_antrean='Pemeriksaan'
+
+WHERE id_pendaftaran='$id_pendaftaran'
+
+"
+
+);
+
+
 echo json_encode([
 
-"status"=>"success",
-
-"message"=>"Asesmen berhasil disimpan"
+"status"=>"success"
 
 ]);
 

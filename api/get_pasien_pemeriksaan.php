@@ -23,13 +23,13 @@ pasien.jenis_kelamin
 FROM pendaftaran
 
 
-JOIN pasien
+JOIN antrean
 
-ON pasien.id_pasien=
-pendaftaran.id_pasien
+ON antrean.id_pendaftaran =
+pendaftaran.id_pendaftaran
 
 
-WHERE pendaftaran.status_proses='Pemeriksaan'
+WHERE antrean.status_antrean='Pemeriksaan'
 
 
 LIMIT 1

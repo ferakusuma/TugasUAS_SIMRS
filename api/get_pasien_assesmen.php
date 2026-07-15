@@ -37,7 +37,7 @@ pasien.id_pasien
 
 
 
-WHERE antrean.status_antrean='Selesai'
+WHERE antrean.status_antrean='Dipanggil'
 
 
 ORDER BY antrean.id_antrean ASC
