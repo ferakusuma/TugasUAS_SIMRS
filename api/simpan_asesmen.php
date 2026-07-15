@@ -65,6 +65,21 @@ VALUES
 if($query){
 
 
+mysqli_query($conn,
+
+"
+UPDATE pendaftaran
+
+SET status_proses='Pemeriksaan'
+
+WHERE id_pendaftaran='$id_pendaftaran'
+
+"
+
+);
+
+
+
 echo json_encode([
 
 "status"=>"success",
@@ -74,7 +89,9 @@ echo json_encode([
 ]);
 
 
-}else{
+}
+
+else{
 
 
 echo json_encode([

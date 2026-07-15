@@ -1234,15 +1234,20 @@
 
                     <div class="patient-headline">
                         <div class="patient-name-row">
-                            <div class="patient-name">Budi Santoso</div>
-                            <span class="pill bpjs">BPJS Kesehatan</span>
+                            <div class="patient-name"
+                            id="nama-pasien"> - </div>     
                         </div>
+
                         <div class="patient-meta">
-                            <span><b>No. RM:</b> 102-44-89</span>
+                            No. RM:</b> <span id="no-rm"> -
+                            </span>
+
                             <span class="sep">|</span>
-                            <span><b>Umur/Tgl Lahir:</b> 45 Th / 12 Mei 1979</span>
+                            Umur/Tgl Lahir:</b>
+                            <span id="tgl-lahir"> - </span>
                             <span class="sep">|</span>
-                            <span><b>Gender:</b> Laki-laki</span>
+                            Gender:</b> <span id="gender"> -
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -1929,6 +1934,152 @@
             rujukInternalNote.style.display = 'flex';
             closeRujukModal();
         });
+
+function loadPasien(){
+
+
+fetch("../api/get_pasien_pemeriksaan.php")
+
+
+.then(res=>res.json())
+
+
+.then(data=>{
+
+
+let pasien=data[0];
+
+
+document.getElementById(
+"nama-pasien"
+).innerHTML =
+pasien.nama_pasien;
+
+
+
+document.getElementById(
+"no-rm"
+).innerHTML =
+pasien.no_rm;
+
+
+
+document.getElementById(
+"tgl-lahir"
+).innerHTML =
+pasien.tanggal_lahir;
+
+
+
+document.getElementById(
+"gender"
+).innerHTML =
+pasien.jenis_kelamin;
+
+
+
+loadAsesmen(
+pasien.id_pendaftaran
+);
+
+
+
+});
+
+
+}
+
+
+
+
+function loadAsesmen(id){
+
+
+fetch(
+"../api/get_asesmen_pasien.php?id_pendaftaran="+id
+)
+
+
+.then(res=>res.json())
+
+
+.then(data=>{
+
+
+console.log(data);
+
+
+// nanti masuk tab asesmen
+
+
+document.querySelector(
+".keluhan-perawat"
+).innerHTML =
+data.keluhan_awal;
+
+
+
+let vital=document.querySelectorAll(
+".vital-box .vvalue"
+);
+
+
+
+vital[0].innerHTML =
+data.tekanan_darah+
+' <span class="vunit">mmHg</span>';
+
+
+
+vital[1].innerHTML =
+data.suhu+
+' <span class="vunit">°C</span>';
+
+
+
+vital[2].innerHTML =
+data.nadi+
+' <span class="vunit">x/mnt</span>';
+
+
+
+vital[3].innerHTML =
+data.pernapasan+
+' <span class="vunit">x/mnt</span>';
+
+
+
+let alergi=document.querySelector(
+".tags-row"
+);
+
+
+alergi.innerHTML=`
+
+<span class="pill allergy-pill">
+${data.alergi}
+</span>
+
+`;
+
+
+
+});
+
+
+}
+
+
+
+document.addEventListener(
+"DOMContentLoaded",
+function(){
+
+loadPasien();
+
+}
+
+);
 
         document.addEventListener('DOMContentLoaded', function () {
             loadNavbar();
