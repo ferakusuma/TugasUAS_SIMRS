@@ -228,13 +228,6 @@
             color: var(--border);
         }
 
-        .patient-actions {
-            margin-left: auto;
-            display: flex;
-            gap: 10px;
-            flex-shrink: 0;
-        }
-
         .btn {
             display: flex;
             align-items: center;
@@ -689,13 +682,6 @@
         }
 
         /* ===== Tab 2: Asesmen ===== */
-        .grid-2col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 22px;
-            align-items: start;
-        }
-
         .vitals-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -752,78 +738,6 @@
             color: var(--blue);
         }
 
-        /* Timeline */
-        .timeline {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .timeline-item {
-            position: relative;
-            padding-left: 24px;
-            padding-bottom: 26px;
-        }
-
-        .timeline-item:last-child {
-            padding-bottom: 0;
-        }
-
-        .timeline-item::before {
-            content: "";
-            position: absolute;
-            left: 4px;
-            top: 5px;
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-            background: var(--text-muted);
-        }
-
-        .timeline-item.latest::before {
-            background: var(--navy);
-            width: 11px;
-            height: 11px;
-            left: 3px;
-        }
-
-        .timeline-item::after {
-            content: "";
-            position: absolute;
-            left: 8px;
-            top: 16px;
-            bottom: 0;
-            width: 1.5px;
-            background: var(--border);
-        }
-
-        .timeline-item:last-child::after {
-            display: none;
-        }
-
-        .timeline-date {
-            font-size: 11.5px;
-            font-weight: 700;
-            color: var(--navy);
-            margin-bottom: 4px;
-        }
-
-        .timeline-title {
-            font-size: 14.5px;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 4px;
-        }
-
-        .timeline-sub {
-            font-size: 12.5px;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-
-        .timeline-sub.italic {
-            font-style: italic;
-        }
-
         /* ===== Bottom action bar ===== */
         .bottom-bar {
             position: fixed;
@@ -851,10 +765,6 @@
         }
 
         @media (max-width: 1100px) {
-            .grid-2col {
-                grid-template-columns: 1fr;
-            }
-
             .penunjang-grid {
                 grid-template-columns: 1fr 1fr;
             }
@@ -871,11 +781,6 @@
 
             .bottom-bar {
                 left: 0;
-            }
-
-            .patient-actions {
-                margin-left: 0;
-                width: 100%;
             }
 
             .penunjang-grid {
@@ -1340,23 +1245,6 @@
                             <span><b>Gender:</b> Laki-laki</span>
                         </div>
                     </div>
-
-                    <div class="patient-actions">
-                        <button class="btn btn-outline-navy">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="9" />
-                                <path d="M12 7v5l3 3" />
-                            </svg>
-                            Data Historis
-                        </button>
-                        <button class="btn btn-navy">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
-                                <path d="M9 7h6M9 11h6M9 15h3" />
-                            </svg>
-                            Ringkasan Medis
-                        </button>
-                    </div>
                 </div>
 
                 <!-- Tabs -->
@@ -1531,94 +1419,57 @@
 
                 <!-- ===== Tab 2: Asesmen & Riwayat ===== -->
                 <div class="tab-panel" id="tab-asesmen">
-                    <div class="grid-2col">
-
-                        <div class="panel">
-                            <div class="panel-head">
-                                <h2>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path
-                                            d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
-                                        <path d="M9 12l2 2 4-4" />
-                                    </svg>
-                                    Hasil Asesmen Perawat (Anamnesis &amp; Vital Sign)
-                                </h2>
-                            </div>
-
-                            <div class="field-label">Keluhan Utama (Perawat)</div>
-                            <div class="keluhan-perawat">
-                                Pasien datang dengan keluhan sering mendengar suara-suara bisikan dan merasa
-                                ketakutan tanpa alasan jelas sejak 3 hari terakhir.
-                            </div>
-
-                            <div class="vitals-grid">
-                                <div class="vital-box">
-                                    <div class="vlabel">TD (BP)</div>
-                                    <div class="vvalue">120/80 <span class="vunit">mmHg</span></div>
-                                </div>
-                                <div class="vital-box">
-                                    <div class="vlabel">Suhu</div>
-                                    <div class="vvalue">36.8 <span class="vunit">°C</span></div>
-                                </div>
-                                <div class="vital-box">
-                                    <div class="vlabel">Nadi (Pulse)</div>
-                                    <div class="vvalue">88 <span class="vunit">x/mnt</span></div>
-                                </div>
-                                <div class="vital-box">
-                                    <div class="vlabel">RR</div>
-                                    <div class="vvalue">18 <span class="vunit">x/mnt</span></div>
-                                </div>
-                                <div class="vital-box">
-                                    <div class="vlabel">SPO2</div>
-                                    <div class="vvalue">99 <span class="vunit">%</span></div>
-                                </div>
-                                <div class="vital-box">
-                                    <div class="vlabel">BB / TB</div>
-                                    <div class="vvalue">70 <span class="vunit">kg</span> / 170 <span
-                                            class="vunit">cm</span></div>
-                                </div>
-                            </div>
-
-                            <div class="field-label">Alergi</div>
-                            <div class="tags-row">
-                                <span class="pill allergy-pill">Amoxicillin</span>
-                                <span class="pill allergy-pill seafood">Seafood</span>
-                                <span class="pill allergy-pill none">Tidak Ada Alergi Dingin</span>
-                            </div>
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h2>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
+                                    <path d="M9 12l2 2 4-4" />
+                                </svg>
+                                Hasil Asesmen Perawat (Anamnesis &amp; Vital Sign)
+                            </h2>
                         </div>
 
-                        <div class="panel">
-                            <div class="panel-head">
-                                <h2>
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="9" />
-                                        <path d="M12 7v5l3 3" />
-                                    </svg>
-                                    Riwayat Kunjungan &amp; Rekam Medis
-                                </h2>
-                            </div>
+                        <div class="field-label">Keluhan Utama (Perawat)</div>
+                        <div class="keluhan-perawat">
+                            Pasien datang dengan keluhan sering mendengar suara-suara bisikan dan merasa
+                            ketakutan tanpa alasan jelas sejak 3 hari terakhir.
+                        </div>
 
-                            <div class="timeline">
-                                <div class="timeline-item latest">
-                                    <div class="timeline-date">20 Mar 2024 (Kunjungan Terakhir)</div>
-                                    <div class="timeline-title">Poliklinik Psikiatri Dewasa</div>
-                                    <div class="timeline-sub italic">Dx: F20.0 (Paranoid Schizophrenia)</div>
-                                    <div class="timeline-sub italic">Th/: Risperidone 2mg, Clozapine 25mg.</div>
-                                </div>
-                                <div class="timeline-item">
-                                    <div class="timeline-date">12 Jan 2024</div>
-                                    <div class="timeline-title">Instalasi Gawat Darurat (IGD)</div>
-                                    <div class="timeline-sub">Keluarga melaporkan pasien gaduh gelisah di rumah.
-                                    </div>
-                                </div>
-                                <div class="timeline-item">
-                                    <div class="timeline-date">05 Nov 2023</div>
-                                    <div class="timeline-title">Poliklinik Penyakit Dalam</div>
-                                    <div class="timeline-sub">Keluhan: Lambung terasa perih (Gastritis).</div>
+                        <div class="vitals-grid">
+                            <div class="vital-box">
+                                <div class="vlabel">TD (BP)</div>
+                                <div class="vvalue">120/80 <span class="vunit">mmHg</span></div>
+                            </div>
+                            <div class="vital-box">
+                                <div class="vlabel">Suhu</div>
+                                <div class="vvalue">36.8 <span class="vunit">°C</span></div>
+                            </div>
+                            <div class="vital-box">
+                                <div class="vlabel">Nadi (Pulse)</div>
+                                <div class="vvalue">88 <span class="vunit">x/mnt</span></div>
+                            </div>
+                            <div class="vital-box">
+                                <div class="vlabel">RR</div>
+                                <div class="vvalue">18 <span class="vunit">x/mnt</span></div>
+                            </div>
+                            <div class="vital-box">
+                                <div class="vlabel">SPO2</div>
+                                <div class="vvalue">99 <span class="vunit">%</span></div>
+                            </div>
+                            <div class="vital-box">
+                                <div class="vlabel">BB / TB</div>
+                                <div class="vvalue">70 <span class="vunit">kg</span> / 170 <span class="vunit">cm</span>
                                 </div>
                             </div>
                         </div>
 
+                        <div class="field-label">Alergi</div>
+                        <div class="tags-row">
+                            <span class="pill allergy-pill">Amoxicillin</span>
+                            <span class="pill allergy-pill seafood">Seafood</span>
+                            <span class="pill allergy-pill none">Tidak Ada Alergi Dingin</span>
+                        </div>
                     </div>
                 </div>
 
