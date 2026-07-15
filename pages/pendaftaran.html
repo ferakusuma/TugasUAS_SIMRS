@@ -195,7 +195,7 @@
         /* ===== Content Grid ===== */
         .content {
             display: grid;
-            grid-template-columns: 1fr 380px;
+            grid-template-columns: 1fr;
             gap: 24px;
             padding: 24px 32px;
             align-items: start;
@@ -858,25 +858,16 @@
                             </svg>
                             Form Pendaftaran Pasien Baru
                         </div>
-                        <span class="status-pill">Status: Online</span>
                     </div>
 
                     <form class="form-grid" novalidate>
                         <div class="field">
                             <label for="nik">Nomor Induk Kependudukan (NIK)</label>
                             <div class="input-wrap">
-                                <input id="nik" type="text" class="has-inline-btn" placeholder="16-digit nomor NIK"
+                                <input id="nik" type="text"  placeholder="16-digit nomor NIK"
                                     inputmode="numeric" maxlength="16" value="3374xxxxxxxxxxxx">
-                                <button type="button" class="btn-inline">Cek Dukcapil</button>
                             </div>
-                            <div class="verified-note">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <path d="M8 12l3 3 5-6" />
-                                </svg>
-                                NIK Terverifikasi Sistem Dukcapil
                             </div>
-                        </div>
 
                         <div class="field">
                             <label for="nama">Nama Lengkap Sesuai Identitas</label>
@@ -905,165 +896,15 @@
                                 placeholder="Jl. Alamat Lengkap, RT/RW, Kelurahan, Kecamatan"></textarea>
                         </div>
 
-                        <div class="payer-block">
-                            <div>
-                                <label class="payer-label" for="poli">Pilih Poliklinik Tujuan</label>
-                                <select id="poli">
-                                    <option>-- Pilih Poliklinik --</option>
-                                    <option>Poli Jiwa Umum</option>
-                                    <option>Poli NAPZA</option>
-                                    <option>Psikiatri Anak</option>
-                                    <option>Layanan Psikologi</option>
-                                </select>
-                            </div>
-                            <div>
-                                <span class="payer-label">Jenis Penjamin / Payer</span>
-                                <div class="payer-options" role="radiogroup" aria-label="Jenis Penjamin">
-                                    <div class="payer-card active" role="radio" aria-checked="true" tabindex="0">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <rect x="2" y="7" width="20" height="12" rx="2" />
-                                            <path d="M2 11h20" />
-                                        </svg>
-                                        BPJS
-                                    </div>
-                                    <div class="payer-card" role="radio" aria-checked="false" tabindex="0">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <rect x="2" y="5" width="20" height="14" rx="2" />
-                                            <circle cx="8" cy="12" r="2" />
-                                            <path d="M14 10h6M14 14h4" />
-                                        </svg>
-                                        Askes
-                                    </div>
-                                    <div class="payer-card" role="radio" aria-checked="false" tabindex="0">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="9" />
-                                            <path d="M8 12h8M12 8v8" />
-                                        </svg>
-                                        Tunai
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <button type="submit" class="submit-btn">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="4" width="18" height="16" rx="2" />
                                 <path d="M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01" />
                             </svg>
-                            Generate & Cetak Nomor Antrian
+                            Generate Nomor Antrian
                         </button>
                     </form>
                 </section>
-
-                <!-- Right column -->
-                <aside class="side-col">
-                    <div class="stat-card">
-                        <div class="stat-label">TOTAL PENDAFTARAN HARI INI</div>
-                        <div class="stat-number">142 <span>Pasien</span></div>
-                        <div class="stat-breakdown">
-                            <span><b>98</b> BPJS</span>
-                            <span class="sep"></span>
-                            <span><b>44</b> Umum/Askes</span>
-                        </div>
-                    </div>
-
-                    <div class="activity-card">
-                        <div class="card-head">
-                            <div class="card-head-title">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <path d="M12 6v6l4 2" />
-                                </svg>
-                                Aktivitas Terbaru
-                            </div>
-                            <a href="#">Lihat Semua</a>
-                        </div>
-
-                        <div class="activity-item">
-                            <div class="activity-top">
-                                <span class="rm-code">RM-2023-9811</span>
-                                <span class="activity-time">09:45 WIB</span>
-                            </div>
-                            <div class="patient-name">Budi Setiawan, Tn.</div>
-                            <div class="activity-tags">
-                                <span class="tag bpjs">BPJS</span>
-                                <span class="poli-tag">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M3 21h18M5 21V9l7-6 7 6v12M9 21v-6h6v6" />
-                                    </svg>
-                                    Poli Jiwa Umum
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="activity-item">
-                            <div class="activity-top">
-                                <span class="rm-code">RM-2023-9810</span>
-                                <span class="activity-time">09:32 WIB</span>
-                            </div>
-                            <div class="patient-name">Siti Aminah, Ny.</div>
-                            <div class="activity-tags">
-                                <span class="tag tunai">Tunai</span>
-                                <span class="poli-tag">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M3 21h18M5 21V9l7-6 7 6v12M9 21v-6h6v6" />
-                                    </svg>
-                                    Layanan Psikologi
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="activity-item">
-                            <div class="activity-top">
-                                <span class="rm-code">RM-2023-9809</span>
-                                <span class="activity-time">09:15 WIB</span>
-                            </div>
-                            <div class="patient-name">Rangga Pratama, An.</div>
-                            <div class="activity-tags">
-                                <span class="tag bpjs">BPJS</span>
-                                <span class="poli-tag">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M3 21h18M5 21V9l7-6 7 6v12M9 21v-6h6v6" />
-                                    </svg>
-                                    Psikiatri Anak
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="activity-item">
-                            <div class="activity-top">
-                                <span class="rm-code">RM-2023-9808</span>
-                                <span class="activity-time">08:55 WIB</span>
-                            </div>
-                            <div class="patient-name">Agus Mulyanto, Bp.</div>
-                            <div class="activity-tags">
-                                <span class="tag bpjs">BPJS</span>
-                                <span class="poli-tag">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M3 21h18M5 21V9l7-6 7 6v12M9 21v-6h6v6" />
-                                    </svg>
-                                    Poli NAPZA
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="map-card">
-                        <div class="card-head">
-                            <div class="card-head-title">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z" />
-                                </svg>
-                                Lokasi Poliklinik
-                            </div>
-                        </div>
-                        <div class="map-thumb">
-                            <button type="button" class="map-btn">Buka Denah Gedung</button>
-                        </div>
-                        <div class="map-caption">*Gunakan denah ini untuk memandu pasien baru menuju lokasi poliklinik
-                            tujuan.</div>
-                    </div>
-                </aside>
 
             </div>
 
@@ -1113,27 +954,6 @@
                         '<div class="sidebar-loading">Gagal memuat navbar.html.<br>Pastikan file ini dibuka lewat Live Server, bukan dibuka langsung.</div>';
                     console.error(error);
                 });
-        }
-
-        // Pilih salah satu jenis penjamin (BPJS / Askes / Tunai)
-        function initPayerCards() {
-            var cards = document.querySelectorAll('.payer-card');
-            cards.forEach(function (card) {
-                card.addEventListener('click', function () {
-                    cards.forEach(function (c) {
-                        c.classList.remove('active');
-                        c.setAttribute('aria-checked', 'false');
-                    });
-                    card.classList.add('active');
-                    card.setAttribute('aria-checked', 'true');
-                });
-                card.addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        card.click();
-                    }
-                });
-            });
         }
 
         document.addEventListener('DOMContentLoaded', function () {
