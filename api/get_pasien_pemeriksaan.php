@@ -3,6 +3,10 @@
 include "../config/koneksi.php";
 
 
+$id=$_GET['id_pendaftaran'];
+
+
+
 $query=mysqli_query($conn,
 
 "
@@ -23,37 +27,16 @@ pasien.jenis_kelamin
 FROM pendaftaran
 
 
-JOIN antrean
+JOIN pasien
 
-ON antrean.id_pendaftaran =
-pendaftaran.id_pendaftaran
+ON pasien.id_pasien = pendaftaran.id_pasien
 
-
-WHERE antrean.status_antrean='Pemeriksaan'
-
-
-LIMIT 1
-
+WHERE pendaftaran.id_pendaftaran='$id'
 
 "
 
 );
 
-
-
-$data=[];
-
-
-while($row=mysqli_fetch_assoc($query)){
-
-
-$data[]=$row;
-
-
-}
-
-
+$data=mysqli_fetch_assoc($query);
 echo json_encode($data);
-
-
 ?>

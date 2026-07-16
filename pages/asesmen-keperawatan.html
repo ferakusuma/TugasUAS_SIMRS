@@ -754,17 +754,13 @@ function loadNavbar(){
 
 
 fetch('../navbar.html')
-
 .then(response=>response.text())
-
 .then(html=>{
 
 
 document.getElementById(
 "navbar-container"
 ).innerHTML = html;
-
-
 
 if(window.lucide){
 
@@ -811,6 +807,86 @@ err
 
 }
 
+function getIdPendaftaran(){
+
+let urlParams =
+new URLSearchParams(window.location.search);
+
+
+return urlParams.get(
+"id_pendaftaran"
+);
+
+}
+
+function loadPasienPemeriksaan(){
+
+
+let id =
+getIdPendaftaran();
+
+
+
+if(!id){
+
+alert(
+"ID pasien tidak ditemukan"
+);
+
+return;
+
+}
+
+
+
+fetch(
+"../api/get_pasien_pemeriksaan.php?id_pendaftaran="+id
+)
+
+
+.then(res=>res.json())
+
+
+.then(data=>{
+
+
+console.log(
+"DATA PASIEN",
+data
+);
+
+
+
+document.getElementById(
+"nama-pasien"
+).innerHTML =
+data.nama_pasien;
+
+
+
+document.getElementById(
+"no-rm"
+).innerHTML =
+"No. RM : "+data.no_rm;
+
+
+
+document.getElementById(
+"tgl-lahir"
+).innerHTML =
+data.tanggal_lahir;
+
+
+
+document.getElementById(
+"jenis-kelamin"
+).innerHTML =
+data.jenis_kelamin;
+loadRiwayatAsesmen(id);
+});
+
+
+}
 
 
 // =============================
@@ -1023,8 +1099,6 @@ return;
 
 let alergiArray=[];
 
-
-
 document.querySelectorAll(
 ".allergy-tag"
 )
@@ -1159,11 +1233,8 @@ alert(
 );
 
 
-
 window.location.href =
-"pemeriksaan.html";
-
-
+"pemeriksaan.html?id_pendaftaran="+idPendaftaran;
 
 }
 
@@ -1240,12 +1311,14 @@ document.addEventListener(
 function(){
 loadNavbar();
 loadPasienAsesmen();
+loadPasienPemeriksaan();
 if(window.lucide){
 
 lucide.createIcons();
 
 }
 });
+
 </script>   
 </body>
 </html>

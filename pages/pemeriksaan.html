@@ -1443,17 +1443,11 @@
             Keluhan Utama (Perawat)
         </div>
 
-
         <div class="keluhan-perawat" id="riwayat-keluhan">
-            -
-        </div>
-
-
+            - </div>
 
         <!-- Vital -->
         <div class="vitals-grid">
-
-
             <div class="vital-box">
                 <div class="vlabel">
                     TD (BP)
@@ -1490,15 +1484,10 @@
                 </div>
             </div>
 
-
-
-
             <div class="vital-box">
-
                 <div class="vlabel">
                     NADI (PULSE)
                 </div>
-
                 <div class="vvalue">
 
                     <span id="riwayat-nadi">
@@ -1523,7 +1512,6 @@
                 </div>
 
                 <div class="vvalue">
-
                     <span id="riwayat-pernapasan">
                         -
                     </span>
@@ -2020,22 +2008,36 @@
             closeRujukModal();
         });
 
+function getIdPendaftaran(){
+
+
+let urlParams =
+new URLSearchParams(window.location.search);
+
+
+return urlParams.get(
+"id_pendaftaran"
+);
+
+
+}
+
+
+
+
 function loadPasienPemeriksaan(){
 
-fetch("../api/get_pasien_pemeriksaan.php")
 
-.then(res=>res.json())
-
-.then(data=>{
-
-
-console.log("DATA PASIEN",data);
+let id =
+getIdPendaftaran();
 
 
 
-if(data.length===0){
+if(!id){
 
-alert("Tidak ada pasien pemeriksaan");
+alert(
+"ID pasien tidak ditemukan"
+);
 
 return;
 
@@ -2043,36 +2045,64 @@ return;
 
 
 
-let pasien=data[0];
+fetch(
+"../api/get_pasien_pemeriksaan.php?id_pendaftaran="+id
+)
+
+
+.then(res=>res.json())
+
+
+.then(pasien=>{
+
+
+console.log(
+"DATA PASIEN",
+pasien
+);
 
 
 
-// IDENTITAS PASIEN
+if(!pasien){
 
-document.getElementById("nama-pasien").innerHTML =
+alert(
+"Data pasien kosong"
+);
+
+return;
+
+}
+
+
+
+
+document.getElementById(
+"nama-pasien"
+).innerHTML =
 pasien.nama_pasien;
 
 
-document.getElementById("no-rm").innerHTML =
-pasien.no_rm;
+
+document.getElementById(
+"no-rm"
+).innerHTML =
+"No. RM : "+pasien.no_rm;
 
 
-document.getElementById("tgl-lahir").innerHTML =
+
+document.getElementById(
+"tgl-lahir"
+).innerHTML =
 pasien.tanggal_lahir;
 
 
-document.getElementById("gender").innerHTML =
+
+document.getElementById(
+"gender"
+).innerHTML =
 pasien.jenis_kelamin;
 
 
-
-
-// SIMPAN ID PASIEN AKTIF
-
-document.getElementById("id-pendaftaran").value =
-pasien.id_pendaftaran;
-
-// AMBIL ASESMEN PERAWAT
 
 loadAsesmenPasien(
 pasien.id_pendaftaran
@@ -2085,7 +2115,6 @@ pasien.id_pendaftaran
 .catch(err=>{
 
 console.error(
-"Error pasien:",
 err
 );
 
@@ -2097,12 +2126,9 @@ err
 
 
 
-// =================================
-// AMBIL ASESMEN PERAWAT
-// =================================
-
 
 function loadAsesmenPasien(id){
+
 
 
 fetch(
@@ -2123,17 +2149,12 @@ data
 
 
 
-// KELUHAN
-
 document.getElementById(
 "keluhan-perawat"
 ).innerHTML =
 data.keluhan_awal || "-";
 
 
-
-
-// TEKANAN DARAH
 
 document.getElementById(
 "asesmen-td"
@@ -2142,9 +2163,6 @@ data.tekanan_darah || "-";
 
 
 
-
-// SUHU
-
 document.getElementById(
 "asesmen-suhu"
 ).innerHTML =
@@ -2152,18 +2170,12 @@ data.suhu || "-";
 
 
 
-
-// NADI
-
 document.getElementById(
 "asesmen-nadi"
 ).innerHTML =
 data.nadi || "-";
 
 
-
-
-// RR
 
 document.getElementById(
 "asesmen-rr"
@@ -2173,36 +2185,15 @@ data.pernapasan || "-";
 
 
 
-// ALERGI
-
-let alergi =
-data.alergi;
-
-
-if(!alergi || alergi==""){
-
-alergi =
-"Tidak Ada Alergi";
-
-}
-
-
+let alergiBox =
 document.getElementById(
 "asesmen-alergi"
-).innerHTML =
-alergi;
-
-
-
-})
-
-
-.catch(err=>{
-
-console.error(
-"Error asesmen:",
-err
 );
+
+
+
+alergiBox.innerHTML =
+data.alergi || "Tidak Ada Alergi";
 
 });
 }

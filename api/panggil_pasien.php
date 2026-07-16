@@ -65,6 +65,7 @@ UPDATE antrean
 SET 
 status_antrean='Dipanggil',
 waktu_dipanggil=NOW()
+
 WHERE id_antrean='$id_antrean'
 
 "

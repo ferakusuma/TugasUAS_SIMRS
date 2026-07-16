@@ -4,15 +4,10 @@ include "../config/koneksi.php";
 
 
 $id_pendaftaran = $_POST['id_pendaftaran'];
-
 $tekanan_darah = $_POST['tekanan_darah'];
-
 $suhu = $_POST['suhu'];
-
 $nadi = $_POST['nadi'];
-
 $pernapasan = $_POST['pernapasan'];
-
 $keluhan = $_POST['keluhan_awal'];
 
 $riwayat = $_POST['riwayat_penyakit'];
@@ -69,13 +64,9 @@ mysqli_query($conn,
 
 "
 UPDATE pendaftaran
-
 SET status_proses='Pemeriksaan'
-
 WHERE id_pendaftaran='$id_pendaftaran'
-
 "
-
 );
 
 
