@@ -618,17 +618,25 @@
                 <div class="page-title">Surat Rujukan Eksternal</div>
                 <div class="page-sub">Buat surat rujukan pasien ke Rumah Sakit / Fasilitas Kesehatan lain.</div>
 
-                <div class="patient-bar">
-                    <img class="patient-photo"
-                        src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&h=200&fit=crop&crop=faces"
-                        alt="Foto pasien">
-                    <div>
-                        <span class="patient-name">Budi Santoso</span>
-                        <span class="pill">BPJS Kesehatan</span>
-                        <div class="patient-meta">No. RM: 102-44-89 &nbsp;|&nbsp; 45 Th / 12 Mei 1979 &nbsp;|&nbsp;
-                            Laki-laki</div>
-                    </div>
-                </div>
+               <div class="patient-bar">
+
+    <img class="patient-photo"
+        src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&h=200&fit=crop&crop=faces"
+        alt="Foto pasien">
+
+
+    <div>
+        <div class="patient-name" id="nama-pasien">
+            -
+        </div>
+
+        <div class="patient-meta" id="data-pasien">
+            -
+        </div>
+    </div>
+
+
+</div>
 
                 <div class="grid-2col">
 
@@ -679,23 +687,35 @@
                                 <input class="input" type="date" id="tanggalRujukan">
                             </div>
                             <div>
-                                <div class="field-label">Diagnosis Kerja</div>
                                 <div class="diagnosis-chip-row" style="padding-top:11px;">
-                                    <span class="diagnosis-static-tag">F20.0 - Paranoid Schizophrenia</span>
-                                </div>
+
+    <span 
+    class="diagnosis-static-tag"
+    id="diagnosis-kerja">
+        -
+    </span>
+
+</div>
+
                             </div>
                         </div>
 
                         <div class="field-block">
                             <div class="field-label">Kondisi Klinis Saat Ini</div>
-                            <textarea class="textarea" id="kondisiKlinis"
-                                placeholder="Tuliskan kondisi umum, kesadaran, dan keluhan pasien saat ini...">Kondisi umum cukup, kesadaran compos mentis, masih terdapat gejala halusinasi auditorik dengan intensitas menurun dibanding kunjungan sebelumnya.</textarea>
+                           <textarea 
+class="textarea" 
+id="kondisiKlinis"
+placeholder="Tuliskan kondisi umum, kesadaran, dan keluhan pasien saat ini...">
+</textarea>
                         </div>
 
                         <div class="field-block">
                             <div class="field-label">Terapi yang Sudah Diberikan</div>
-                            <textarea class="textarea" id="terapiDiberikan"
-                                placeholder="Tuliskan obat dan tindakan yang sudah diberikan...">Risperidone 2mg 2x1, Trihexyphenidyl 2mg 2x0.5, edukasi kepatuhan minum obat.</textarea>
+                            <textarea 
+class="textarea" 
+id="terapiDiberikan"
+placeholder="Tuliskan obat dan tindakan yang sudah diberikan...">
+</textarea>
                         </div>
 
                         <div class="row2 field-block">
@@ -772,19 +792,19 @@
                                 <table>
                                     <tr>
                                         <td>Nama</td>
-                                        <td>: Budi Santoso</td>
+                                       <td>: <span id="previewNama">-</span></td>
                                     </tr>
                                     <tr>
                                         <td>No. RM</td>
-                                        <td>: 102-44-89</td>
+                                        <td>: <span id="previewRm">-</span></td>
                                     </tr>
                                     <tr>
                                         <td>Umur / Tgl Lahir</td>
-                                        <td>: 45 Tahun / 12 Mei 1979</td>
+                                        <td>: <span id="previewLahir">-</span></td>
                                     </tr>
                                     <tr>
                                         <td>Diagnosis Kerja</td>
-                                        <td>: F20.0 - Paranoid Schizophrenia</td>
+                                        <td>: <span id="previewDiagnosis">-</span></td>
                                     </tr>
                                 </table>
 
@@ -794,10 +814,8 @@
                                     <b id="previewRsTujuan">RSUP Dr. Kariadi Semarang</b><br>
                                     <span id="previewPoliTujuan">Poliklinik Jiwa (Psikiatri)</span>
                                 </div>
-
-                                <b>Kondisi klinis saat ini:</b> <span id="previewKondisi">Kondisi umum cukup,
-                                    kesadaran compos mentis, masih terdapat gejala halusinasi auditorik dengan
-                                    intensitas menurun dibanding kunjungan sebelumnya.</span>
+                                <span id="previewKondisi"> - </span>
+                               
                                 <br><br>
                                 <b>Terapi yang sudah diberikan:</b> <span id="previewTerapi">Risperidone 2mg 2x1,
                                     Trihexyphenidyl 2mg 2x0.5, edukasi kepatuhan minum obat.</span>
@@ -960,6 +978,152 @@
             tanggalRujukan.value = today;
             updatePreview();
         });
+
+function getIdPendaftaran(){
+    let params =
+    new URLSearchParams(
+        window.location.search
+    );
+
+    return params.get("id_pendaftaran");
+
+}
+
+function loadDataRujukan(){
+
+
+    let id =
+    getIdPendaftaran();
+
+
+    if(!id){
+
+        alert("ID pendaftaran tidak ditemukan");
+
+        return;
+
+    }
+
+
+
+    fetch(
+    "../api/get_rujukan_eksternal.php?id_pendaftaran="
+    +id
+    )
+
+
+    .then(res=>res.json())
+
+
+    .then(data=>{
+
+
+        console.log(
+            "DATA RUJUKAN",
+            data
+        );
+
+
+        document.getElementById(
+            "nama-pasien"
+        ).innerHTML =
+        data.nama_pasien;
+
+
+
+        document.getElementById(
+            "data-pasien"
+        ).innerHTML =
+
+        "No. RM : "
+        +data.no_rm
+        +" | "
+        +data.tanggal_lahir
+        +" | "
+        +data.jenis_kelamin;
+
+
+
+        document.getElementById(
+            "diagnosis-kerja"
+        ).innerHTML =
+
+        data.kode_icd10
+        +" - "
+        +data.diagnosis;
+
+
+
+        document.getElementById(
+            "kondisiKlinis"
+        ).value =
+        data.anamnesis;
+
+
+
+        // preview
+
+        document.getElementById(
+            "previewNama"
+        ).innerHTML =
+        data.nama_pasien;
+
+
+
+        document.getElementById(
+            "previewRm"
+        ).innerHTML =
+        data.no_rm;
+
+
+
+        document.getElementById(
+            "previewLahir"
+        ).innerHTML =
+        data.tanggal_lahir;
+
+
+
+        document.getElementById(
+            "previewDiagnosis"
+        ).innerHTML =
+        data.kode_icd10
+        +" - "
+        +data.diagnosis;
+
+
+
+        document.getElementById(
+            "previewKondisi"
+        ).innerHTML =
+        data.anamnesis;
+
+
+
+    })
+
+
+    .catch(err=>{
+
+        console.error(err);
+
+    });
+
+
+}
+
+
+
+document.addEventListener(
+"DOMContentLoaded",
+function(){
+
+loadDataRujukan();
+
+});
+
+
+
     </script>
 
 </body>
