@@ -473,6 +473,13 @@
             font-size: 13.5px;
         }
 
+        .penunjang-box.selected {
+    border-style: solid;
+    border-color: var(--navy);
+    background: #e6ecff;
+    box-shadow: 0 0 0 2px rgba(18, 32, 107, 0.08);
+}
+
         /* ===== E-Prescribing ===== */
         table.obat-table {
             width: 100%;
@@ -1268,31 +1275,35 @@
                         <div class="field-block">
                             <div class="field-label">Anamnesis / Keluhan &amp; Riwayat Penyakit Sekarang <span
                                     class="req">*</span></div>
-                            <textarea class="input-area"
-                                placeholder="Tuliskan keluhan pasien secara mendetail di sini..."></textarea>
+
+                           <textarea
+    id="anamnesis"
+    class="input-area"
+    placeholder="Tuliskan keluhan pasien secara mendetail di sini..."
+></textarea>
                         </div>
 
                         <div class="field-block">
+
                             <div class="field-label">Diagnosis (ICD-10)</div>
                             <div class="search-input">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <circle cx="11" cy="11" r="7" />
                                     <path d="M21 21l-4.3-4.3" />
                                 </svg>
-                                <input type="text" placeholder="Cari kode ICD-10 atau nama penyakit...">
+                              <input
+    type="text"
+    id="diagnosisInput"
+    placeholder="Contoh: F20.0 - Paranoid Schizophrenia"
+>
                             </div>
-                            <div class="tags-row">
-                                <span class="diagnosis-tag">F20.0 - Paranoid Schizophrenia <button
-                                        aria-label="Hapus diagnosis">×</button></span>
-                                <span class="diagnosis-tag">F32.9 - Depressive Episode, Unspecified <button
-                                        aria-label="Hapus diagnosis">×</button></span>
-                            </div>
+                            <div class="tags-row" id="diagnosisTags"></div>
                         </div>
 
                         <div class="field-block">
                             <div class="field-label">Permintaan Pemeriksaan Penunjang</div>
                             <div class="penunjang-grid">
-                                <div class="penunjang-box">
+                                <div class="penunjang-box" data-jenis="Laboratorium" tabindex="0">
                                     <div class="icon-wrap">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M9 3h6v6l4 9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1l4-9V3z" />
@@ -1301,7 +1312,8 @@
                                     </div>
                                     <span>Laboratorium</span>
                                 </div>
-                                <div class="penunjang-box">
+
+                                <div class="penunjang-box" data-jenis="Radiologi" tabindex="0">
                                     <div class="icon-wrap">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <rect x="4" y="4" width="16" height="16" rx="2" />
@@ -1310,7 +1322,8 @@
                                     </div>
                                     <span>Radiologi</span>
                                 </div>
-                                <div class="penunjang-box">
+
+                                <div class="penunjang-box" data-jenis="Elektro Diagnostik" tabindex="0">
                                     <div class="icon-wrap">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <circle cx="5" cy="12" r="1.6" />
@@ -1352,42 +1365,7 @@
                                     <th></th>
                                 </tr>
                             </thead>
-                            <tbody id="obatTableBody">
-                                <tr>
-                                    <td>
-                                        <div class="obat-name">Risperidone 2mg Tab</div>
-                                    </td>
-                                    <td>2 mg</td>
-                                    <td>2 x 1 (Pagi, Malam)</td>
-                                    <td>30 Hari</td>
-                                    <td>60 Tab</td>
-                                    <td>
-                                        <button class="del-btn" aria-label="Hapus obat">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path
-                                                    d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                            </svg>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="obat-name">Diazepam 5mg Tab</div>
-                                    </td>
-                                    <td>5 mg</td>
-                                    <td>1 x 1 (Malam) - prn</td>
-                                    <td>10 Hari</td>
-                                    <td>10 Tab</td>
-                                    <td>
-                                        <button class="del-btn" aria-label="Hapus obat">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <path
-                                                    d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                            </svg>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
+                            <tbody id="obatTableBody"></tbody>
                         </table>
                     </div>
 
@@ -1402,19 +1380,29 @@
                                 Surat Izin Dokter
                             </a>
                         </div>
+
+
                         <div class="disposisi-row">
-                            <button class="disposisi-chip selected" data-disposisi="rawat-jalan">Rawat Jalan</button>
-                            <button class="disposisi-chip" data-disposisi="rawat-inap">Rawat Inap</button>
-                            <button class="disposisi-chip" id="chipRujukInternal" data-disposisi="rujuk-internal">Rujuk
-                                Internal</button>
-                            <a class="disposisi-chip" data-disposisi="rujuk-eksternal"
-                                href="surat-rujukan-eksternal.html">
+                            <button type="button" class="disposisi-chip" data-disposisi="rawat-jalan">
+                                Rawat Jalan
+                            </button>
+
+                            <button type="button" class="disposisi-chip" data-disposisi="rawat-inap">
+                                Rawat Inap
+                            </button>
+
+                            <button type="button" class="disposisi-chip" id="chipRujukInternal"
+                                data-disposisi="rujuk-internal">
+                                Rujuk Internal
+                            </button>
+
+                            <button type="button" class="disposisi-chip" data-disposisi="rujuk-eksternal">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M11 4H4a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1h15a1 1 0 0 0 1-1v-7" />
                                     <path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z" />
                                 </svg>
                                 Rujuk Eksternal
-                            </a>
+                            </button>
                         </div>
                         <div class="rujuk-target-note" id="rujukInternalNote" style="display:none;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1425,138 +1413,72 @@
                     </div>
                 </div>
 
-               <!-- ===== Tab 2: Asesmen & Riwayat ===== -->
+                <!-- ===== Tab 2: Asesmen & Riwayat ===== -->
                 <div class="tab-panel" id="tab-asesmen">
-    <div class="panel">
-        <div class="panel-head">
-            <h2>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/>
-                    <path d="M9 12l2 2 4-4"/>
-                </svg>
-                Hasil Asesmen Perawat (Anamnesis & Vital Sign)
-            </h2>
-        </div>
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h2>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
+                                    <path d="M9 12l2 2 4-4" />
+                                </svg>
+                                Hasil Asesmen Perawat (Anamnesis &amp; Vital Sign)
+                            </h2>
+                        </div>
 
-        <!-- Keluhan -->
-        <div class="field-label">
-            Keluhan Utama (Perawat)
-        </div>
+                        <div class="field-label">Keluhan Utama (Perawat)</div>
+                        <div class="keluhan-perawat" id="riwayat-keluhan">-</div>
 
-        <div class="keluhan-perawat" id="riwayat-keluhan">
-            - </div>
+                        <div class="vitals-grid">
+                            <div class="vital-box">
+                                <div class="vlabel">TD (BP)</div>
+                                <div class="vvalue">
+                                    <span id="riwayat-tekanan">-</span>
+                                    <span class="vunit">mmHg</span>
+                                </div>
+                            </div>
 
-        <!-- Vital -->
-        <div class="vitals-grid">
-            <div class="vital-box">
-                <div class="vlabel">
-                    TD (BP)
+                            <div class="vital-box">
+                                <div class="vlabel">Suhu</div>
+                                <div class="vvalue">
+                                    <span id="riwayat-suhu">-</span>
+                                    <span class="vunit">°C</span>
+                                </div>
+                            </div>
+
+                            <div class="vital-box">
+                                <div class="vlabel">Nadi (Pulse)</div>
+                                <div class="vvalue">
+                                    <span id="riwayat-nadi">-</span>
+                                    <span class="vunit">x/mnt</span>
+                                </div>
+                            </div>
+
+                            <div class="vital-box">
+                                <div class="vlabel">RR</div>
+                                <div class="vvalue">
+                                    <span id="riwayat-pernapasan">-</span>
+                                    <span class="vunit">x/mnt</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field-label">Alergi</div>
+                        <div class="tags-row" id="riwayat-alergi">
+                            <span class="pill allergy-pill none">Memuat data alergi...</span>
+                        </div>
+                    </div>
                 </div>
-
-                <div class="vvalue">
-                    <span id="riwayat-tekanan">
-                        -
-                    </span>
-
-                    <span class="vunit">
-                        mmHg
-                    </span>
-                </div>
-            </div>
-
-
-
-            <div class="vital-box">
-                <div class="vlabel">
-                    SUHU
-                </div>
-
-                <div class="vvalue">
-
-                    <span id="riwayat-suhu">
-                        -
-                    </span>
-
-                    <span class="vunit">
-                        °C
-                    </span>
-
-                </div>
-            </div>
-
-            <div class="vital-box">
-                <div class="vlabel">
-                    NADI (PULSE)
-                </div>
-                <div class="vvalue">
-
-                    <span id="riwayat-nadi">
-                        -
-                    </span>
-
-                    <span class="vunit">
-                        x/mnt
-                    </span>
-
-                </div>
-
-            </div>
-
-
-
-
-            <div class="vital-box">
-
-                <div class="vlabel">
-                    RR
-                </div>
-
-                <div class="vvalue">
-                    <span id="riwayat-pernapasan">
-                        -
-                    </span>
-
-                    <span class="vunit">
-                        x/mnt
-                    </span>
-
-                </div>
-
-            </div>
-
-
-
-
-        </div>
-
-
-
-        <!-- Alergi -->
-
-        <div class="field-label">
-            Alergi
-        </div>
-
-
-        <div class="tags-row" id="riwayat-alergi">
-
-            <!-- otomatis dari database -->
-
-        </div>
-
-
-
-    </div>
-
-
-</div>
 
             </section>
 
             <!-- Bottom action bar -->
             <div class="bottom-bar">
                 <button class="btn btn-batal">Batal &amp; Keluar</button>
-                <button class="btn btn-simpan">
+                <button
+    type="button"
+    class="btn btn-simpan"
+    id="btnSimpanPemeriksaan">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
                         <path d="M17 21v-8H7v8M7 3v5h8" />
@@ -1785,16 +1707,133 @@
             chip.classList.add('selected');
         }
 
+
         document.querySelectorAll('.disposisi-chip').forEach(function (chip) {
             chip.addEventListener('click', function () {
-                if (chip.dataset.disposisi === 'rujuk-internal') {
-                    openRujukModal();
-                    return;
-                }
-                selectDisposisiChip(chip);
-                rujukInternalNote.style.display = 'none';
-            });
-        });
+
+
+        // Rujuk Internal buka modal poli
+        if (chip.dataset.disposisi === 'rujuk-internal') {
+
+            openRujukModal();
+            return;
+
+        }
+
+
+        // Rujuk Eksternal buka halaman surat rujukan
+        if (chip.dataset.disposisi === 'rujuk-eksternal') {
+
+            selectDisposisiChip(chip);
+
+            window.location.href =
+                "surat-rujukan-eksternal.html";
+            return;
+        }
+
+
+        // pilihan lainnya
+        selectDisposisiChip(chip);
+
+        rujukInternalNote.style.display = 'none';
+
+    });
+
+});
+        // ==========================================
+// DIAGNOSIS
+// ==========================================
+
+const diagnosisInput = document.getElementById("diagnosisInput");
+const diagnosisTags = document.getElementById("diagnosisTags");
+
+function tambahDiagnosis() {
+    const nilai = diagnosisInput.value.trim();
+
+    if (nilai === "") {
+        return;
+    }
+
+    // Format wajib: F20.0 - Nama Diagnosis
+    const hasil = nilai.match(
+        /^([A-Z]\d{2}(?:\.\d{1,2})?)\s*-\s*(.+)$/i
+    );
+
+    if (!hasil) {
+        alert(
+            "Format diagnosis harus seperti: F20.0 - Paranoid Schizophrenia"
+        );
+
+        diagnosisInput.focus();
+        return;
+    }
+
+    const kode = hasil[1].toUpperCase();
+    const nama = hasil[2].trim();
+
+    const sudahAda = Array.from(
+        diagnosisTags.querySelectorAll(".diagnosis-tag")
+    ).some(function (tag) {
+        return tag.dataset.kode === kode;
+    });
+
+    if (sudahAda) {
+        alert("Kode diagnosis tersebut sudah ditambahkan.");
+        return;
+    }
+
+    const tag = document.createElement("span");
+    tag.className = "diagnosis-tag";
+    tag.dataset.kode = kode;
+    tag.dataset.nama = nama;
+
+    const teks = document.createElement("span");
+    teks.textContent = kode + " - " + nama;
+
+    const tombolHapus = document.createElement("button");
+    tombolHapus.type = "button";
+    tombolHapus.textContent = "×";
+    tombolHapus.setAttribute("aria-label", "Hapus diagnosis");
+
+    tombolHapus.addEventListener("click", function () {
+        tag.remove();
+    });
+
+    tag.appendChild(teks);
+    tag.appendChild(tombolHapus);
+
+    diagnosisTags.appendChild(tag);
+
+    diagnosisInput.value = "";
+    diagnosisInput.focus();
+}
+
+diagnosisInput.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        tambahDiagnosis();
+    }
+});
+
+
+// ==========================================
+// PEMERIKSAAN PENUNJANG
+// ==========================================
+
+document.querySelectorAll(".penunjang-box").forEach(function (box) {
+
+    box.addEventListener("click", function () {
+        box.classList.toggle("selected");
+    });
+
+    box.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            box.classList.toggle("selected");
+        }
+    });
+
+});
 
         // ===== Modal Tambah Obat =====
         var modalOverlay = document.getElementById('modalTambahObat');
@@ -1868,40 +1907,120 @@
         document.querySelectorAll('#obatTableBody .del-btn').forEach(bindDeleteButton);
 
         if (modalSubmitBtn) {
-            modalSubmitBtn.addEventListener('click', function () {
-                var namaObat = modalNamaObat.value.trim();
-                if (!namaObat) {
-                    modalNamaObat.focus();
-                    return;
-                }
-                var dosis = modalDosis.value.trim() || '-';
-                var freqLabelPart = modalFrekuensi.value.split('|');
-                var freqCount = freqLabelPart[0];
-                var freqWaktu = freqLabelPart[1];
-                var freqLabel = freqCount === '0'
-                    ? freqWaktu
-                    : freqCount + ' x 1 (' + freqWaktu + ')';
-                var durasi = (parseInt(modalDurasi.value, 10) || 0) + ' Hari';
-                var jumlah = modalTotal.value + ' Tab';
+    modalSubmitBtn.addEventListener("click", function () {
 
-                var tr = document.createElement('tr');
-                tr.innerHTML =
-                    '<td><div class="obat-name">' + namaObat + '</div></td>' +
-                    '<td>' + dosis + '</td>' +
-                    '<td>' + freqLabel + '</td>' +
-                    '<td>' + durasi + '</td>' +
-                    '<td>' + jumlah + '</td>' +
-                    '<td><button class="del-btn" aria-label="Hapus obat">' +
-                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
-                    '<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />' +
-                    '</svg></button></td>';
+        const namaObat = modalNamaObat.value.trim();
+        const dosis = modalDosis.value.trim();
+        const instruksi = modalInstruksi.value.trim();
 
-                obatTableBody.appendChild(tr);
-                bindDeleteButton(tr.querySelector('.del-btn'));
-
-                closeModal();
-            });
+        if (namaObat === "") {
+            alert("Nama obat wajib diisi.");
+            modalNamaObat.focus();
+            return;
         }
+
+        if (dosis === "") {
+            alert("Dosis obat wajib diisi.");
+            modalDosis.focus();
+            return;
+        }
+
+        const frekuensiBagian = modalFrekuensi.value.split("|");
+        const jumlahPemakaian = frekuensiBagian[0];
+        const waktuPemakaian = frekuensiBagian[1];
+
+        const frekuensi =
+            jumlahPemakaian === "0"
+                ? waktuPemakaian
+                : jumlahPemakaian + " x 1 (" + waktuPemakaian + ")";
+
+        const durasiAngka =
+            parseInt(modalDurasi.value, 10) || 0;
+
+        if (durasiAngka <= 0) {
+            alert("Durasi pemakaian harus lebih dari 0 hari.");
+            modalDurasi.focus();
+            return;
+        }
+
+        const lamaPemakaian = durasiAngka + " Hari";
+        const jumlah = modalTotal.value + " Tab";
+
+        const baris = document.createElement("tr");
+
+        // Data yang nanti dikirim ke PHP
+        baris.dataset.namaObat = namaObat;
+        baris.dataset.dosis = dosis;
+        baris.dataset.frekuensi = frekuensi;
+        baris.dataset.lamaPemakaian = lamaPemakaian;
+        baris.dataset.jumlah = jumlah;
+        baris.dataset.instruksi = instruksi;
+
+        function buatKolom(teks, className = "") {
+            const td = document.createElement("td");
+            const elemen = document.createElement("div");
+
+            elemen.textContent = teks;
+
+            if (className !== "") {
+                elemen.className = className;
+            }
+
+            td.appendChild(elemen);
+            return td;
+        }
+
+        baris.appendChild(
+            buatKolom(namaObat, "obat-name")
+        );
+
+        baris.appendChild(
+            buatKolom(dosis)
+        );
+
+        baris.appendChild(
+            buatKolom(frekuensi)
+        );
+
+        baris.appendChild(
+            buatKolom(lamaPemakaian)
+        );
+
+        baris.appendChild(
+            buatKolom(jumlah)
+        );
+
+        const kolomAksi = document.createElement("td");
+        const tombolHapus = document.createElement("button");
+
+        tombolHapus.type = "button";
+        tombolHapus.className = "del-btn";
+        tombolHapus.setAttribute("aria-label", "Hapus obat");
+
+        tombolHapus.innerHTML = `
+            <svg viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2">
+                <path d="M3 6h18M8 6V4a2 2 0 0 1
+                2-2h4a2 2 0 0 1 2 2v2m3 0-1
+                14a2 2 0 0 1-2 2H8a2 2 0 0
+                1-2-2L5 6"></path>
+            </svg>
+        `;
+
+        tombolHapus.addEventListener("click", function () {
+            baris.remove();
+        });
+
+        kolomAksi.appendChild(tombolHapus);
+        baris.appendChild(kolomAksi);
+
+        obatTableBody.appendChild(baris);
+
+        closeModal();
+    });
+}
 
         // ===== Modal Rujuk Internal =====
         var daftarPoli = [
@@ -2093,8 +2212,8 @@ pasien.nama_pasien;
 
 document.getElementById(
 "no-rm"
-).innerHTML =
-"No. RM : "+pasien.no_rm;
+).textContent =
+pasien.no_rm || "-";
 
 
 
@@ -2147,14 +2266,16 @@ data
 
 
 
-if(data.status==="empty"){
-
-console.log(
-"Belum ada asesmen"
-);
-
-return;
-
+if(data.status === "empty") {
+    console.log("Belum ada asesmen");
+    document.getElementById("riwayat-keluhan").textContent = "Belum ada data asesmen perawat.";
+    document.getElementById("riwayat-tekanan").textContent = "-";
+    document.getElementById("riwayat-suhu").textContent = "-";
+    document.getElementById("riwayat-nadi").textContent = "-";
+    document.getElementById("riwayat-pernapasan").textContent = "-";
+    document.getElementById("riwayat-alergi").innerHTML =
+        '<span class="pill allergy-pill none">Belum ada data alergi</span>';
+    return;
 }
 
 
@@ -2255,6 +2376,189 @@ err
 
 });
 }
+// ==========================================
+// SIMPAN PEMERIKSAAN DOKTER
+// ==========================================
+
+async function simpanPemeriksaanDokter() {
+
+    const idPendaftaran = getIdPendaftaran();
+
+    const anamnesis =
+        document.getElementById("anamnesis").value.trim();
+
+    const tombolSimpan =
+        document.getElementById("btnSimpanPemeriksaan");
+
+    if (!idPendaftaran) {
+        alert("ID pendaftaran pasien tidak ditemukan.");
+        return;
+    }
+
+    if (anamnesis === "") {
+        alert("Anamnesis wajib diisi.");
+        document.getElementById("anamnesis").focus();
+        return;
+    }
+
+    const diagnosis = Array.from(
+        document.querySelectorAll(
+            "#diagnosisTags .diagnosis-tag"
+        )
+    ).map(function (tag) {
+        return {
+            kode: tag.dataset.kode,
+            nama: tag.dataset.nama
+        };
+    });
+
+    if (diagnosis.length === 0) {
+        alert("Minimal satu diagnosis harus ditambahkan.");
+        diagnosisInput.focus();
+        return;
+    }
+
+    const pemeriksaanPenunjang = Array.from(
+        document.querySelectorAll(
+            ".penunjang-box.selected"
+        )
+    ).map(function (box) {
+        return box.dataset.jenis;
+    });
+
+    const resep = Array.from(
+        document.querySelectorAll(
+            "#obatTableBody tr"
+        )
+    ).map(function (baris) {
+        return {
+            nama_obat: baris.dataset.namaObat,
+            dosis: baris.dataset.dosis,
+            frekuensi: baris.dataset.frekuensi,
+            lama_pemakaian: baris.dataset.lamaPemakaian,
+            jumlah: baris.dataset.jumlah,
+            instruksi: baris.dataset.instruksi
+        };
+    });
+
+    const disposisiTerpilih =
+        document.querySelector(
+            ".disposisi-chip.selected"
+        );
+
+    if (!disposisiTerpilih) {
+        alert("Pilih tindak lanjut atau disposisi pasien.");
+        return;
+    }
+
+    const petaDisposisi = {
+        "rawat-jalan": "Rawat Jalan",
+        "rawat-inap": "Rawat Inap",
+        "rujuk-internal": "Rujuk Internal",
+        "rujuk-eksternal": "Rujuk Eksternal"
+    };
+
+    const kodeDisposisi =
+        disposisiTerpilih.dataset.disposisi;
+
+    let tujuan = "";
+
+    if (kodeDisposisi === "rujuk-internal") {
+        tujuan =
+            document.getElementById(
+                "rujukInternalTarget"
+            ).textContent.trim();
+
+        if (tujuan === "") {
+            alert("Pilih poliklinik tujuan rujuk internal.");
+            return;
+        }
+    }
+
+    const namaDokter =
+        document.querySelector(".doc-name")
+            .textContent.trim();
+
+    const payload = {
+        id_pendaftaran: Number(idPendaftaran),
+        nama_dokter: namaDokter,
+        anamnesis: anamnesis,
+        diagnosis: diagnosis,
+        penunjang: pemeriksaanPenunjang,
+        resep: resep,
+        disposisi: {
+            keputusan: petaDisposisi[kodeDisposisi],
+            tujuan: tujuan,
+            keterangan: ""
+        }
+    };
+
+    try {
+        tombolSimpan.disabled = true;
+        tombolSimpan.textContent = "Menyimpan...";
+
+        const response = await fetch(
+            "../api/simpan_pemeriksaan.php",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            }
+        );
+
+        const hasil = await response.json();
+
+        if (!response.ok || hasil.status !== "success") {
+            throw new Error(
+                hasil.message ||
+                "Pemeriksaan gagal disimpan."
+            );
+        }
+
+        alert(
+            "Pemeriksaan berhasil disimpan.\n" +
+            "ID Pemeriksaan: " +
+            hasil.id_pemeriksaan
+        );
+
+        sessionStorage.removeItem("id_pendaftaran");
+
+        tombolSimpan.textContent =
+            "Pemeriksaan Sudah Disimpan";
+
+    } catch (error) {
+        console.error(error);
+
+        alert(
+            "Gagal menyimpan pemeriksaan: " +
+            error.message
+        );
+
+        tombolSimpan.disabled = false;
+        tombolSimpan.innerHTML = `
+            <svg viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2
+                2 0 0 1 2-2h11l5 5v11a2 2
+                0 0 1-2 2z"></path>
+                <path d="M17 21v-8H7v8M7 3v5h8"></path>
+            </svg>
+            Simpan & Selesai Pemeriksaan
+        `;
+    }
+}
+
+document
+    .getElementById("btnSimpanPemeriksaan")
+    .addEventListener(
+        "click",
+        simpanPemeriksaanDokter
+    );
+
 
 document.addEventListener(
 "DOMContentLoaded",
