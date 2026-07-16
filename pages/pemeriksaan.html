@@ -1224,10 +1224,13 @@
             </header>
 
             <!-- Content -->
-            <section class="content">
+            <!-- Content -->
+<section class="content">
 
-                <!-- Identitas pasien -->
-                <div class="patient-bar">
+    <!-- Menyimpan ID pasien aktif -->
+    <input type="hidden" id="id-pendaftaran">
+    <!-- Identitas pasien -->
+    <div class="patient-bar">
                     <img class="patient-photo"
                         src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&h=200&fit=crop&crop=faces"
                         alt="Foto pasien">
@@ -1422,61 +1425,143 @@
                     </div>
                 </div>
 
-                <!-- ===== Tab 2: Asesmen & Riwayat ===== -->
+               <!-- ===== Tab 2: Asesmen & Riwayat ===== -->
                 <div class="tab-panel" id="tab-asesmen">
-                    <div class="panel">
-                        <div class="panel-head">
-                            <h2>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
-                                    <path d="M9 12l2 2 4-4" />
-                                </svg>
-                                Hasil Asesmen Perawat (Anamnesis &amp; Vital Sign)
-                            </h2>
-                        </div>
+    <div class="panel">
+        <div class="panel-head">
+            <h2>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 3h6a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/>
+                    <path d="M9 12l2 2 4-4"/>
+                </svg>
+                Hasil Asesmen Perawat (Anamnesis & Vital Sign)
+            </h2>
+        </div>
 
-                        <div class="field-label">Keluhan Utama (Perawat)</div>
-                        <div class="keluhan-perawat">
-                            Pasien datang dengan keluhan sering mendengar suara-suara bisikan dan merasa
-                            ketakutan tanpa alasan jelas sejak 3 hari terakhir.
-                        </div>
+        <!-- Keluhan -->
+        <div class="field-label">
+            Keluhan Utama (Perawat)
+        </div>
 
-                        <div class="vitals-grid">
-                            <div class="vital-box">
-                                <div class="vlabel">TD (BP)</div>
-                                <div class="vvalue">120/80 <span class="vunit">mmHg</span></div>
-                            </div>
-                            <div class="vital-box">
-                                <div class="vlabel">Suhu</div>
-                                <div class="vvalue">36.8 <span class="vunit">°C</span></div>
-                            </div>
-                            <div class="vital-box">
-                                <div class="vlabel">Nadi (Pulse)</div>
-                                <div class="vvalue">88 <span class="vunit">x/mnt</span></div>
-                            </div>
-                            <div class="vital-box">
-                                <div class="vlabel">RR</div>
-                                <div class="vvalue">18 <span class="vunit">x/mnt</span></div>
-                            </div>
-                            <div class="vital-box">
-                                <div class="vlabel">SPO2</div>
-                                <div class="vvalue">99 <span class="vunit">%</span></div>
-                            </div>
-                            <div class="vital-box">
-                                <div class="vlabel">BB / TB</div>
-                                <div class="vvalue">70 <span class="vunit">kg</span> / 170 <span class="vunit">cm</span>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="field-label">Alergi</div>
-                        <div class="tags-row">
-                            <span class="pill allergy-pill">Amoxicillin</span>
-                            <span class="pill allergy-pill seafood">Seafood</span>
-                            <span class="pill allergy-pill none">Tidak Ada Alergi Dingin</span>
-                        </div>
-                    </div>
+        <div class="keluhan-perawat" id="riwayat-keluhan">
+            -
+        </div>
+
+
+
+        <!-- Vital -->
+        <div class="vitals-grid">
+
+
+            <div class="vital-box">
+                <div class="vlabel">
+                    TD (BP)
                 </div>
+
+                <div class="vvalue">
+                    <span id="riwayat-tekanan">
+                        -
+                    </span>
+
+                    <span class="vunit">
+                        mmHg
+                    </span>
+                </div>
+            </div>
+
+
+
+            <div class="vital-box">
+                <div class="vlabel">
+                    SUHU
+                </div>
+
+                <div class="vvalue">
+
+                    <span id="riwayat-suhu">
+                        -
+                    </span>
+
+                    <span class="vunit">
+                        °C
+                    </span>
+
+                </div>
+            </div>
+
+
+
+
+            <div class="vital-box">
+
+                <div class="vlabel">
+                    NADI (PULSE)
+                </div>
+
+                <div class="vvalue">
+
+                    <span id="riwayat-nadi">
+                        -
+                    </span>
+
+                    <span class="vunit">
+                        x/mnt
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+
+            <div class="vital-box">
+
+                <div class="vlabel">
+                    RR
+                </div>
+
+                <div class="vvalue">
+
+                    <span id="riwayat-pernapasan">
+                        -
+                    </span>
+
+                    <span class="vunit">
+                        x/mnt
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+
+
+
+        <!-- Alergi -->
+
+        <div class="field-label">
+            Alergi
+        </div>
+
+
+        <div class="tags-row" id="riwayat-alergi">
+
+            <!-- otomatis dari database -->
+
+        </div>
+
+
+
+    </div>
+
+
+</div>
 
             </section>
 
@@ -1935,54 +2020,74 @@
             closeRujukModal();
         });
 
-function loadPasien(){
-
+function loadPasienPemeriksaan(){
 
 fetch("../api/get_pasien_pemeriksaan.php")
 
-
 .then(res=>res.json())
 
-
 .then(data=>{
+
+
+console.log("DATA PASIEN",data);
+
+
+
+if(data.length===0){
+
+alert("Tidak ada pasien pemeriksaan");
+
+return;
+
+}
+
 
 
 let pasien=data[0];
 
 
-document.getElementById(
-"nama-pasien"
-).innerHTML =
+
+// IDENTITAS PASIEN
+
+document.getElementById("nama-pasien").innerHTML =
 pasien.nama_pasien;
 
 
-
-document.getElementById(
-"no-rm"
-).innerHTML =
+document.getElementById("no-rm").innerHTML =
 pasien.no_rm;
 
 
-
-document.getElementById(
-"tgl-lahir"
-).innerHTML =
+document.getElementById("tgl-lahir").innerHTML =
 pasien.tanggal_lahir;
 
 
-
-document.getElementById(
-"gender"
-).innerHTML =
+document.getElementById("gender").innerHTML =
 pasien.jenis_kelamin;
 
 
 
-loadAsesmen(
+
+// SIMPAN ID PASIEN AKTIF
+
+document.getElementById("id-pendaftaran").value =
+pasien.id_pendaftaran;
+
+// AMBIL ASESMEN PERAWAT
+
+loadAsesmenPasien(
 pasien.id_pendaftaran
 );
 
 
+
+})
+
+.catch(err=>{
+
+console.error(
+"Error pasien:",
+err
+);
 
 });
 
@@ -1992,7 +2097,12 @@ pasien.id_pendaftaran
 
 
 
-function loadAsesmen(id){
+// =================================
+// AMBIL ASESMEN PERAWAT
+// =================================
+
+
+function loadAsesmenPasien(id){
 
 
 fetch(
@@ -2006,87 +2116,115 @@ fetch(
 .then(data=>{
 
 
-console.log(data);
+console.log(
+"DATA ASESMEN",
+data
+);
 
 
-// nanti masuk tab asesmen
 
+// KELUHAN
 
-document.querySelector(
-".keluhan-perawat"
+document.getElementById(
+"keluhan-perawat"
 ).innerHTML =
-data.keluhan_awal;
+data.keluhan_awal || "-";
 
 
 
-let vital=document.querySelectorAll(
-".vital-box .vvalue"
-);
+
+// TEKANAN DARAH
+
+document.getElementById(
+"asesmen-td"
+).innerHTML =
+data.tekanan_darah || "-";
 
 
 
-vital[0].innerHTML =
-data.tekanan_darah+
-' <span class="vunit">mmHg</span>';
+
+// SUHU
+
+document.getElementById(
+"asesmen-suhu"
+).innerHTML =
+data.suhu || "-";
 
 
 
-vital[1].innerHTML =
-data.suhu+
-' <span class="vunit">°C</span>';
+
+// NADI
+
+document.getElementById(
+"asesmen-nadi"
+).innerHTML =
+data.nadi || "-";
 
 
 
-vital[2].innerHTML =
-data.nadi+
-' <span class="vunit">x/mnt</span>';
+
+// RR
+
+document.getElementById(
+"asesmen-rr"
+).innerHTML =
+data.pernapasan || "-";
 
 
 
-vital[3].innerHTML =
-data.pernapasan+
-' <span class="vunit">x/mnt</span>';
+
+// ALERGI
+
+let alergi =
+data.alergi;
 
 
+if(!alergi || alergi==""){
 
-let alergi=document.querySelector(
-".tags-row"
-);
-
-
-alergi.innerHTML=`
-
-<span class="pill allergy-pill">
-${data.alergi}
-</span>
-
-`;
-
-
-
-});
-
+alergi =
+"Tidak Ada Alergi";
 
 }
 
 
+document.getElementById(
+"asesmen-alergi"
+).innerHTML =
+alergi;
+
+
+
+})
+
+
+.catch(err=>{
+
+console.error(
+"Error asesmen:",
+err
+);
+
+});
+}
 
 document.addEventListener(
 "DOMContentLoaded",
 function(){
 
-loadPasien();
+loadNavbar();
+loadPasienPemeriksaan();
+hitungTotalKuantitas();
+
+
+if(window.lucide){
+
+lucide.createIcons();
 
 }
 
-);
+});
 
-        document.addEventListener('DOMContentLoaded', function () {
-            loadNavbar();
-            hitungTotalKuantitas();
-        });
-    </script>
-
+</script>
 </body>
 
 </html>
