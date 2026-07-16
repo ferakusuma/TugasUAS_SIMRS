@@ -1396,13 +1396,18 @@
                                 Rujuk Internal
                             </button>
 
-                            <button class="disposisi-chip" data-disposisi="rujuk-eksternal" id="btnRujukEksternal">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M11 4H4a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1h15a1 1 0 0 0 1-1v-7" />
-                                    <path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z" />
-                                </svg>
-                                Rujuk Eksternal
-                            </button>
+                            <button 
+type="button"
+class="disposisi-chip" 
+data-disposisi="rujuk-eksternal" 
+id="btnRujukEksternal">
+
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M11 4H4a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1h15a1 1 0 0 0 1-1v-7"/>
+        <path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/>
+    </svg>
+    Rujuk Eksternal
+</button>
                         </div>
                         <div class="rujuk-target-note" id="rujukInternalNote" style="display:none;">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1706,53 +1711,653 @@
             });
             chip.classList.add('selected');
         }
+        // ==========================================
+// SIMPAN DRAFT PEMERIKSAAN SEBELUM RUJUK
+// ==========================================
+
+function simpanDraftPemeriksaan(){
 
 
-        document.querySelectorAll('.disposisi-chip').forEach(function (chip) {
-            chip.addEventListener('click', function () {
+    const draft = {
 
 
-        // Rujuk Internal buka modal poli
-        if (chip.dataset.disposisi === 'rujuk-internal') {
-
-            openRujukModal();
-            return;
-
-        }
-        // Rujuk Eksternal buka halaman surat rujukan membawa ID pasien
-if (chip.dataset.disposisi === 'rujuk-eksternal') {
-
-    selectDisposisiChip(chip);
+        anamnesis:
+        document.getElementById("anamnesis").value,
 
 
-    let idPendaftaran =
-        getIdPendaftaran();
+        diagnosis:
+        Array.from(
+            document.querySelectorAll(
+                "#diagnosisTags .diagnosis-tag"
+            )
+        ).map(function(tag){
+
+            return {
+
+                kode: tag.dataset.kode,
+                nama: tag.dataset.nama
+
+            };
+
+        }),
 
 
-    if(!idPendaftaran){
 
-        alert(
-            "ID pasien tidak ditemukan"
+        resep:
+        Array.from(
+            document.querySelectorAll(
+                "#obatTableBody tr"
+            )
+        ).map(function(row){
+
+            return {
+
+                nama_obat: row.dataset.namaObat,
+                dosis: row.dataset.dosis,
+                frekuensi: row.dataset.frekuensi,
+                lama_pemakaian: row.dataset.lamaPemakaian,
+                jumlah: row.dataset.jumlah,
+                instruksi: row.dataset.instruksi
+
+            };
+
+        }),
+
+
+
+        penunjang:
+        Array.from(
+            document.querySelectorAll(
+                ".penunjang-box.selected"
+            )
+        ).map(function(box){
+
+            return box.dataset.jenis;
+
+        })
+
+    };
+
+
+
+    sessionStorage.setItem(
+        "draft_pemeriksaan",
+        JSON.stringify(draft)
+    );
+
+
+    console.log(
+        "DRAFT PEMERIKSAAN DISIMPAN",
+        draft
+    );
+
+
+}
+
+
+
+// ==========================================
+// LOAD DRAFT SETELAH KEMBALI DARI RUJUKAN
+// ==========================================
+
+
+function loadDraftPemeriksaan(){
+
+
+    let draft =
+    sessionStorage.getItem(
+        "draft_pemeriksaan"
+    );
+
+
+    if(!draft){
+
+        console.log(
+            "Tidak ada draft"
         );
 
         return;
 
     }
 
-    window.location.href =
-"surat-rujukan-eksternal.html?id_pendaftaran="
-+getIdPendaftaran();
-    return;
+
+
+    draft =
+    JSON.parse(draft);
+
+
+
+    // ANAMNESIS
+
+    let anamnesis =
+    document.getElementById(
+        "anamnesis"
+    );
+
+
+    if(anamnesis){
+
+        anamnesis.value =
+        draft.anamnesis || "";
+
+    }
+
+
+
+
+
+    // DIAGNOSIS
+
+    let diagnosisBox =
+    document.getElementById(
+        "diagnosisTags"
+    );
+
+
+    if(diagnosisBox){
+
+
+        diagnosisBox.innerHTML="";
+
+
+        draft.diagnosis.forEach(function(item){
+
+
+            let tag =
+            document.createElement(
+                "span"
+            );
+
+
+            tag.className =
+            "diagnosis-tag";
+
+
+            tag.dataset.kode =
+            item.kode;
+
+
+            tag.dataset.nama =
+            item.nama;
+
+
+
+            tag.innerHTML =
+
+            item.kode
+            +" - "
+            +item.nama;
+
+
+
+            diagnosisBox.appendChild(tag);
+
+
+        });
+
+
+    }
+
+
+
+
+
+    // RESEP
+
+    let tbody =
+    document.getElementById(
+        "obatTableBody"
+    );
+
+
+    if(tbody){
+
+
+        tbody.innerHTML="";
+
+
+        draft.resep.forEach(function(obat){
+
+
+
+            let tr =
+            document.createElement(
+                "tr"
+            );
+
+
+
+            tr.dataset.namaObat =
+            obat.nama_obat;
+
+
+            tr.dataset.dosis =
+            obat.dosis;
+
+
+            tr.dataset.frekuensi =
+            obat.frekuensi;
+
+
+            tr.dataset.lamaPemakaian =
+            obat.lama_pemakaian;
+
+
+            tr.dataset.jumlah =
+            obat.jumlah;
+
+
+            tr.dataset.instruksi =
+            obat.instruksi;
+
+
+
+
+            tr.innerHTML = `
+
+            <td>${obat.nama_obat}</td>
+            <td>${obat.dosis}</td>
+            <td>${obat.frekuensi}</td>
+            <td>${obat.lama_pemakaian}</td>
+            <td>${obat.jumlah}</td>
+
+            `;
+
+
+
+            tbody.appendChild(tr);
+
+
+        });
+
+
+    }
+
+
+
 }
 
 
-        // pilihan lainnya
+
+// ==========================================
+// PILIH DISPOSISI
+// ==========================================
+
+
+document.querySelectorAll('.disposisi-chip')
+.forEach(function(chip){
+
+
+
+    chip.addEventListener(
+    'click',
+    function(){
+
+
+
+        // RUJUK INTERNAL
+
+        if(
+        chip.dataset.disposisi
+        ===
+        "rujuk-internal"
+        ){
+
+
+            openRujukModal();
+
+            return;
+
+        }
+
+
+
+
+
+        // RUJUK EKSTERNAL
+
+
+        if(
+        chip.dataset.disposisi
+        ===
+        "rujuk-eksternal"
+        ){
+
+
+
+            let id =
+            getIdPendaftaran();
+
+
+
+            if(!id){
+
+                alert(
+                "ID pasien tidak ditemukan"
+                );
+
+                return;
+
+            }
+
+
+
+            // SIMPAN DATA DOKTER DULU
+
+            simpanDraftPemeriksaan();
+
+
+
+            sessionStorage.setItem(
+                "disposisi",
+                "rujuk-eksternal"
+            );
+
+
+
+            sessionStorage.setItem(
+                "id_pendaftaran",
+                id
+            );
+
+
+
+            window.location.href =
+
+            "surat-rujukan-eksternal.html?id_pendaftaran="
+            +id;
+
+
+
+            return;
+
+
+        }
+
+
+
+
+
+        // LAINNYA
+
         selectDisposisiChip(chip);
-
-        rujukInternalNote.style.display = 'none';
-
+        rujukInternalNote.style.display =
+        "none";
     });
+});
 
+ function loadDraftPemeriksaan(){
+
+
+    let draft =
+    sessionStorage.getItem(
+        "draft_pemeriksaan"
+    );
+
+
+    if(!draft){
+
+        console.log(
+            "Tidak ada draft"
+        );
+
+        return;
+
+    }
+
+
+
+    draft =
+    JSON.parse(draft);
+
+
+
+    // ANAMNESIS
+
+    let anamnesis =
+    document.getElementById(
+        "anamnesis"
+    );
+
+
+    if(anamnesis){
+
+        anamnesis.value =
+        draft.anamnesis || "";
+
+    }
+
+
+
+
+
+    // DIAGNOSIS
+
+    let diagnosisBox =
+    document.getElementById(
+        "diagnosisTags"
+    );
+
+
+    if(diagnosisBox){
+
+
+        diagnosisBox.innerHTML="";
+
+
+        draft.diagnosis.forEach(function(item){
+
+
+            let tag =
+            document.createElement(
+                "span"
+            );
+
+
+            tag.className =
+            "diagnosis-tag";
+
+
+            tag.dataset.kode =
+            item.kode;
+
+
+            tag.dataset.nama =
+            item.nama;
+
+
+
+            tag.innerHTML =
+
+            item.kode
+            +" - "
+            +item.nama;
+
+
+
+            diagnosisBox.appendChild(tag);
+
+
+        });
+
+
+    }
+
+
+
+
+
+    // RESEP
+
+    let tbody =
+    document.getElementById(
+        "obatTableBody"
+    );
+
+
+    if(tbody){
+
+
+        tbody.innerHTML="";
+
+
+        draft.resep.forEach(function(obat){
+
+
+
+            let tr =
+            document.createElement(
+                "tr"
+            );
+
+
+
+            tr.dataset.namaObat =
+            obat.nama_obat;
+
+
+            tr.dataset.dosis =
+            obat.dosis;
+
+
+            tr.dataset.frekuensi =
+            obat.frekuensi;
+
+
+            tr.dataset.lamaPemakaian =
+            obat.lama_pemakaian;
+
+
+            tr.dataset.jumlah =
+            obat.jumlah;
+
+
+            tr.dataset.instruksi =
+            obat.instruksi;
+
+
+
+
+            tr.innerHTML = `
+
+            <td>${obat.nama_obat}</td>
+            <td>${obat.dosis}</td>
+            <td>${obat.frekuensi}</td>
+            <td>${obat.lama_pemakaian}</td>
+            <td>${obat.jumlah}</td>
+
+            `;
+
+
+
+            tbody.appendChild(tr);
+
+
+        });
+
+
+    }
+
+
+
+}
+
+
+
+// ==========================================
+// PILIH DISPOSISI
+// ==========================================
+
+
+document.querySelectorAll('.disposisi-chip')
+.forEach(function(chip){
+
+
+
+    chip.addEventListener(
+    'click',
+    function(){
+
+
+
+        // RUJUK INTERNAL
+
+        if(
+        chip.dataset.disposisi
+        ===
+        "rujuk-internal"
+        ){
+
+
+            openRujukModal();
+
+            return;
+
+        }
+
+
+
+
+
+        // RUJUK EKSTERNAL
+
+
+        if(
+        chip.dataset.disposisi
+        ===
+        "rujuk-eksternal"
+        ){
+
+
+
+            let id =
+            getIdPendaftaran();
+
+
+
+            if(!id){
+
+                alert(
+                "ID pasien tidak ditemukan"
+                );
+
+                return;
+
+            }
+
+
+
+            // SIMPAN DATA DOKTER DULU
+
+            simpanDraftPemeriksaan();
+
+
+
+            sessionStorage.setItem(
+                "disposisi",
+                "rujuk-eksternal"
+            );
+
+
+
+            sessionStorage.setItem(
+                "id_pendaftaran",
+                id
+            );
+
+
+
+            window.location.href =
+
+            "surat-rujukan-eksternal.html?id_pendaftaran="
+            +id;
+            return;
+        }
+        // LAINNYA
+        selectDisposisiChip(chip);
+        rujukInternalNote.style.display =
+        "none";
+    });
 });
         // ==========================================
 // DIAGNOSIS
@@ -2141,6 +2746,8 @@ document.querySelectorAll(".penunjang-box").forEach(function (box) {
             closeRujukModal();
         });
 
+       
+
 function getIdPendaftaran(){
 
 let urlParams =
@@ -2478,17 +3085,22 @@ async function simpanPemeriksaanDokter() {
     let tujuan = "";
 
     if (kodeDisposisi === "rujuk-internal") {
-        tujuan =
-            document.getElementById(
-                "rujukInternalTarget"
-            ).textContent.trim();
 
-        if (tujuan === "") {
-            alert("Pilih poliklinik tujuan rujuk internal.");
-            return;
-        }
-    }
+    tujuan =
+    document.getElementById(
+    "rujukInternalTarget"
+    ).textContent.trim();
 
+}
+
+
+
+if(kodeDisposisi==="rujuk-eksternal"){
+
+    tujuan =
+    "Rujukan Eksternal";
+
+}
     const namaDokter =
         document.querySelector(".doc-name")
             .textContent.trim();
@@ -2537,7 +3149,19 @@ async function simpanPemeriksaanDokter() {
             hasil.id_pemeriksaan
         );
 
-        sessionStorage.removeItem("id_pendaftaran");
+       sessionStorage.removeItem(
+"id_pendaftaran"
+);
+
+
+sessionStorage.removeItem(
+"draft_pemeriksaan"
+);
+
+
+sessionStorage.removeItem(
+"disposisi"
+);
 
         tombolSimpan.textContent =
             "Pemeriksaan Sudah Disimpan";
@@ -2572,22 +3196,50 @@ document
         "click",
         simpanPemeriksaanDokter
     );
+function cekDisposisiRujukan(){
+
+
+let disposisi =
+sessionStorage.getItem(
+"disposisi"
+);
+
+
+
+if(disposisi==="rujuk-eksternal"){
+
+
+let chip =
+document.querySelector(
+'[data-disposisi="rujuk-eksternal"]'
+);
+
+
+
+if(chip){
+selectDisposisiChip(chip);
+}
+}
+
+}
 
 
 document.addEventListener(
 "DOMContentLoaded",
 function(){
 
+
 loadNavbar();
 loadPasienPemeriksaan();
+loadDraftPemeriksaan();
 hitungTotalKuantitas();
-
-
+cekDisposisiRujukan();
 if(window.lucide){
 
 lucide.createIcons();
 
 }
+
 
 });
 
