@@ -10,13 +10,9 @@ $query=mysqli_query($conn,
 SELECT
 
 pendaftaran.id_pendaftaran,
-
 pasien.nama_pasien,
-
 pasien.no_rm,
-
 pasien.tanggal_lahir,
-
 pasien.jenis_kelamin
 
 

@@ -26,7 +26,14 @@ WHERE id_pendaftaran='$id'
 $data=mysqli_fetch_assoc($query);
 
 
-echo json_encode($data);
+if(!$data){
+echo json_encode([
+"status"=>"empty"
+]);
 
+exit;
+
+}
+echo json_encode($data);
 
 ?>

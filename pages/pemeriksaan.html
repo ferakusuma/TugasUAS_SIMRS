@@ -2010,18 +2010,26 @@
 
 function getIdPendaftaran(){
 
-
 let urlParams =
 new URLSearchParams(window.location.search);
 
 
-return urlParams.get(
+let id = urlParams.get("id_pendaftaran");
+
+
+// kalau tidak ada di URL ambil dari session
+if(!id){
+
+id = sessionStorage.getItem(
 "id_pendaftaran"
 );
 
-
 }
 
+
+return id;
+
+}
 
 
 
@@ -2123,77 +2131,127 @@ err
 
 }
 
-
-
-
-
 function loadAsesmenPasien(id){
-
-
 
 fetch(
 "../api/get_asesmen_pasien.php?id_pendaftaran="+id
 )
-
-
 .then(res=>res.json())
-
-
 .then(data=>{
 
 
 console.log(
-"DATA ASESMEN",
+"DATA ASESMEN DOKTER",
 data
 );
 
 
 
+if(data.status==="empty"){
+
+console.log(
+"Belum ada asesmen"
+);
+
+return;
+
+}
+
+
+
+
 document.getElementById(
-"keluhan-perawat"
+"riwayat-keluhan"
 ).innerHTML =
 data.keluhan_awal || "-";
 
 
 
+
 document.getElementById(
-"asesmen-td"
+"riwayat-tekanan"
 ).innerHTML =
 data.tekanan_darah || "-";
 
 
 
+
 document.getElementById(
-"asesmen-suhu"
+"riwayat-suhu"
 ).innerHTML =
 data.suhu || "-";
 
 
 
+
 document.getElementById(
-"asesmen-nadi"
+"riwayat-nadi"
 ).innerHTML =
 data.nadi || "-";
 
 
 
+
 document.getElementById(
-"asesmen-rr"
+"riwayat-pernapasan"
 ).innerHTML =
 data.pernapasan || "-";
 
 
 
 
-let alergiBox =
+// alergi
+
+let box =
 document.getElementById(
-"asesmen-alergi"
+"riwayat-alergi"
 );
 
 
+box.innerHTML="";
 
-alergiBox.innerHTML =
-data.alergi || "Tidak Ada Alergi";
+
+
+if(data.alergi){
+
+
+data.alergi.split(",")
+.forEach(function(item){
+
+
+let span =
+document.createElement("span");
+
+
+span.className =
+"pill allergy-pill";
+
+
+span.innerHTML =
+item.trim();
+
+
+
+box.appendChild(span);
+
+});
+
+}
+else{
+
+
+box.innerHTML =
+"<span>Tidak ada alergi</span>";
+
+}
+
+})
+
+.catch(err=>{
+console.error(
+"ASESMEN ERROR",
+err
+);
 
 });
 }

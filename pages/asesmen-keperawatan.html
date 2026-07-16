@@ -1227,15 +1227,19 @@ data
 
 if(data.status==="success"){
 
-
 alert(
 "Asesmen berhasil disimpan"
 );
 
+// simpan pasien aktif
+sessionStorage.setItem(
+"id_pendaftaran",
+idPendaftaran
+);
 
+// masuk pemeriksaan dokter
 window.location.href =
-"pemeriksaan.html?id_pendaftaran="+idPendaftaran;
-
+"pemeriksaan.html";
 }
 
 else{
@@ -1244,14 +1248,9 @@ else{
 alert(
 "Asesmen gagal disimpan"
 );
-
-
 }
 
-
-
 })
-
 
 .catch(error=>{
 
@@ -1269,10 +1268,6 @@ alert(
 
 
 }
-
-
-
-
 
 // =============================
 // EVENT BUTTON
@@ -1311,7 +1306,6 @@ document.addEventListener(
 function(){
 loadNavbar();
 loadPasienAsesmen();
-loadPasienPemeriksaan();
 if(window.lucide){
 
 lucide.createIcons();
